@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1516039327686.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "CAB99AD3",
+    "lastKnownWriteTime" : 1526014122,
+    "last_content_update" : 1526014122574,
+    "path" : "~/GDCRtools/vignettes/GDCRtools-vignette.Rmd",
+    "project_path" : "vignettes/GDCRtools-vignette.Rmd",
+    "properties" : {
+        "cursorPosition" : "68,0",
+        "last_setup_crc32" : "",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

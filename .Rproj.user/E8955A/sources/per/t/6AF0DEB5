@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509239655304.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3433646253",
+    "id" : "6AF0DEB5",
+    "lastKnownWriteTime" : 1509239674,
+    "last_content_update" : 1509239674262,
+    "path" : "~/Desktop/alteracoes.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "4,23",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

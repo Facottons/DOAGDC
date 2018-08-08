@@ -1,0 +1,79 @@
+facetsdf <- as.data.frame(mget(facetvars, envir = env)) # or inherits = TRUE
+
+importFrom(magrittr,"%>%")
+#' @importFrom packagename functionname Then you run
+#' devtools::document()
+
+# Start PCA Analysis
+#prepara um vetor de cores e o vetor com condi??es
+#ParaGrafico <- gsub(2, "High", GROUPS[, "Selected_classification"])
+ParaGrafico <<- condHeatmap
+# cores <- ifelse(ParaGrafico == "Low", "#E41A1C","#377EB8")
+
+##########################VER OUTROS PARÂMETROS
+if (nrow(resultadosDE) != 0 ){
+    PCA.Anal(SIZE = "All",
+             FILE = paste0(DIR,
+                           "/PCA_Plots/PCA_GENETOP = all_x2_0.05.png"))
+    PCA.Anal(SIZE = nrow(resultadosDE)%/%4,
+             FILE = paste0(DIR,
+                           "/PCA_Plots/PCA_GENETOP = ", nrow(resultadosDE)%/%4,
+                           "_x2_0.05.png"))
+    PCA.Anal(SIZE = nrow(resultadosDE)%/%2,
+             FILE = paste0(DIR,
+                           "/PCA_Plots/PCA_GENETOP = ", nrow(resultadosDE)%/%2,
+                           "_x2_0.05.png"))
+    PCA.Anal(SIZE = (3*nrow(resultadosDE))%/%4,
+             FILE = paste0(DIR,
+                           "/PCA_Plots/PCA_GENETOP = ", (3*nrow(resultadosDE))%/%4,
+                           "_x2_0.05.png"))
+} else {
+    message("There's no DE gene in your query!!")
+}
+
+# Start PCA Analysis
+#prepara um vetor de cores e o vetor com condi??es
+#ParaGrafico <- gsub(2, "High", GROUPS[, "Selected_classification"])
+ParaGrafico <<- condHeatmap
+# cores <- ifelse(ParaGrafico == "Low", "#E41A1C","#377EB8")
+
+##########################VER OUTROS PARÂMETROS
+if (nrow(resultadosDE) != 0 ){
+    PCA.Anal(SIZE = "All", FILE = paste0(DIR, "/PCA_Plots/PCA_GENETOP = all_x2_0.05.png"))
+    PCA.Anal(SIZE = nrow(resultadosDE)%/%4,
+             FILE = paste0(DIR, "/PCA_Plots/PCA_GENETOP = ", nrow(resultadosDE)%/%4,
+                           "_x2_0.05.png"))
+    PCA.Anal(SIZE = nrow(resultadosDE)%/%2,
+             FILE = paste0(DIR, "/PCA_Plots/PCA_GENETOP = ", nrow(resultadosDE)%/%2,
+                           "_x2_0.05.png"))
+    PCA.Anal(SIZE = (3*nrow(resultadosDE))%/%4,
+             FILE = paste0(DIR, "/PCA_Plots/PCA_GENETOP = ", (3*nrow(resultadosDE))%/%4,
+                           "_x2_0.05.png"))
+} else {
+    message("There's no DE gene in your query!!")
+}
+
+# Start PCA Analysis
+#prepara um vetor de cores e o vetor com condi??es
+#ParaGrafico <- gsub(2, "High", GROUPS[, "Selected_classification"])
+ParaGrafico <<- condHeatmap
+cores <- ifelse(ParaGrafico == "Low", "#E41A1C","#377EB8")
+
+##########################VER OUTROS PARÂMETROS
+if (nrow(resultadosDE) != 0 ){
+    PCA.Anal(SIZE = "All", FILE = paste0(DIR, "/PCA_Plots/PCA_GENETOP = all_x2_0.05.png"))
+    PCA.Anal(SIZE = nrow(resultadosDE)%/%4,
+             FILE = paste0(DIR,
+                           "/PCA_Plots/PCA_GENETOP = ", nrow(resultadosDE)%/%4,
+                           "_x2_0.05.png"))
+    PCA.Anal(SIZE = nrow(resultadosDE)%/%2,
+             FILE = paste0(DIR,
+                           "/PCA_Plots/PCA_GENETOP = ", nrow(resultadosDE)%/%2,
+                           "_x2_0.05.png"))
+    PCA.Anal(SIZE = (3*nrow(resultadosDE))%/%4,
+             FILE = paste0(DIR,
+                           "/PCA_Plots/PCA_GENETOP = ", (3*nrow(resultadosDE))%/%4,
+                           "_x2_0.05.png"))
+} else {
+    message("There's no DE gene in your query!!")
+}

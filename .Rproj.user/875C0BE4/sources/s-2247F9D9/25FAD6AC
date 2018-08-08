@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1516072195316.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "25FAD6AC",
+    "lastKnownWriteTime" : 1532217086,
+    "last_content_update" : 1532217086222,
+    "path" : "~/Desktop/newteste_deseq2_rmarkdown.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "5,11",
+        "scrollLine" : "0",
+        "source_window_id" : "",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,593 @@
+# Testing and finishing
+DIR <- "/home/fabio/tumor_data/desktop"
+
+# gene ####
+Data <- "gene"
+DB <- "legacy"
+# concatenate_files(dataType = Data,
+#                   normalization = TRUE,
+#                   tumorData = FALSE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   tumor = "UCS")
+#
+# concatenate_files(dataType = Data,
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   tumor = "UCS")
+#
+# concatenate_files(dataType = Data,
+#                   Name = "HIF3A",
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   tumor = "UCS", onlyFilter = TRUE,
+#                   env = UCS_LEGACY_gene_tumor_data)
+#
+# concatenate_files(dataType = Data,
+#                   Name = "64344",
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   tumor = "UCS", onlyFilter = TRUE,
+#                   env = UCS_LEGACY_gene_tumor_data)
+#
+# concatenate_files(dataType = Data,
+#                   Name = 672,
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   tumor = "UCS", onlyFilter = TRUE,
+#                   env = UCS_LEGACY_gene_tumor_data)
+#
+#
+# concatenate_files(dataType = Data,
+#                   Name = "BRCA2",
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   tumor = "UCS", onlyFilter = TRUE,
+#                   env = UCS_LEGACY_gene_tumor_data)
+
+
+concatenate_files(dataType = Data,
+                  Name = "BRCA2",
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB,
+                  workDir = DIR,
+                  tumor = "UCS")
+
+groups_identification_mclust(dataType = Data,
+                      Name = "BRCA2",
+                      reRunPlots = FALSE,
+                      env = UCS_LEGACY_gene_tumor_data,
+                      tumor = "UCS",
+                      dataBase = DB,
+                      workDir = DIR)
+
+groups_identification_mclust(dataType = Data,
+                      Name = "BRCA2", reRunPlots = TRUE,
+                      uncertaintyCutoff = 0.05,
+                      env = UCS_LEGACY_gene_tumor_data,
+                      tumor = "UCS",
+                      dataBase = DB,
+                      workDir = DIR)
+
+
+
+# Iso ####
+# Data <- "gene"
+# DB <- "legacy"
+# concatenate_files(dataType = Data,
+#                   Name = "uc002peg.3",
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   tumor = "UCS", onlyFilter = TRUE,
+#                   env = UCS_LEGACY_isoform_tumor_data)
+
+
+# gdc gene ####
+Data <- "gene"
+DB <- "gdc"
+# concatenate_files(dataType = Data,
+#                   normalization = FALSE,
+#                   tumorData = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR, HTSeq = "counts",
+#                   tumor = "UCS")
+#
+concatenate_files(dataType = Data,
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB,
+                  workDir = DIR, HTSeq = "FPKM-UQ",
+                  tumor = "UCS")
+#
+# concatenate_files(dataType = Data,
+#                   Name = "ENSG00000242268.2",
+#                   normalization = FALSE,
+#                   tumorData = TRUE,
+#                   dataBase = DB, onlyFilter = TRUE,
+#                   workDir = DIR, HTSeq = "FPKM-UQ",
+#                   tumor = "UCS", env = UCS_GDC_gene_tumor_data)
+#
+#
+concatenate_files(dataType = Data,
+                  Name = "ENSG00000242268.2",
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB, onlyFilter = TRUE,
+                  workDir = DIR, HTSeq = "FPKM-UQ",
+                  tumor = "UCS", env = UCS_GDC_gene_tumor_data)
+
+
+groups_identification_mclust(dataType = Data,
+                             Name = "ENSG00000242268.2",
+                             reRunPlots = FALSE,
+                             env = UCS_GDC_gene_tumor_data,
+                             tumor = "UCS",
+                             dataBase = DB,
+                             workDir = DIR)
+
+# why does that happen in gdc gene example? ################################################################
+# Pr ####
+Data <- "protein"
+DB <- "legacy"
+concatenate_files(dataType = Data,
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB,
+                  workDir = DIR,
+                  tumor = "UCS")
+
+concatenate_files(dataType = Data,
+                  Name = "Caspase-8-M-E",
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB,
+                  workDir = DIR, onlyFilter = TRUE,
+                  tumor = "UCS", env = UCS_LEGACY_protein_tumor_data)
+
+groups_identification_mclust(dataType = Data,
+                      Name = "Caspase-8-M-E",
+                      reRunPlots = FALSE,
+                      env = UCS_LEGACY_protein_tumor_data,
+                      tumor = "UCS", group.number = 3,
+                      dataBase = DB,
+                      workDir = DIR)
+
+concatenate_files(dataType = "gene",
+                  normalization = FALSE,
+                  tumorData = TRUE,
+                  dataBase = "legacy",
+                  workDir = DIR,
+                  tumor = "UCS",
+                  env = UCS_LEGACY_protein_tumor_data)
+dea_edgeR(dataType = "protein",
+          Name = "Caspase-8-M-E",
+          Method = "exactTest",
+          workDir = DIR,
+          env = UCS_LEGACY_protein_tumor_data)
+PCA_Analysis(Tool = "edgeR", dataType = "protein",
+             Name = "Caspase-8-M-E",
+             env = "env_name_without_quote",
+             pairName = "G2_over_G1")
+draw_heatmap(Tool = "edgeR",
+             dataType = "protein",
+             Name = "Caspase-8-M-E",
+             Method = "euclidean",
+             pairName = "G2_over_G1")
+for (Condition in c("Upregulated", "Downregulated", "ALL")) {
+    GOnto(condition = Condition,
+          Tool = "edgeR",
+          env = UCS_LEGACY_protein_tumor_data)
+}
+GSEA(Tool = "edgeR", env = UCS_LEGACY_protein_tumor_data)
+DO_REAC_ENRICH(Tool = "edgeR", env = UCS_LEGACY_protein_tumor_data)
+
+#noLimma(dataType = "gene", Name = "64344")
+#GOnto(Name = "HIF3A", Tool = Tool)
+
+dea_EBSeq(dataType = "protein",
+          rounds = 10,
+          Name = "Caspase-8-M-E",
+          env = UCS_LEGACY_protein_tumor_data)
+PCA_Analysis(Tool = "edgeR", dataType = "protein",
+             Name = "Caspase-8-M-E",
+             env = "env_name_without_quote",
+             pairName = "G2_over_G1")
+draw_heatmap(Tool = "edgeR",
+             dataType = "protein",
+             Name = "Caspase-8-M-E",
+             Method = "euclidean",
+             pairName = "G2_over_G1")
+prepar_path_enrich(File = "resultadosDE.EBSeq",
+                   env = UCS_LEGACY_protein_tumor_data,
+                   Tool = "EBSeq")
+for (Condition in c("Upregulated", "Downregulated", "ALL")) {
+    GOnto(condition = Condition,
+          Tool = "EBSeq",
+          env = UCS_LEGACY_protein_tumor_data)
+}
+GSEA(Tool = "EBSeq", env = UCS_LEGACY_protein_tumor_data)
+DO_REAC_ENRICH(Tool = "EBSeq", env = UCS_LEGACY_protein_tumor_data)
+
+dea_DESeq2(dataType = "protein",
+           Name = "Caspase-8-M-E",
+           env = UCS_LEGACY_protein_tumor_data)
+PCA_Analysis(Tool = "edgeR", dataType = "protein",
+             Name = "Caspase-8-M-E",
+             env = "env_name_without_quote",
+             pairName = "G2_over_G1")
+draw_heatmap(Tool = "edgeR",
+             dataType = "protein",
+             Name = "Caspase-8-M-E",
+             Method = "euclidean",
+             pairName = "G2_over_G1")
+prepar_path_enrich(File = "resultadosDE.DESeq2",
+                   env = UCS_LEGACY_protein_tumor_data,
+                   Tool = "DESeq2")
+for (Condition in c("Upregulated", "Downregulated", "ALL")) {
+    GOnto(condition = Condition,
+          Tool = "DESeq2",
+          env = UCS_LEGACY_protein_tumor_data)
+}
+GSEA(Tool = "DESeq2", env = UCS_LEGACY_protein_tumor_data)
+DO_REAC_ENRICH(Tool = "DESeq2", env = UCS_LEGACY_protein_tumor_data)
+
+CrossThem(FinalData = "EBSeq", n.pack = 3,
+          packageNames = c("DESeq2", "edgeR", "EBSeq"), env = UCS_LEGACY_protein_tumor_data)
+prepar_path_enrich(File = "Results.Completed.crossed", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "Upregulated", Tool = "CrossTable.EBSeq", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "Downregulated", Tool = "CrossTable.EBSeq", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "ALL", Tool = "CrossTable.EBSeq", env = UCS_LEGACY_protein_tumor_data)
+GSEA(Tool = "CrossTable.EBSeq", env = UCS_LEGACY_protein_tumor_data)
+DO_REAC_ENRICH(Tool = "CrossTable.EBSeq", env = UCS_LEGACY_protein_tumor_data)
+
+CrossThem(FinalData = "edgeR", n.pack = 3,
+          packageNames = c("DESeq2", "edgeR", "EBSeq"), env = UCS_LEGACY_protein_tumor_data)
+prepar_path_enrich(File = "Results.Completed.crossed", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "Upregulated", Tool = "CrossTable.edgeR", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "Downregulated", Tool = "CrossTable.edgeR", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "ALL", Tool = "CrossTable.edgeR", env = UCS_LEGACY_protein_tumor_data)
+GSEA(Tool = "CrossTable.edgeR", env = UCS_LEGACY_protein_tumor_data)
+DO_REAC_ENRICH(Tool = "CrossTable.edgeR", env = UCS_LEGACY_protein_tumor_data)
+
+CrossThem(FinalData = "DESeq2", n.pack = 3,
+          packageNames = c("DESeq2", "edgeR", "EBSeq"), env = UCS_LEGACY_protein_tumor_data)
+prepar_path_enrich(File = "Results.Completed.crossed", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "Upregulated", Tool = "CrossTable.DESeq2", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "Downregulated", Tool = "CrossTable.DESeq2", env = UCS_LEGACY_protein_tumor_data)
+GOnto(condition = "ALL", Tool = "CrossTable.DESeq2", env = UCS_LEGACY_protein_tumor_data)
+GSEA(Tool = "CrossTable.DESeq2", env = UCS_LEGACY_protein_tumor_data)
+DO_REAC_ENRICH(Tool = "CrossTable.DESeq2", env = UCS_LEGACY_protein_tumor_data)
+
+
+# miRNA ####
+Data <- "miRNA gene quantification"
+# Data <- "miRNA isoform quantification" #(diferente nrow para cada paciente)
+# inicio possivel fix
+# tmp <- sapply(file.path(DIR, mirna.files.arg), function(x){
+#     actual.file <- data.table::fread(x, sep = "\t",
+#                                      showProgress = FALSE, select = 1)
+#     nrow(actual.file)
+# })
+# min(tmp) # depois pega id dele e remover os demais ids dos outros arquivos
+
+DB <- "legacy"
+# concatenate_files(dataType = Data,
+#                   Platform = "Illumina HiSeq",
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB, use.hg19.mirbase20 = TRUE,
+#                   workDir = DIR,
+#                   tumor = "UCS")
+#
+# concatenate_files(dataType = Data,
+#                   Name = "hsa-let-7b",
+#                   normalization = TRUE,
+#                   tumorData = TRUE, onlyFilter = TRUE,
+#                   dataBase = DB, use.hg19.mirbase20 = FALSE,
+#                   workDir = DIR,
+#                   env = UCS_LEGACY_miRNA_gene_quantification_tumor_data,
+#                   tumor = "UCS")
+
+
+concatenate_files(dataType = Data,
+                  Name = "hsa-mir-10b",
+                  Platform = "Illumina HiSeq",
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB, use.hg19.mirbase20 = TRUE,
+                  workDir = DIR,
+                  tumor = "UCS")
+
+groups_identification_mclust(dataType = Data,
+                      Name = "hsa-mir-10b",
+                      reRunPlots = FALSE,
+                      env = UCS_LEGACY_miRNA_gene_quantification_tumor_data,
+                      tumor = "UCS",
+                      dataBase = DB,
+                      workDir = DIR)
+
+groups_identification_mclust(dataType = Data,
+                      Name = "hsa-mir-10b", reRunPlots = TRUE,
+                      uncertaintyCutoff = 0.05,
+                      env = UCS_LEGACY_gene_tumor_data,
+                      tumor = "UCS",
+                      dataBase = DB,
+                      workDir = DIR)
+
+
+
+# gdc miRNA ####
+Data <- "miRNA Expression Quantification"
+# Data <- "Isoform Expression Quantification" #(mesmo problema do anterior)
+DB <- "gdc"
+# concatenate_files(dataType = Data,
+#                   Platform = "Illumina HiSeq",
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   tumor = "UCS")
+#
+# concatenate_files(dataType = Data,
+#                   Name = "hsa-let-7b",
+#                   normalization = TRUE,
+#                   tumorData = TRUE, onlyFilter = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR,
+#                   env = UCS_GDC_miRNA_Expression_Quantification_tumor_data,
+#                   tumor = "UCS")
+
+
+concatenate_files(dataType = Data,
+                  Platform = "Illumina HiSeq",
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB,
+                  workDir = DIR,
+                  tumor = "UCS")
+
+concatenate_files(dataType = Data,
+                  Name = "hsa-mir-21",
+                  normalization = TRUE,
+                  tumorData = TRUE, onlyFilter = TRUE,
+                  dataBase = DB,
+                  workDir = DIR,
+                  env = UCS_GDC_miRNA_Expression_Quantification_tumor_data,
+                  tumor = "UCS")
+
+groups_identification_mclust(dataType = Data,
+                      group.number = 3,
+                      Name = "hsa-mir-21",
+                      reRunPlots = FALSE,
+                      env = UCS_GDC_miRNA_Expression_Quantification_tumor_data,
+                      tumor = "UCS",
+                      dataBase = DB,
+                      workDir = DIR)
+
+
+# Mut ####
+# Data <- "mutation"
+# DB <- "legacy"
+# concatenate_files(dataType = Data,
+#                   normalization = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR, Platform = "illumina hiseq",
+#                   tumor = "UCS")
+#
+# #selector ? xxxx
+# concatenate_files(dataType = Data,
+#                   normalization = TRUE,
+#                   dataBase = DB,
+#                   workDir = DIR, Platform = "illumina hiseq",
+#                   tumor = "UCS")
+
+# gdc Mut ####
+# Data <- "mutation"
+# DB <- "gdc"
+# concatenate_files(dataType = Data,
+#                   normalization = TRUE,
+#                   dataBase = DB, workflowType = "varscan",
+#                   workDir = DIR,
+#                   tumor = "UCS")
+#
+# concatenate_files(dataType = Data,
+#                   normalization = TRUE,
+#                   dataBase = DB, workflowType = "mutect",
+#                   workDir = DIR, env = UCS_GDC_mutation_tumor_data,
+#                   tumor = "UCS")
+#selector ? xxxx
+
+
+# clinical ####
+Data <- "clinical"
+DB <- "legacy"
+concatenate_files(dataType = Data,
+                  dataBase = DB,
+                  workDir = DIR,
+                  tumor = "UCS")
+
+concatenate_files(dataType = "gene",
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB,
+                  workDir = DIR, Name = "BRCA2",
+                  tumor = "UCS",
+                  env = UCS_LEGACY_clinical_tumor_data)
+
+check_clinical_terms(Name = "BRCA2", workDir = DIR,
+                     tumor = "UCS", dataType = "gene",
+                     dataBase = DB,
+                     term = "weight_kg_at_diagnosis",
+                     env = UCS_LEGACY_clinical_tumor_data)
+
+# gdc_clinical ####
+Data <- "biospecimen"
+DB <- "gdc"
+concatenate_files(dataType = Data,
+                  dataBase = DB,
+                  workDir = DIR,
+                  tumor = "UCS")
+# Error: XML content does not seem to be XML xxxx
+
+
+# Exon quantification ####
+# Data <- "Exon quantification"
+# DB <- "legacy"
+# concatenate_files(dataType = Data,
+#                   normalization = TRUE,
+#                   tumorData = TRUE,
+#                   dataBase = DB, Platform = 'illumina hiseq',
+#                   workDir = DIR,
+#                   tumor = "UCS")
+# methy ####
+Data <- "methylation"
+DB <- "legacy"
+concatenate_files(dataType = Data,
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB, Platform = "Illumina Human Methylation 450",
+                  workDir = DIR,
+                  tumor = "UCS")
+
+concatenate_files(dataType = Data,
+                  Name = "HIF3A",
+                  normalization = TRUE,
+                  tumorData = TRUE, onlyFilter = TRUE,
+                  dataBase = DB, Platform = "Illumina Human Methylation 450",
+                  workDir = DIR, env = UCS_LEGACY_methylation_tumor_data,
+                  tumor = "UCS")
+
+beta2mValues(probeName = "cg16672562",
+             env = UCS_LEGACY_methylation_tumor_data)
+
+groups_identification_mclust(dataType = Data,
+                             Name = "cg16672562",
+                             reRunPlots = FALSE,
+                             env = UCS_LEGACY_methylation_tumor_data,
+                             tumor = "UCS",
+                             dataBase = DB,
+                             workDir = DIR)
+
+# gdc_methy ####
+Data <- "methylation"
+DB <- "gdc"
+concatenate_files(dataType = Data,
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB, Platform = "Illumina Human Methylation 450",
+                  workDir = DIR,
+                  tumor = "UCS")
+
+concatenate_files(dataType = Data,
+                  Name = "HIF3A",
+                  normalization = TRUE,
+                  tumorData = TRUE, onlyFilter = TRUE,
+                  dataBase = DB, Platform = "Illumina Human Methylation 450",
+                  workDir = DIR, env = UCS_GDC_methylation_tumor_data,
+                  tumor = "UCS")
+
+beta2mValues(probeName = "cg16672562",
+             env = UCS_GDC_methylation_tumor_data)
+
+groups_identification_mclust(dataType = Data,
+                             Name = "cg16672562",
+                             reRunPlots = FALSE,
+                             env = UCS_GDC_methylation_tumor_data,
+                             tumor = "UCS",
+                             dataBase = DB,
+                             workDir = DIR)
+
+
+
+# cox ####
+Data <- "gene"
+DB <- "legacy"
+tool <- "EBSeq"
+
+concatenate_files(dataType = Data,
+                  Name = "HIF3A",
+                  normalization = TRUE,
+                  tumorData = TRUE,
+                  dataBase = DB,
+                  workDir = DIR,
+                  tumor = "UCS")
+
+groups_identification_coxHR(Name = "HIF3A",
+                          dataType = "gene",
+                          workDir = DIR, env = UCS_LEGACY_gene_tumor_data,
+                          tumor = "UCS", dataBase = DB)
+
+concatenate_files(dataType = Data,
+                  Name = "HIF3A",
+                  normalization = FALSE,
+                  tumorData = TRUE,
+                  dataBase = DB,
+                  workDir = DIR,
+                  env = UCS_LEGACY_gene_tumor_data,
+                  tumor = "UCS")
+
+dea_edgeR(dataType = "gene",
+          Name = "HIF3A",
+          groupGen = "coxHR",
+          Method = "exactTest",
+          workDir = DIR,
+          env = UCS_LEGACY_gene_tumor_data)
+
+dea_EBSeq(dataType = "gene",
+          Name = "HIF3A",
+          groupGen = "coxHR",
+          workDir = DIR, rounds = 10,
+          env = UCS_LEGACY_gene_tumor_data)
+
+dea_DESeq2(dataType = "gene",
+          Name = "HIF3A",
+          groupGen = "coxHR",
+          workDir = DIR, coreNumber = 4,
+          env = UCS_LEGACY_gene_tumor_data)
+
+CrossThem(FinalData = "DESeq2", n.pack = 3,
+          packageNames = "All", env = UCS_LEGACY_gene_tumor_data)
+tool <- "CrossTable.DESeq2"
+
+PCA_Analysis(Tool = tool, dataType = "gene",
+             Name = "HIF3A",
+             env = UCS_LEGACY_gene_tumor_data,
+             pairName = "G2_over_G1")
+draw_heatmap(Tool = tool,
+             dataType = "gene",
+             Name = "HIF3A",
+             Method = "euclidean",
+             env = UCS_LEGACY_gene_tumor_data,
+             pairName = "G2_over_G1")
+for (Condition in c("Upregulated", "Downregulated", "ALL")) {
+    GOnto(condition = Condition,
+          Tool = tool,
+          env = UCS_LEGACY_gene_tumor_data)
+}
+GSEA(Tool = tool, env = UCS_LEGACY_gene_tumor_data)
+DO_REAC_ENRICH(Tool = tool, env = UCS_LEGACY_gene_tumor_data)
+KEEG_ENRICH(Tool = tool, env = UCS_LEGACY_gene_tumor_data)
+# to do ####
+
+# norm watermellow (tese douglas/manual)
+
+# wateRmelon::Beta2M
+# function (B)
+# {
+#     return(log2(B/(1 - B)))
+# }
+
+# how dea deal with clinical category as max() input
