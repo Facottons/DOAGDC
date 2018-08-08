@@ -1,0 +1,32 @@
+#' Gene ontology annotations table
+#'
+#' This dataset was exported from GO website available from
+#' \url{http://research.stlouisfed.org/fred2}.
+#'
+#' @format A list of 3 elements (Biological Process, Cellular Component, and
+#'   Molecular Function)
+#' @references \url{http://}
+#'
+"GO_annotations"
+
+#' UCSC refseq table
+#'
+#' This dataset was exported from UCSC Genome Browser available from
+#' \url{http://research.stlouisfed.org/fred2}.
+#'
+#' @format A data frame with 16929 rows and 6 variables
+#' @references \url{http://www.stat.berkeley.edu/~brill/Papers/jspifinal.pdf}
+"annotation_table"
+
+#' Common gene set data collections from \code{gageData} package
+#'
+#' This dataset has 229 KEGG Pathway entries and it is available from
+#' \code{gageData} package.
+#'
+#' @format A list of 229 elements (each one correspond to a KEGG Pathway)
+#' @references \code{gageData}
+"kegg.sets.hs"
+
+#' @format A vector with 177 integers.
+#' @references \code{gageData}
+"sigmet.idx.hs"

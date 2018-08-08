@@ -1,0 +1,215 @@
+---
+title: "Vignette for GDCRtools package"
+author: "Fábio Malta de Sá Patroni"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_document:
+    highlight: tango # or pygments
+    toc: true
+    toc_depth: 3 
+    theme: flatly 
+    number_sections: true 
+    fig_width: 5
+    # css: my_css.css 
+abstract: >
+  Do_artigo
+package: "`r BiocStyle::pkg_ver('GDCRtools')`"
+vignette: >
+  %\VignetteIndexEntry{GDCRtools Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  tidy=FALSE, 
+  dev="png", 
+  cache=TRUE,
+  collapse = TRUE,
+  comment = "#>",
+  message=TRUE, 
+  warning=TRUE,
+  error=FALSE
+)
+```
+
+# Package Description
+
+
+
+Please cite, if you use GDCRtools in published research:
+```{r, echo=FALSE}
+citation("GDCRtools")
+```
+
+# Starting workflow - Function to function explanation 
+
+## Downloading GDC Data Portal or GDC Legacy Archive data
+
+GDC Data Portal and GDC Legacy Archive have many types of data available (e.g.
+gene and isoform expression data). It is possible to use some values in the
+`dataType` argument to retrieve specific data. For instance, one could use
+`dataType = "methylation"` to download Methylation data or `dataType =
+"protein"` to download Protein Expression data. See `help("download_gdc")` for
+more information.
+
+**Important Note** - In this package all tumor names in `tumor` argument must be
+given by their abbreviation. For example 'BRCA' must be used as `tumor` argument
+for 'Breast invasive carcinoma'. Check [this
+page](https://tcga-data.nci.nih.gov/docs/publications/tcga/?) for more details.
+
+### Examples 
+
+* In order to download specific data from Uterine carcinosarcoma (UCS):
+    * **Isoform expression data from GDC Legacy Archive:**
+`download_gdc(dataType = "isoform", dataBase = "legacy", tumor = "UCS", workDir = "/media/fabio/new/tumor_data")`
+    * **Methylation data from GDC Legacy Archive:**
+`download_gdc(dataType = "methylation", dataBase = "legacy", tumor = "UCS", workDir = "/media/fabio/new/tumor_data", Platform = "Illumina Human Methylation 450")`
+    * **Mutation data from GDC Data Portal:**
+`download_gdc(dataType = "mutation", dataBase = "GDC", tumor = "UCS", workDir = "/media/fabio/new/tumor_data", Platform = "Illumina HiSeq")`
+    * **Gene expression data from GDC Data Portal:**
+`download_gdc(dataType = "gene", dataBase = "GDC", tumor = "UCS", HTSeq = "FPKM", workDir = "/media/fabio/new/tumor_data")`
+
+**Important Note** - Isoform expression data is only available in _GDC Legacy Archive_.
+
+## Concatenate patients in one table
+
+The files downloaded are individualized by patients. All next analysis provided
+by GDCRtools required the values in a single table (object). This requireriment
+can be achived for any `dataType` by runing the following functions.
+
+* Concatenate data from Uterine carcinosarcoma (UCS) examples:
+    * **Isoform expression normalized data from GDC Legacy Archive:**
+`concatenate_files(dataType = "isoform", normalization = TRUE, tumorData = TRUE, dataBase = "legacy", workDir = "/media/fabio/new/tumor_data", tumor = "UCS")`
+    * **Mutation data from GDC Legacy Archive:**
+`concatenate_files(dataType = "mutation", workflowType = "varscan", Platform = "Illumina GA", tumorData = TRUE, dataBase = "legacy", workDir = "/media/fabio/new/tumor_data", tumor = "UCS")`
+    * **miRNA expression data from GDC Data Portal and save concatenate table to disk:**
+`concatenate_files(dataType = "miRNA", use.hg19.mirbase20 = TRUE, tumorData = TRUE, dataBase = "GDC", workDir = "/media/fabio/new/tumor_data", tumor = "UCS", saveData = TRUE)`
+    * **Gene expression not normalized data from GDC Data Portal:**
+`concatenate_files(dataType = "gene", HTSeq = "Counts", tumorData = TRUE, dataBase = "GDC", workDir = "/media/fabio/new/tumor_data", tumor = "UCS")`
+
+**Important Note** - If your data is already concatenate in a single matrix,
+please use the `table2GDCRtools` function to import your data into the GDCRtools
+environment (`table2GDCRtools(data_table, dataType = "gene", dataBase =
+"legacy", tumor = "UCS")`).
+
+## Groups formation
+
+The analyses of Differential Expression requires group formation of
+samples/patients. The GDCRtools package offers two possible ways of group
+formation: mclust package^[Scrucca L., Fop M., Murphy T. B. and Raftery A. E.
+(2016) mclust 5: clustering, classification and density estimation using
+Gaussian finite mixture models The R Journal 8/1, pp.205-233], and clinical
+data.
+
+### Using mclust package
+
+`groups_identification(dataType = "gene", group.number = 2, Name = "HIF3A", modelName = "E", reRunPlots = FALSE, env = UCS_legacy_gene_tumor_data, tumor = "UCS", dataBase = "legacy", workDir = "/media/fabio/new/tumor_data")`
+
+`groups_identification(dataType = "gene", group.number = 2, Name = "HIF3A", modelName = "E", reRunPlots = TRUE, env = UCS_legacy_gene_tumor_data, tumor = "UCS", dataBase = "legacy", workDir = "/media/fabio/new/tumor_data")`
+
+`concatenate_files(dataType = "gene", normalization = FALSE, Name = "HIF3A", tumorData = TRUE, dataBase = "legacy", workDir = "/media/fabio/new/tumor_data", tumor = "UCS", env = UCS_legacy_gene_tumor_data)`
+
+### Using Clinical Data
+
+`check_clinical_terms(workDir = "/media/fabio/new/tumor_data", tumor = "UCS", dataBase = "legacy", dataType = "gene", env = UCS_legacy_gene_tumor_data, term_keyword = "Vital")`
+
+### Using Cox HR
+
+xxxx
+ 
+## Differential Expression Analysis (DEA)
+
+The GDCRtools is powered by three different packages for this step of the
+analyze: EBSeq^[Ning Leng and Christina Kendziorski (2015). EBSeq: An R package
+for gene and isoform differential expression analysis of RNA-seq data. R package
+version 1.14.0.], DESeq2^[Michael I Love, Wolfgang Huber and Simon Anders
+(2014): Moderated estimation of fold change and dispersion for RNA-Seq data with
+DESeq2. Genome Biology], and edgeR^[Robinson MD, McCarthy DJ and Smyth GK
+(2010). edgeR: a Bioconductor package for differential expression analysis of
+digital gene expression data. Bioinformatics 26, 139-140].
+
+
+`ebseq_dea(dataType = "gene", rounds = 1, Name = "HIF3A", env = UCS_legacy_gene_tumor_data)`
+
+`deseq2_dea(dataType = "gene", Name = "HIF3A", env = UCS_legacy_gene_tumor_data)`	
+
+`edger_dea(dataType = "gene", Name = "HIF3A", Method = "exactTest", workDir = "/media/fabio/new/tumor_data", env = UCS_legacy_gene_tumor_data)`
+
+## Venn diagram of differential expression genes list
+
+Alternativatly it is possible to use more than one DEA package. When this is the
+case, GDCRtools provides `CrossThem`. This function executes a Venn diagram,
+returning only one consensus list of genes between the DEA packages. Then this
+list consensus of genes can be used in Pathway Enrichment Analysis workflow
+step.
+
+### Venn diagram example
+
+* Crossing all three DEA packages and using statistical values from DESeq2 package
+
+`CrossThem(FinalData = "DESeq2", n.pack = 3, packageNames = c("DESeq2", "edgeR", "EBSeq"), env = UCS_legacy_gene_tumor_data)`
+
+* Crossing two DEA packages and using statistical values from edgeR package
+
+`CrossThem(FinalData = "edgeR", n.pack = 2, packageNames = c("DESeq2", "edgeR"), env = UCS_legacy_gene_tumor_data)`
+
+
+## Pathway Enrichment Analysis
+
+The GDCRtools offers five different PEA: Gene Ontology, Gene Set Enrichment
+Analysis, Desease Ontology, Reatome Enrichment, and KEEG.
+
+`prepar_annotations(Name = "HIF3A", workDir = "/media/fabio/new/tumor_data", env = UCS_legacy_gene_tumor_data)`
+
+`prepar_path_enrich(File = "Results.Completed.edgeR", env = UCS_legacy_gene_tumor_data,Tool = "edgeR")#, ID = "GeneSymbol")`
+
+### Gene Ontology
+
+
+
+`GOnto(condition = "Upregulated", Tool = "edgeR", env = UCS_legacy_gene_tumor_data)`
+
+`GOnto(condition = "Downregulated", Tool = "edgeR", env = UCS_legacy_gene_tumor_data)`
+
+`GOnto(condition = "ALL", Tool = "edgeR", env = UCS_legacy_gene_tumor_data)`
+
+### Gene Set Enrichment Analysis
+
+
+
+`GSEA(Tool = "edgeR", env = UCS_legacy_gene_tumor_data)`
+
+### Desease Ontology and Reatome Enrichment
+
+
+
+`DO.REAC.ENRICH(Tool = "edgeR", env = UCS_legacy_gene_tumor_data)`
+
+
+### KEEG
+
+
+
+
+## Co-expression Analysis
+
+
+
+
+
+
+# Quick start
+
+
+
+# Session info
+
+```{r sessionInfo}
+sessionInfo()
+```
+
+
+# Acknowledgments
+
+
