@@ -1,14 +1,3 @@
-#' Gene ontology annotations table
-#'
-#' This dataset was exported from GO website available from
-#' \url{http://research.stlouisfed.org/fred2}.
-#'
-#' @format A list of 3 elements (Biological Process, Cellular Component, and
-#'   Molecular Function)
-#' @references \url{http://}
-#'
-"GO_annotations"
-
 #' UCSC refseq table
 #'
 #' This dataset was exported from UCSC Genome Browser available from

@@ -67,10 +67,15 @@ Imports:
     reshape,
     extrafont,
     scales,
-    cgdsr 
+    cgdsr,
+    AnnotationDbi, 
+    dynamicTreeCut,
+    forcats,
+    reshape2
 Suggests: 
     rmarkdown (>= 0.9),
     knitr (>= 1.12),
+    WGCNA,
     testthat
 License: GPL-3 | file LICENSE
 URL: https://github.com/Facottons/GDCRtools

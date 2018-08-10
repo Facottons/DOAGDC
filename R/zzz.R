@@ -1,7 +1,8 @@
-# .onLoad <- function(libname, pkgname)
-# {
-#     library.dynam("GDCRtools", pkgname, libname)
-# }
+.onLoad <- function(libname, pkgname) {
+    suppressWarnings(remove(gene.idtype.bods, gene.idtype.list, cpd.simtypes, envir = .GlobalEnv))
+
+    # cat("\014")
+}
 
 # http://stackoverflow.com/questions/15261619/sample-gives-different-values-with-same-set-seed
 # message(sprintf("On %s I realized %s was...\n%s by the street", Sys.Date(), person, action))
@@ -28,6 +29,4 @@
     packageStartupMessage("For citing this R package in publications, ",
                           "type 'citation(\"GDCRtools\")'.")
     invisible()
-
-    # suppressWarnings(remove(gene.idtype.bods, gene.idtype.list, cpd.simtypes))
 }
