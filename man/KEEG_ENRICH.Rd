@@ -16,19 +16,19 @@ analysis tool was last used.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -48,5 +48,7 @@ Enriched terms.
 Perform KEEG Pathways Enrichment
 }
 \examples{
+\dontrun{
 KEEG_ENRICH(Tool = "edgeR", env = "env name without quotes")
+}
 }

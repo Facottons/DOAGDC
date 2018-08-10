@@ -14,7 +14,9 @@
 #' @import pathview
 #'
 #' @examples
+#' \dontrun{
 #' KEEG_ENRICH(Tool = "edgeR", env = "env name without quotes")
+#' }
 KEEG_ENRICH <- function(Tool = "edgeR",
                         ID = "GeneID",
                         Width = 8,

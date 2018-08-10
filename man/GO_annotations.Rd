@@ -5,7 +5,7 @@
 \alias{GO_annotations}
 \title{Gene ontology annotations table}
 \format{A list of 3 elements (Biological Process, Cellular Component, and
-  Molecular Function)}
+Molecular Function)}
 \usage{
 GO_annotations
 }

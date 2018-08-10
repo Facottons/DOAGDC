@@ -12,11 +12,11 @@ groups_identification_mclust(dataType, group.number = "",
 }
 \arguments{
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-"clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-quantification", "miRNA isoform quantification", "isoform", "image",
-"clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+  quantification", "miRNA isoform quantification", "isoform", "image",
+  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
 
 \item{group.number}{Numerical value indicating how many groups should be
 generated.}
@@ -37,7 +37,7 @@ bars.}
 
 \item{Width, Height, Res, Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -70,7 +70,8 @@ mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
 groups, powered by mclust.
 }
 \examples{
+\dontrun{
 #separating isoform uc002peh.2 expression data patients in two groups
 groups_identification_mclust("isoform", 2, Name = "uc002peh.2", modelName = "E")
-
+}
 }

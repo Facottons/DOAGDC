@@ -18,6 +18,7 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' patient <- paste0(paste0("patient_", LETTERS[1:4]))
 #' genes <- paste0("gene_", seq(1, 5))
 #' # generate a simulated gene expression matrix
@@ -26,6 +27,7 @@
 #' table2GDCRtools(example_gene_table, dataType = "gene", dataBase = "legacy", tumor = "UCS")
 #' # with env created
 #' table2GDCRtools(example_gene_table, env = "env name without quotes")
+#' }
 table2GDCRtools <- function(table, dataType,
                             normalization = TRUE,
                             dataBase, tumor,

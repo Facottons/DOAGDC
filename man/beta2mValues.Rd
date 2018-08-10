@@ -25,6 +25,7 @@ default is FALSE.}
 Convert beta values to mvalues
 }
 \examples{
+\dontrun{
 beta2mValues(probeName = "cg16672562", saveData = TRUE, env = "env name without quotes")
-
+}
 }

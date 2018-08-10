@@ -27,6 +27,11 @@
 #' @references \code{gageData}
 "kegg.sets.hs"
 
+#' Vector data collections from \code{gageData} package
+#'
+#' This dataset has 177 values and it is available from
+#' \code{gageData} package.
+#'
 #' @format A vector with 177 integers.
 #' @references \code{gageData}
 "sigmet.idx.hs"

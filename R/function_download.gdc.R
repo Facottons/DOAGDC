@@ -35,12 +35,13 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # Downloading gene expression data from GDC Data Portal
 #' download_gdc(dataType = "gene", "BRCA", "GDC", workDir = "~/Desktop", HTSeq = "counts")
 #'
 #' # Downloading mutation data from GDC Legacy Archive
 #' download_gdc(dataType = "mutation", "BRCA", "GDC", Platform = "Illumina HiSeq")
-#'
+#' }
 download_gdc <- function(dataType = "gene",
                          tumor,
                          dataBase = "legacy",

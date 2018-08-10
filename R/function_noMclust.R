@@ -36,9 +36,10 @@
 #' @import mclust
 #'
 #' @examples
+#' \dontrun{
 #' #separating isoform uc002peh.2 expression data patients in two groups
 #' groups_identification_mclust("isoform", 2, Name = "uc002peh.2", modelName = "E")
-#'
+#' }
 groups_identification_mclust <- function(dataType,
                      group.number = "",
                      modelName = NULL,

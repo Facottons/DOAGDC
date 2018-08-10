@@ -38,7 +38,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' draw_heatmap("EBSeq", dataType = "gene", Name = "HIF3A", env = "env name without quotes")
+#' }
 draw_heatmap <- function(Tool, FC.cutoff = 2,
                          dataType, Name,
                          Method = "euclidean",

@@ -58,9 +58,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # Concatenating isoform expression data into a single matrix
 #' concatenate_files(dataType = "isoform", Name = "uc002peh.2", dataBase = "legacy", tumor = "BRCA")
-#'
+#' }
 concatenate_files <- function(dataType,
                       normalization = TRUE,
                       Name , dataBase,

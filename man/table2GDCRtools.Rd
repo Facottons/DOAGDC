@@ -12,11 +12,11 @@ table2GDCRtools(table, dataType, normalization = TRUE, dataBase, tumor,
 isoform and protein expression, methylation and mutation data)}
 
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-"clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-quantification", "miRNA isoform quantification", "isoform", "image",
-"clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+  quantification", "miRNA isoform quantification", "isoform", "image",
+  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
 
 \item{normalization}{Logical value where \code{TRUE} specify the desire to
 work with normalized files only. When FALSE, in the second run, do not
@@ -49,6 +49,7 @@ separated matrices).}}}
 From global to GDCRtools environment
 }
 \examples{
+\dontrun{
 patient <- paste0(paste0("patient_", LETTERS[1:4]))
 genes <- paste0("gene_", seq(1, 5))
 # generate a simulated gene expression matrix
@@ -57,4 +58,5 @@ example_gene_table <- matrix(runif(20, 0.0, 90.5), 5, 4, TRUE, list(genes, patie
 table2GDCRtools(example_gene_table, dataType = "gene", dataBase = "legacy", tumor = "UCS")
 # with env created
 table2GDCRtools(example_gene_table, env = "env name without quotes")
+}
 }

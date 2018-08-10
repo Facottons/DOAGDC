@@ -12,11 +12,11 @@ concatenate_files(dataType, normalization = TRUE, Name, dataBase,
 }
 \arguments{
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-"clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-quantification", "miRNA isoform quantification", "isoform", "image",
-"clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+  quantification", "miRNA isoform quantification", "isoform", "image",
+  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
 
 \item{normalization}{Logical value where \code{TRUE} specify the desire to
 work with normalized files only. When FALSE, in the second run, do not
@@ -66,11 +66,11 @@ is already concatenate and the function should choose a different
 \item{Platform}{A character string indicating the platform name for
 methylation, exon quantificaton, miRNA, and mutation data. \itemize{
 \item{For mutation and exon quantificaton data:}{\code{"Illumina GA",
-"Illumina HiSeq" or "all"}.} \item{For methylation data}{\code{"Illumina
-Human Methylation 450", "Illumina Human Methylation 27" or "all"}.}
+  "Illumina HiSeq" or "all"}.} \item{For methylation data}{\code{"Illumina
+  Human Methylation 450", "Illumina Human Methylation 27" or "all"}.}
 \item{For miRNA data:}{\code{"Illumina GA", "Illumina HiSeq",
-"H-miRNA_8x15K" (for GBM tumor), "H-miRNA_8x15Kv2" (for OV tumor), or
-"all"}.} }The default for all dataType cited is \code{"all"} (when
+  "H-miRNA_8x15K" (for GBM tumor), "H-miRNA_8x15Kv2" (for OV tumor), or
+  "all"}.} }The default for all dataType cited is \code{"all"} (when
 downloading data).}
 
 \item{use.hg19.mirbase20}{Logical value where \code{TRUE} indicates that only
@@ -99,7 +99,8 @@ a single matrix, where the columns stand for patients code and rows stand for
 data names.
 }
 \examples{
+\dontrun{
 # Concatenating isoform expression data into a single matrix
 concatenate_files(dataType = "isoform", Name = "uc002peh.2", dataBase = "legacy", tumor = "BRCA")
-
+}
 }

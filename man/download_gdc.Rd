@@ -10,11 +10,11 @@ download_gdc(dataType = "gene", tumor, dataBase = "legacy",
 }
 \arguments{
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-"clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-quantification", "miRNA isoform quantification", "isoform", "image",
-"clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+  quantification", "miRNA isoform quantification", "isoform", "image",
+  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
 the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
@@ -35,11 +35,11 @@ default is \code{FALSE}.}
 \item{Platform}{A character string indicating the platform name for
 methylation, exon quantificaton, miRNA, and mutation data. \itemize{
 \item{For mutation and exon quantificaton data:}{\code{"Illumina GA",
-"Illumina HiSeq" or "all"}.} \item{For methylation data}{\code{"Illumina
-Human Methylation 450", "Illumina Human Methylation 27" or "all"}.}
+  "Illumina HiSeq" or "all"}.} \item{For methylation data}{\code{"Illumina
+  Human Methylation 450", "Illumina Human Methylation 27" or "all"}.}
 \item{For miRNA data:}{\code{"Illumina GA", "Illumina HiSeq",
-"H-miRNA_8x15K" (for GBM tumor), "H-miRNA_8x15Kv2" (for OV tumor), or
-"all"}.} }The default for all dataType cited is \code{"all"} (when
+  "H-miRNA_8x15K" (for GBM tumor), "H-miRNA_8x15Kv2" (for OV tumor), or
+  "all"}.} }The default for all dataType cited is \code{"all"} (when
 downloading data).}
 }
 \description{
@@ -49,10 +49,11 @@ expression, miRNA expression and clinical images data from GDC Data Portal
 and GDC Legacy Archive.
 }
 \examples{
+\dontrun{
 # Downloading gene expression data from GDC Data Portal
 download_gdc(dataType = "gene", "BRCA", "GDC", workDir = "~/Desktop", HTSeq = "counts")
 
 # Downloading mutation data from GDC Legacy Archive
 download_gdc(dataType = "mutation", "BRCA", "GDC", Platform = "Illumina HiSeq")
-
+}
 }

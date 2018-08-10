@@ -25,9 +25,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' #considering concatenate_files and groups_identification already runned
 #' dea_DESeq2(Name = "HIF3A", test = "LRT", env = "env name without quotes")
-#'
+#' }
 dea_DESeq2 <- function(dataType,
                        Name,coreNumber = 2,
                        test = "Default Test",

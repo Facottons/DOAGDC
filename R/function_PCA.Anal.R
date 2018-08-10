@@ -15,8 +15,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' PCA_Analysis("EBSeq", "gene", "HIF3A", pairName = "G2_over_G1", env = "env name without quotes")
-#'
+#' }
 PCA_Analysis <- function(Tool,
                          dataType, Name, workDir,
                          pairName = "G2_over_G1",

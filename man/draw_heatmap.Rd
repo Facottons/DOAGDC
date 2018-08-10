@@ -18,18 +18,18 @@ analysis tool was last used.}
 (FC). The default is \code{2}.}
 
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-"clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-quantification", "miRNA isoform quantification", "isoform", "image",
-"clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+  quantification", "miRNA isoform quantification", "isoform", "image",
+  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
 
 \item{Name}{A character string indicating which row name will be used in
 mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
 
 \item{Method}{The agglomeration method to be used: \code{"euclidean",
-"maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
-"correlation", "abscorrelation", "spearman" or "kendall"}. The default is
+  "maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
+  "correlation", "abscorrelation", "spearman" or "kendall"}. The default is
 \code{"euclidean"}. More details about \code{Method} argument in
 \code{amap} package \link{Dist} \code{method} argument.}
 
@@ -38,19 +38,19 @@ there are only two groups the default is \code{"G2_over_G1"}}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -89,5 +89,7 @@ table. The default is none for both, in order to kepp the plot clean.}
 Draw a heatmap
 }
 \examples{
+\dontrun{
 draw_heatmap("EBSeq", dataType = "gene", Name = "HIF3A", env = "env name without quotes")
+}
 }

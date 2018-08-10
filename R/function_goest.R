@@ -20,7 +20,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' GOnto(condition = "Upregulated", Tool = "edgeR", env = "env name without quotes")
+#' }
 GOnto <- function(condition,
                   use_genes_without_cat = TRUE,
                   FDR.cutoff = 0.05,
@@ -33,9 +35,6 @@ GOnto <- function(condition,
                   ID = "GeneID",
                   pairName = "G2_over_G1",
                   env){
-
-    # suppressPackageStartupMessages(require(mgcv))
-    # loadNamespace("mgcv")
 
     # local functions ####
     prepar_path_enrich <- function(ID = "GeneID",

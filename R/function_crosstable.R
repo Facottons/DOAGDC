@@ -25,7 +25,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' CrossThem("DESeq2", 2, packageNames = c("edgeR", "DESeq2"), env = "env name without quotes")
+#' }
 CrossThem <- function(FinalData, n.pack = 3,
                       packageNames,
                       pairName = "G2_over_G1",

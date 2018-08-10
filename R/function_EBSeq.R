@@ -42,9 +42,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' #considering concatenate_files and groups_identification already runned
 #' dea_EBSeq("gene", pairName = "G2_over_G1", rounds = 7, Name = "HIF3A", env = "env_name")
-#'
+#' }
 dea_EBSeq <- function(dataType, workDir, Name, env, tumor,
                       groupGen,
                       clinical_pair,

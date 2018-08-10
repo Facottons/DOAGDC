@@ -14,7 +14,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' GSEA(Tool = "edgeR", env = "env name without quotes")
+#' }
 GSEA <- function(FDR.cutoff = 0.05,
                  Width = 10,
                  Height = 3,

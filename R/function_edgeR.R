@@ -21,9 +21,10 @@
 #' @import edgeR
 #'
 #' @examples
+#' \dontrun{
 #' #considering concatenate_files and groups_identification already runned
 #' dea_edgeR(dataType = "gene", Name = "HIF3A", env = "env name without quotes")
-#'
+#' }
 dea_edgeR <- function(dataType, Name,
                     Method = "exacttest",
                     clinical_pair,

@@ -23,7 +23,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' groups_identification_coxHR("HIF3A", "gene", tumor = "UCS", dataBase = "legacy")
+#' }
 groups_identification_coxHR <- function(Name,
                                       dataType,
                                       Width = 3000,

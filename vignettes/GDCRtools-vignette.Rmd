@@ -10,7 +10,7 @@ output:
     theme: flatly 
     number_sections: true 
     fig_width: 5
-    # css: my_css.css 
+    # css: css_file.css 
 abstract: >
   Do_artigo
 package: "`r BiocStyle::pkg_ver('GDCRtools')`"
@@ -35,7 +35,7 @@ knitr::opts_chunk$set(
 
 # Package Description
 
-
+The GDCRtools package was made to download, organize and analyse Genomic Data Commons (GDC) data. It implements and uses many well-known R packages, as DESeq2, edgeR, WGCNA, and mclust. This is a free open-source software that implements academic research by the authors and co-workers. If you use it, please support the project by citing the appropriate journal article listed in citation("GDCRtools").
 
 Please cite, if you use GDCRtools in published research:
 ```{r, echo=FALSE}

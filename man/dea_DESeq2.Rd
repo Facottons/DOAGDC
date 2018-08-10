@@ -11,11 +11,11 @@ dea_DESeq2(dataType, Name, coreNumber = 2, test = "Default Test",
 }
 \arguments{
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-"clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-quantification", "miRNA isoform quantification", "isoform", "image",
-"clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+  quantification", "miRNA isoform quantification", "isoform", "image",
+  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
 
 \item{Name}{A character string indicating which row name will be used in
 mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
@@ -25,7 +25,7 @@ used in the analysis. The default value is 2.}
 
 \item{test}{A character string indicating which test should be used:
 \code{"LRT", "wald" or "Default Test"}. The default is \code{"Default
-Test"}.}
+  Test"}.}
 
 \item{groupGen}{A character string indicating the groups generation function:
 \itemize{\item{"mclust" - }{\code{groups_identification_mclust()};}
@@ -49,19 +49,19 @@ values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -84,7 +84,8 @@ A matrix with DE genes in row and statistical values in columns.
 Run EBSeq gene Differential Expression Analysis (DEA).
 }
 \examples{
+\dontrun{
 #considering concatenate_files and groups_identification already runned
 dea_DESeq2(Name = "HIF3A", test = "LRT", env = "env name without quotes")
-
+}
 }

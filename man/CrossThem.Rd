@@ -27,19 +27,19 @@ used. When there are only two groups the default is \code{"G2_over_G1"}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
-300 and Unit = "px"}.}
+  300 and Unit = "px"}.}
 
 \item{Colors}{A character vector indicating the colors to be used in the venn
 diagram. The default is c('green', 'blue', "red").}
@@ -60,5 +60,7 @@ separated matrices).}}}
 Venn diagram of differential expression genes list
 }
 \examples{
+\dontrun{
 CrossThem("DESeq2", 2, packageNames = c("edgeR", "DESeq2"), env = "env name without quotes")
+}
 }

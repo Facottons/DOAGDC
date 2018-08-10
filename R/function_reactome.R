@@ -14,7 +14,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' DO_REAC_ENRICH (Tool = "edgeR", env = "env name without quotes")
+#' }
 DO_REAC_ENRICH <- function(p.cutoff = 0.05,
                            FDR.cutoff = 0.05,
                            Width = 8,

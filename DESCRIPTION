@@ -1,27 +1,82 @@
 Package: GDCRtools
-Title: GDCRtools A package to download, organize and analyse GDC data
-Version: 0.0.9
-Date: 2016-03-01
-Authors@R: c(person("Fábio Malta de Sá", "Patroni", "f189027@g.unicamp.br", role = c("aut", "cre")),
-    person("Douglas", "Adamoski", role = "ctb"),
-    person("Marcelo", "Carazzole", role = "ctb"))
-    person("Sandra", "Dias", role = "ctb")
-Date/Publication: 2017-12-12 23:03:53
-Author: Fábio Malta de Sá Patroni [aut, cre],
-    Douglas Adamoski [ctb],
-    Marcelo Carazzole [ctb],
-    Sandra Dias [ctb]
-Maintainer: Fábio Malta de Sá Patroni <f189027@g.unicamp.br>
-Description: This free open-source software implements academic research
+Title: A package to download, organize and analyze Genomic Data Commons (GDC) data
+Version: 0.0.1
+Authors@R: c(
+    person("Fábio Malta de Sá", "Patroni", role = c("aut", "cre", "cph"), email = "f189027@g.unicamp.br"),
+    person("Douglas", "Adamoski", , role = "ctb"),
+    person("Marcelo", "Carazzole", , role = "ctb"),
+    person("Sandra Martha Gomes", "Dias", , role = "ctb"))
+Description: GDCRtools was made to download, organize and analyze GDC data. 
+    It implements and uses many well-known R packages, as DESeq2, edgeR, WGCNA, and mclust. 
+    This is a free open-source software that implements academic research
     by the authors and co-workers. If you use it, please support
     the project by citing the appropriate journal article listed in
     citation("GDCRtools").
-    Use four spaces when indenting paragraphs within the Description.
 Depends: R (>= 3.4)
-Imports: stats, utils, RCurl, curl, R.utils, readr, jsonlite, stringr, stringi, tools, httr, data.table, mclust, MineICA, RColorBrewer, ggbiplot, devtools, methods, pheatmap, ggplot2, EBSeq, edgeR, DESeq2, gage, BiocParallel, IHW, VennDiagram, dendextend, amap, GO.db, annotate, org.Hs.eg.db, DO.db, reactome.db, goseq, clusterProfiler, DOSE, ReactomePA, igraph, pathview, gageData, mgcv, XML, SummarizedExperiment, xlsx, survival, survminer, ggthemes, yarrr, grid, reshape, extrafont, scales, cgdsr 
-Suggests: rmarkdown (>= 0.9), knitr (>= 1.12), testthat
-License: GPL-2 | file LICENSE
+Imports: 
+    stats,
+    utils,
+    RCurl,
+    curl,
+    R.utils,
+    readr,
+    jsonlite,
+    stringr,
+    stringi,
+    tools,
+    httr,
+    data.table,
+    mclust,
+    MineICA,
+    RColorBrewer,
+    ggbiplot,
+    devtools,
+    methods,
+    pheatmap,
+    ggplot2,
+    EBSeq,
+    edgeR,
+    DESeq2,
+    gage,
+    BiocParallel,
+    IHW,
+    VennDiagram,
+    dendextend,
+    amap,
+    GO.db,
+    annotate,
+    org.Hs.eg.db,
+    DO.db,
+    reactome.db,
+    goseq,
+    clusterProfiler,
+    DOSE,
+    ReactomePA,
+    igraph,
+    pathview,
+    gageData,
+    mgcv,
+    XML,
+    SummarizedExperiment,
+    xlsx,
+    survival,
+    survminer,
+    ggthemes,
+    yarrr,
+    grid,
+    reshape,
+    extrafont,
+    scales,
+    cgdsr 
+Suggests: 
+    rmarkdown (>= 0.9),
+    knitr (>= 1.12),
+    testthat
+License: GPL-3 | file LICENSE
+URL: https://github.com/Facottons/GDCRtools
+BugReports: https://github.com/Facottons/GDCRtools/issues
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
 RoxygenNote: 6.1.0
+Roxygen: list(markdown = TRUE)
