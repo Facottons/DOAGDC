@@ -2,6 +2,7 @@
 #'
 #' @param Tool
 #' @param ID
+#' @param pairName
 #' @param Width,Height,Res,Unit,image.format
 #' @param env
 #' @inheritParams groups_identification_mclust
@@ -11,14 +12,13 @@
 #' @return Enriched terms.
 #' @export
 #'
-#' @import pathview
-#'
 #' @examples
 #' \dontrun{
 #' KEEG_ENRICH(Tool = "edgeR", env = "env name without quotes")
 #' }
 KEEG_ENRICH <- function(Tool = "edgeR",
                         ID = "GeneID",
+                        pairName = "G2_over_G1",
                         Width = 8,
                         Height = 4,
                         Res = 300,
@@ -33,10 +33,6 @@ KEEG_ENRICH <- function(Tool = "edgeR",
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
 
-    if (missing("workDir")){
-        workDir <- string_vars[["envir_link"]]$workDir
-    }
-
     # assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
     #        envir = get(envir_link))
 
@@ -46,16 +42,20 @@ KEEG_ENRICH <- function(Tool = "edgeR",
         PATH <- string_vars[["envir_link"]]$PATH
     }
 
-    dir.create(path = paste0(PATH, "/KEGG_GAGE_", tolower(FinalData)), showWarnings = FALSE)
-    dir.create(path = paste0(PATH, "/KEGG_GAGE_", tolower(FinalData), "/aux_files"), showWarnings = FALSE)
-    DIR <- paste0(PATH, "/KEGG_GAGE_", tolower(FinalData))
+    dir.create(path = paste0(PATH, "/KEGG_GAGE_", tolower(Tool)), showWarnings = FALSE)
+    dir.create(path = paste0(PATH, "/KEGG_GAGE_", tolower(Tool), "/aux_files"), showWarnings = FALSE)
+    DIR <- paste0(PATH, "/KEGG_GAGE_", tolower(Tool))
     #http://www.gettinggeneticsdone.com/2015/12/tutorial-rna-seq-differential.html
 
     #kegg.sets.hs list of 229 elements with gene Entrez IDs for a single KEGG pathway
     # e.g. “Global Map” and “Human Diseases”
-    kegg.sets.hs <- GDCRtools::kegg.sets.hs
+    if (!exists("kegg.sets.hs", envir = get(envir_link))) {
+        data(kegg.sets.hs, package = "gageData", envir = get(envir_link))
+        data(sigmet.idx.hs, package = "gageData", envir = get(envir_link))
+    }
+    kegg.sets.hs <- string_vars[["envir_link"]]$kegg.sets.hs
     #for only sinaling and metabolic pathways
-    sigmet.idx.hs <- GDCRtools::sigmet.idx.hs
+    sigmet.idx.hs <- string_vars[["envir_link"]]$sigmet.idx.hs
     # gene sets of sinaling and metabolic pathways only
     kegg.sets.hs <- kegg.sets.hs[sigmet.idx.hs]
     # head(kegg.sets.hs, 3)
@@ -69,6 +69,8 @@ KEEG_ENRICH <- function(Tool = "edgeR",
 
     # generate annotation table
     annotation_table <- GDCRtools::annotation_table
+
+    dataBase <- string_vars[["envir_link"]]$dataBase
 
     if (tolower(dataBase) == "gdc") {
         rownames(annotation_table) <- annotation_table$ensembl
@@ -97,11 +99,28 @@ KEEG_ENRICH <- function(Tool = "edgeR",
 
     DIR2 <- file.path(DIR, "aux_files")
 
+    # import data from pathview
+    # if (!exists("korg", envir = get(envir_link))) {
+    #     data(korg, package = "pathview", envir = get(envir_link))
+    #     data(bods, package = "pathview", envir = get(envir_link))
+    # }
+    #
+    # korg <- string_vars[["envir_link"]]$korg
+    # bods <- string_vars[["envir_link"]]$bods
+    data(bods, package = "pathview")
+    data(korg, package = "pathview")
+
+    # importing needed funtions
+    columns <- AnnotationDbi::columns
+    select <- AnnotationDbi::select
+
     # plot multiple pathways (plots saved to disk and returns a throwaway list object)
     tmp <- sapply(keggresids, function(pid) pathview::pathview(gene.data = foldchanges,
                                                                pathway.id = pid,
                                                                species = "hsa",
                                                                kegg.dir = DIR2))
+    remove(bods, korg, envir = .GlobalEnv)
+
     # return to user wdir
     setwd(wdir)
 

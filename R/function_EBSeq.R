@@ -1,16 +1,15 @@
 #' Run EBSeq gene Differential Expression Analysis (DEA).
 #'
-#' @param dataType Type of data. It could be \code{"gene"} or \code{"isoform"}.
-#' @param workDir
 #' @param Name
+#' @param workDir
 #' @param env
 #' @param tumor
 #' @param groupGen A character string indicating the groups generation function:
 #'   \itemize{\item{"mclust" - }{\code{groups_identification_mclust()};}
 #'   \item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical" -
 #'   }{\code{groups_identification_clinical()}.} }
-#' @param clinical_pair A character string containing one of the groups selected
-#'   after statistical analysis runned in \code{check_clinical_terms()}
+#' @param clinical_pair A character string containing one of the group pairs
+#'   selected after statistical analysis runned in \code{clinical_terms()}
 #'   function.
 #' @param pairName A character string indicating which condition name should be
 #'   used. When there are only two groups the default is \code{"G2_over_G1"}.
@@ -46,7 +45,7 @@
 #' #considering concatenate_files and groups_identification already runned
 #' dea_EBSeq("gene", pairName = "G2_over_G1", rounds = 7, Name = "HIF3A", env = "env_name")
 #' }
-dea_EBSeq <- function(dataType, workDir, Name, env, tumor,
+dea_EBSeq <- function(Name, workDir, env, tumor,
                       groupGen,
                       clinical_pair,
                       pairName = "G2_over_G1",
@@ -273,6 +272,7 @@ dea_EBSeq <- function(dataType, workDir, Name, env, tumor,
     }
 
     # Code ####
+    dataType <- string_vars[["envir_link"]]$dataType
     dataType <- gsub(" ", "_", dataType)
     Name <- gsub("-", "_", Name)
 

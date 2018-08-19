@@ -2,21 +2,14 @@
 % Please edit documentation in R/function_DESeq2.R
 \name{dea_DESeq2}
 \alias{dea_DESeq2}
-\title{Run EBSeq gene Differential Expression Analysis (DEA).}
+\title{Run DESeq2 gene Differential Expression Analysis (DEA).}
 \usage{
-dea_DESeq2(dataType, Name, coreNumber = 2, test = "Default Test",
-  groupGen, clinical_pair, FC.cutoff = 2, workDir, tumor,
-  FDR.cutoff = 0.05, Width = 2000, Height = 1500, Res = 300,
-  Unit = "px", image.format = "png", env, cooksCutoff = FALSE)
+dea_DESeq2(Name, coreNumber = 2, test = "Default Test", groupGen,
+  clinical_pair, FC.cutoff = 2, workDir, tumor, FDR.cutoff = 0.05,
+  Width = 2000, Height = 1500, Res = 300, Unit = "px",
+  image.format = "png", env, cooksCutoff = FALSE)
 }
 \arguments{
-\item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
-in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-  quantification", "miRNA isoform quantification", "isoform", "image",
-  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
-
 \item{Name}{A character string indicating which row name will be used in
 mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
 
@@ -32,8 +25,8 @@ used in the analysis. The default value is 2.}
 \item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical" -
 }{\code{groups_identification_clinical()}.} }}
 
-\item{clinical_pair}{A character string containing one of the groups selected
-after statistical analysis runned in \code{check_clinical_terms()}
+\item{clinical_pair}{A character string containing one of the group pairs
+selected after statistical analysis runned in \code{clinical_terms()}
 function.}
 
 \item{FC.cutoff}{Numerical value indicating the maximum value for Fold Change
@@ -48,19 +41,19 @@ the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
 values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
@@ -71,8 +64,8 @@ inches ('in'). The default is "png".}
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 
 \item{cooksCutoff}{Cooks distance remove outliers from the analysis; More
 details in DESeq2 \link{results} page. The default is \code{FALSE}.}
@@ -81,7 +74,7 @@ details in DESeq2 \link{results} page. The default is \code{FALSE}.}
 A matrix with DE genes in row and statistical values in columns.
 }
 \description{
-Run EBSeq gene Differential Expression Analysis (DEA).
+Run DESeq2 gene Differential Expression Analysis (DEA).
 }
 \examples{
 \dontrun{

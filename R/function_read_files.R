@@ -14,15 +14,17 @@
 #'   mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.
 #' @param dataBase
 #' @param HTSeq A character string indicating which HTSeq workflow data should
-#'   be downloaded: "Counts", "FPKM", or "FPKM-UQ".
+#'   be downloaded (only applied to "GDC" gene expression): "Counts", "FPKM", or
+#'   "FPKM-UQ".
 #' @param workDir
 #' @param tumor
 #' @param workflowType A character string specifying the workflow type for
-#'   mutation data in "gdc". Where "varscan" stands for 'VarScan2 Variant
-#'   Aggregation and Masking', "mutect" stands for 'MuTect2 Variant Aggregation
-#'   and Masking', "muse" stands for 'MuSE Variant Aggregation and Masking',
-#'   "somaticsniper" stands for 'SomaticSniper Variant Aggregation and Masking'
-#'   and "all" stands for concatenate all workflows in a single matrix.
+#'   mutation data in "gdc". Where: \itemize{\item{"varscan" stands for}{
+#'   VarScan2 Variant Aggregation and Masking} \item{"mutect" stands for}{
+#'   MuTect2 Variant Aggregation and Masking}\item{"muse" stands for}{ MuSE
+#'   Variant Aggregation and Masking}\item{"somaticsniper" stands for}{
+#'   SomaticSniper Variant Aggregation and Masking}\item{"all" means to}{
+#'   concatenate all workflows into a single matrix.}}
 #' @param tumorData Logical value where \code{TRUE} specifies the desire to work
 #'   with tumor tissue files only. When set to FALSE, it creates two matrices,
 #'   one containing tumor data and other containing data from not-tumor tissue.
@@ -47,8 +49,8 @@
 #'   used. If none has been set yet, the function will create one in global
 #'   environment following the standard criteria:
 #'   \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-#'   \item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-#'   separated matrices).}}
+#'   \item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+#'   in separated matrices).}}
 #' @param saveData Logical value where \code{TRUE} indicates that the
 #'   concatenate and filtered matrix should be saved in local storage. The
 #'   default is FALSE.

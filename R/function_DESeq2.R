@@ -1,4 +1,4 @@
-#' Run EBSeq gene Differential Expression Analysis (DEA).
+#' Run DESeq2 gene Differential Expression Analysis (DEA).
 #'
 #' @param Name
 #' @param coreNumber A numeric value indicating how many CPU cores should be
@@ -29,8 +29,8 @@
 #' #considering concatenate_files and groups_identification already runned
 #' dea_DESeq2(Name = "HIF3A", test = "LRT", env = "env name without quotes")
 #' }
-dea_DESeq2 <- function(dataType,
-                       Name,coreNumber = 2,
+dea_DESeq2 <- function(Name,
+                       coreNumber = 2,
                        test = "Default Test",
                        groupGen,clinical_pair,
                        FC.cutoff = 2,
@@ -194,6 +194,8 @@ dea_DESeq2 <- function(dataType,
     }
 
     # Code ####
+
+    dataType <- string_vars[["envir_link"]]$dataType
     dataType <- gsub(" ", "_", dataType)
     Name <- gsub("-", "_", Name)
 

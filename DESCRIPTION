@@ -1,12 +1,13 @@
 Package: GDCRtools
-Title: A package to download, organize and analyze Genomic Data Commons (GDC) data
+Title: A Package to Download, Organize and Analyze Genomic Data Commons (GDC) Data
 Version: 0.0.1
+Date: 2018-09-07
 Authors@R: c(
-    person("Fábio Malta de Sá", "Patroni", role = c("aut", "cre", "cph"), email = "f189027@g.unicamp.br"),
+    person("Fábio Malta de Sá", "Patroni", role = c("aut", "cre", "cph"), email = "fabio_patroni@yahoo.com.br"),
     person("Douglas", "Adamoski", , role = "ctb"),
     person("Marcelo", "Carazzole", , role = "ctb"),
     person("Sandra Martha Gomes", "Dias", , role = "ctb"))
-Description: GDCRtools was made to download, organize and analyze GDC data. 
+Description: In order to download, organize and analyze GDC data we have developed GDCRtools. 
     It implements and uses many well-known R packages, as DESeq2, edgeR, WGCNA, and mclust. 
     This is a free open-source software that implements academic research
     by the authors and co-workers. If you use it, please support
@@ -29,7 +30,6 @@ Imports:
     mclust,
     MineICA,
     RColorBrewer,
-    ggbiplot,
     devtools,
     methods,
     pheatmap,
@@ -54,7 +54,6 @@ Imports:
     ReactomePA,
     igraph,
     pathview,
-    gageData,
     mgcv,
     XML,
     SummarizedExperiment,
@@ -76,6 +75,8 @@ Suggests:
     rmarkdown (>= 0.9),
     knitr (>= 1.12),
     WGCNA,
+    ggbiplot,
+    gageData,
     testthat
 License: GPL-3 | file LICENSE
 URL: https://github.com/Facottons/GDCRtools

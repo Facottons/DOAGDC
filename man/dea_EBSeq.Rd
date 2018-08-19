@@ -4,7 +4,7 @@
 \alias{dea_EBSeq}
 \title{Run EBSeq gene Differential Expression Analysis (DEA).}
 \usage{
-dea_EBSeq(dataType, workDir, Name, env, tumor, groupGen, clinical_pair,
+dea_EBSeq(Name, workDir, env, tumor, groupGen, clinical_pair,
   pairName = "G2_over_G1", rounds = 7, normType = "QuantileNorm",
   EBTest.Qtrm = 0.75, EBTest.QtrmCut = 10, p.cutoff = 0.05,
   FDR.cutoff = 0.05, FC.cutoff = 2, Width = 2000, Height = 1500,
@@ -12,19 +12,17 @@ dea_EBSeq(dataType, workDir, Name, env, tumor, groupGen, clinical_pair,
   Bullard.quantile = 0.75)
 }
 \arguments{
-\item{dataType}{Type of data. It could be \code{"gene"} or \code{"isoform"}.}
-
-\item{workDir}{A character string specifying the path to work directory.}
-
 \item{Name}{A character string indicating which row name will be used in
 mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+
+\item{workDir}{A character string specifying the path to work directory.}
 
 \item{env}{A character string containing the environment name that should be
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
 the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
@@ -34,8 +32,8 @@ the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
 \item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical" -
 }{\code{groups_identification_clinical()}.} }}
 
-\item{clinical_pair}{A character string containing one of the groups selected
-after statistical analysis runned in \code{check_clinical_terms()}
+\item{clinical_pair}{A character string containing one of the group pairs
+selected after statistical analysis runned in \code{clinical_terms()}
 function.}
 
 \item{pairName}{A character string indicating which condition name should be
@@ -65,19 +63,19 @@ values. The default is \code{0.05}.}
 (FC). The default is \code{2}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be

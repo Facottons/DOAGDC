@@ -15,9 +15,9 @@
 #'   run the step of group generation using the \code{uncertaintyCutoff}
 #'   parameter for filtering the data. The default is \code{FALSE}.
 #' @param nBreaks Numerical value giving the number of cells for the \code{hist}
-#'   bars.
+#'   bars. As default \code{nBreaks = 55}.
 #' @param Width,Height,Res,Unit Graphical parameters. See \link{par} for more
-#'   details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+#'   details. As default \code{Width = 2000, Height = 1500, Res =
 #'   300 and Unit = "px"}.
 #' @param image.format A character string indicating which image format will be
 #'   used. It could be "png" or "svg". The only unit available in "svg" is
@@ -32,8 +32,6 @@
 #' @inheritParams concatenate_files
 #'
 #' @export
-#'
-#' @import mclust
 #'
 #' @examples
 #' \dontrun{
@@ -72,7 +70,7 @@ groups_identification_mclust <- function(dataType,
                       xlim, ylim, ...)
     {
         if (length(data) <= 5000)
-            shapiro.pval = shapiro.test(data)$p.value
+            shapiro.pval <- shapiro.test(data)$p.value
         p <- seq(min(data), to = max(data), length = 1000)
         d <- mclust::cdens(modelName = mc$modelName, data = p, parameters = mc$parameters)
         title <- paste0(mc$G, "-component Gaussian Mixture Model")
@@ -84,24 +82,36 @@ groups_identification_mclust <- function(dataType,
                        breaks = nbBreaks, freq = TRUE,
                        axes = FALSE, xlab = "", ylab = "", main = "")
 
-        color <- vector(length = length(h_freq$mids))
+        color <- vector("character", length = length(h_freq$mids))
         possible_colors <- RColorBrewer::brewer.pal(8, "Set2")
         last_delimiter <- 0
         classification_number <- length(unique(mc$classification))
-        for (groups in seq(1, classification_number)){
-            delimiter <- max(data[mc$classification == groups])
-            if (groups == 1){
-                color[h_freq$mids <= delimiter] <- possible_colors[groups]
-            } else if(groups == max(unique(mc$classification))){
-                size <- sum(h_freq$mids <= delimiter)
-                # na_size <- sum(is.na(color[h_freq$mids <= delimiter]))
-                color[(last_delimiter+1):length(h_freq$mids)] <- possible_colors[groups]
+        # for (groups in seq(1, classification_number)){
+        #     delimiter <- max(data[mc$classification == groups])
+        #     if (groups == 1){
+        #         color[h_freq$mids <= delimiter] <- possible_colors[groups]
+        #     } else if(groups == max(unique(mc$classification))){
+        #         size <- sum(h_freq$mids <= delimiter)
+        #         # na_size <- sum(is.na(color[h_freq$mids <= delimiter]))
+        #         color[(last_delimiter+1):length(h_freq$mids)] <- possible_colors[groups]
+        #     } else {
+        #         size <- sum(h_freq$mids <= delimiter)
+        #         # na_size <- sum(is.na(color[h_freq$mids <= delimiter]))
+        #         color[(last_delimiter+1):size] <- possible_colors[groups]
+        #     }
+        #     last_delimiter <- sum(h_freq$mids <= delimiter)
+        # }
+
+        for (groups in seq(classification_number, 1)){
+            delimiter <- min(data[mc$classification == groups])
+            if (groups == max(unique(mc$classification))){
+                color[h_freq$mids >= delimiter] <- possible_colors[groups]
+            } else if(groups == 1){
+                color[color == ""] <- possible_colors[groups]
             } else {
-                size <- sum(h_freq$mids <= delimiter)
-                # na_size <- sum(is.na(color[h_freq$mids <= delimiter]))
-                color[(last_delimiter+1):size] <- possible_colors[groups]
+                color[h_freq$mids >= delimiter & h_freq$mids <= last_delimiter] <- possible_colors[groups]
             }
-            last_delimiter <- sum(h_freq$mids <= delimiter)
+            last_delimiter <- delimiter
         }
 
         suppressWarnings(rug(as.numeric(data)))
@@ -217,7 +227,9 @@ groups_identification_mclust <- function(dataType,
         FILTERED_RESULTS <- FILTERED_RESULTS[unique.col.row, , drop = FALSE]
         #starting
         message("Running Model-Based Clustering...")
-        # MCLUST.RESULT <- mclust:::Mclust(log2(as.numeric(FILTERED_RESULTS[, 1]) + 1))
+
+        # could not find function "mclustBIC" FIX
+        mclustBIC <- mclust::mclustBIC
 
         if (is.numeric(group.number) && is.character(modelName)) {
             MCLUST.RESULT.FINAL <-  mclust::Mclust(log2(as.numeric(FILTERED_RESULTS[, 1]) + 1),
@@ -235,11 +247,10 @@ groups_identification_mclust <- function(dataType,
                                            # G = group.number, modelNames = modelName)
 
         }
-            # stop("Invalid arguments!! Please insert valid arguments.")
-        ICL <- mclustICL(log2(as.numeric(FILTERED_RESULTS[, 1]) + 1))
-        BIC <- mclustBIC(log2(as.numeric(FILTERED_RESULTS[, 1]) + 1))
+        ICL <- mclust::mclustICL(log2(as.numeric(FILTERED_RESULTS[, 1]) + 1))
+        BIC <- mclust::mclustBIC(log2(as.numeric(FILTERED_RESULTS[, 1]) + 1))
         if (MCLUST.RESULT.FINAL$G > 1) {
-            LRT <- mclustBootstrapLRT(log2(as.numeric(FILTERED_RESULTS[, 1]) + 1),
+            LRT <- mclust::mclustBootstrapLRT(log2(as.numeric(FILTERED_RESULTS[, 1]) + 1),
                                       modelName = MCLUST.RESULT.FINAL[["modelName"]])
         } else {
             message("Using ", Name, " does not generate two or more groups.",
@@ -247,6 +258,9 @@ groups_identification_mclust <- function(dataType,
             stop()
         }
         assign("MCLUST.RESULT.FINAL", MCLUST.RESULT.FINAL, envir = get(envir_link))
+
+        # could not find function "cdensE" FIX
+        cdensE <- mclust::cdensE
 
         # PLots
         if (tolower(image.format) == "png") {
@@ -259,7 +273,8 @@ groups_identification_mclust <- function(dataType,
             stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
         }
         par(mar = c(5, 6, 4, 3.5))
-        PLOT(mc = MCLUST.RESULT.FINAL, data = log2(as.numeric(FILTERED_RESULTS[, 1]) + 1),
+        PLOT(mc = MCLUST.RESULT.FINAL,
+             data = log2(as.numeric(FILTERED_RESULTS[, 1]) + 1),
              nbBreaks = nBreaks, las = 1,
              traceDensity = TRUE,
              cex.main = 1.4,
@@ -402,12 +417,18 @@ groups_identification_mclust <- function(dataType,
 
         FILTERED_RESULTS.filtered <- FILTERED_RESULTS[rownames(GROUPS), ]
 
+        # could not find function "mclustBIC" FIX
+        mclustBIC <- mclust::mclustBIC
+
         MCLUST.RESULT <- string_vars[["envir_link"]]$MCLUST.RESULT.FINAL
 
         group.number <- MCLUST.RESULT[["G"]]
         modelName <- MCLUST.RESULT[["modelName"]]
         MCLUST.RESULT.FINAL <-  mclust::Mclust(log2(FILTERED_RESULTS.filtered + 1),
                                        G = group.number, modelNames = modelName)
+
+        # could not find function "cdensE" FIX
+        cdensE <- mclust::cdensE
 
         if (tolower(image.format) == "png") {
             png(filename = paste0(DIR,

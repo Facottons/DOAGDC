@@ -1,6 +1,5 @@
-#' Run EBSeq gene Differential Expression Analysis (DEA).
+#' Run edgeR gene Differential Expression Analysis (DEA).
 #'
-#' @param dataType Type of data. It could be \code{"gene"} or \code{"isoform"}.
 #' @param Name
 #' @param Method A character string indicating which method should be used:
 #'   \code{"exacttest"} or \code{"glmlrt"}. The default is \code{"exacttest"}.
@@ -23,9 +22,9 @@
 #' @examples
 #' \dontrun{
 #' #considering concatenate_files and groups_identification already runned
-#' dea_edgeR(dataType = "gene", Name = "HIF3A", env = "env name without quotes")
+#' dea_edgeR(Name = "HIF3A", env = "env name without quotes")
 #' }
-dea_edgeR <- function(dataType, Name,
+dea_edgeR <- function(Name,
                     Method = "exacttest",
                     clinical_pair,
                     groupGen,
@@ -125,8 +124,10 @@ dea_edgeR <- function(dataType, Name,
                   row.names = TRUE)
 
         if (Pairs > 0) {
-            resultadosDE[[Pairs]] <- tableDE
-            Results.Completed[[Pairs]] <- Results.Completed_local
+            string_vars[["envir_link"]]$resultadosDE.edgeR[[Pairs]] <- tableDE
+            string_vars[["envir_link"]]$Results.Completed.edgeR[[Pairs]] <- Results.Completed_local
+            # assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
+            # assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
         } else {
             Results.Completed <- vector("list", 1)
             resultadosDE <- vector("list", 1)
@@ -203,8 +204,8 @@ dea_edgeR <- function(dataType, Name,
                   row.names = FALSE)
 
         if (Pairs > 0) {
-            resultadosDE[[Pairs]] <- tableDE
-            Results.Completed[[Pairs]] <- Results.Completed_local
+            string_vars[["envir_link"]]$resultadosDE.edgeR[[Pairs]] <- tableDE
+            string_vars[["envir_link"]]$Results.Completed.edgeR[[Pairs]] <- Results.Completed_local
         } else {
             Results.Completed <- vector("list", 1)
             resultadosDE <- vector("list", 1)
@@ -320,6 +321,7 @@ dea_edgeR <- function(dataType, Name,
     }
 
     # Code ####
+    dataType <- string_vars[["envir_link"]]$dataType
     dataType <- gsub(" ", "_", dataType)
     Name <- gsub("-", "_", Name)
 
@@ -442,20 +444,23 @@ dea_edgeR <- function(dataType, Name,
             names(tested) <- combinations_names
             names(resultadosDE) <- combinations_names
             names(Results.Completed) <- combinations_names
+
+            assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
+            assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
+
             count <- 0
             pb <- txtProgressBar(min = 0, max = ncol(combinations), style = 3)
             for (Pairs in seq(1, ncol(combinations))) {
                 count <- count + 1
                 tested[[Pairs]] <- edgeR::exactTest(dge, pair = combinations[, Pairs])
                 exact_groups_fix(tested, Pairs)
-                suppressWarnings(volcano(Results.Completed, Pairs))
+                suppressWarnings(volcano(string_vars[["envir_link"]]$Results.Completed.edgeR, Pairs))
 
                 setTxtProgressBar(pb, count)
             }
             close(pb)
 
-            assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
-            assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
+
         } else {
             tested <- edgeR::exactTest(dge)
             exact_groups_fix(tested, 0)
@@ -477,19 +482,22 @@ dea_edgeR <- function(dataType, Name,
         # some new components
         group2_number <- max(as.numeric(levels(Grupos.edgeR[, 1])))
         if (group2_number > 2) {
+            message("There are more than two group combinations, this may take a while...\n")
+
             combinations <- combn(1:group2_number, 2)
             tested <- vector("list", group2_number)
             resultadosDE <- vector("list", group2_number)
             Results.Completed <- vector("list", group2_number)
-            names(tested) <- apply(combinations, 2, function(x) {
+            combinations_names <-  apply(combinations, 2, function(x) {
                 paste0("G", x[2], "_over_", "G", x[1])
             })
-            names(resultadosDE) <- apply(combinations, 2, function(x) {
-                paste0("G", x[2], "_over_", "G", x[1])
-            })
-            names(Results.Completed) <- apply(combinations, 2, function(x) {
-                paste0("G", x[2], "_over_", "G", x[1])
-            })
+            names(tested) <- combinations_names
+            names(resultadosDE) <- combinations_names
+            names(Results.Completed) <- combinations_names
+
+            assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
+            assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
+
             count <- 0
             pb <- txtProgressBar(min = 0, max = ncol(combinations), style = 3)
             for (Pairs in seq(1, ncol(combinations))) {
@@ -505,14 +513,12 @@ dea_edgeR <- function(dataType, Name,
                 }
 
                 glmlrt_groups_fix(tested, Pairs)
-                suppressWarnings(volcano(Results.Completed, Pairs))
+                suppressWarnings(volcano(string_vars[["envir_link"]]$Results.Completed.edgeR, Pairs))
 
                 setTxtProgressBar(pb, count)
             }
             close(pb)
 
-            assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
-            assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
         } else {
             tested <- edgeR::glmLRT(aGlmFit, coef = 2)
             glmlrt_groups_fix(tested, 0)

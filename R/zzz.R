@@ -1,12 +1,9 @@
-.onLoad <- function(libname, pkgname) {
-    suppressWarnings(remove(gene.idtype.bods, gene.idtype.list, cpd.simtypes, envir = .GlobalEnv))
-
-    # cat("\014")
-}
+# .onLoad <- function(libname, pkgname) {
+#     # something
+# }
 
 # http://stackoverflow.com/questions/15261619/sample-gives-different-values-with-same-set-seed
 # message(sprintf("On %s I realized %s was...\n%s by the street", Sys.Date(), person, action))
-# .onAttach <- function (libname, pkgname){
 .onAttach <- function(lib, pkg) {
     # unlockBinding(".GDCRtools", asNamespace("GDCRtools"))
     # version <- read.dcf(file.path(lib, pkg, "DESCRIPTION"), "Version")
@@ -24,7 +21,14 @@
 
     }
     else
-    { packageStartupMessage("Package 'GDCRtools' \n\nversion ", version, "\n", "\n", GDCTerms) }
+    { #packageStartupMessage("Package 'GDCRtools' \n\nversion ", version, "\n", "\n", GDCTerms) }
+        packageStartupMessage(
+            "  ____ ____   ____ ____  _              _
+ / ___|  _ \\ / ___|  _ \\| |_ ___   ___ | |___
+| |  _| | | | |   | |_) | __/ _ \\ / _ \\| / __|
+| |_| | |_| | |___|  _ <| || (_) | (_) | \\__ \\
+ \\____|____/ \\____|_| \\_\\\\__\\___/ \\___/|_|___/  \n\nVersion: ", version, "\n",
+            "\n", GDCTerms, "\n")}
 
     packageStartupMessage("For citing this R package in publications, ",
                           "type 'citation(\"GDCRtools\")'.")

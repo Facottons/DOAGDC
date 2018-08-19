@@ -33,10 +33,10 @@ run the step of group generation using the \code{uncertaintyCutoff}
 parameter for filtering the data. The default is \code{FALSE}.}
 
 \item{nBreaks}{Numerical value giving the number of cells for the \code{hist}
-bars.}
+bars. As default \code{nBreaks = 55}.}
 
 \item{Width, Height, Res, Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
@@ -51,8 +51,8 @@ default is FALSE.}
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
 the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}

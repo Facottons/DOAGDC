@@ -26,19 +26,19 @@ diferential expression packages used in previous steps: "DESeq2", "edgeR",
 used. When there are only two groups the default is \code{"G2_over_G1"}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Colors}{A character vector indicating the colors to be used in the venn
@@ -53,8 +53,8 @@ diagram. The default is c('green', 'blue', "red").}
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 }
 \description{
 Venn diagram of differential expression genes list

@@ -42,8 +42,8 @@ The default is \code{TRUE}.}
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 }
 \description{
 From global to GDCRtools environment

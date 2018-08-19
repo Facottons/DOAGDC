@@ -14,8 +14,8 @@ the selected \code{'Name'} probes.}
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 
 \item{saveData}{Logical value where \code{TRUE} indicates that the
 concatenate and filtered matrix should be saved in local storage. The

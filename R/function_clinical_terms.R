@@ -35,15 +35,15 @@
 #' @examples
 #' \dontrun{
 #' #searching for terms having the keyword inserted in common 'tumor_with_term = 3'
-#' check_clinical_terms(tumor = c("BRCA", "UCS", "OV"), term_keyword = "year", tumor_with_term = 3)
+#' clinical_terms(tumor = c("BRCA", "UCS", "OV"), term_keyword = "year", tumor_with_term = 3)
 #'
 #' #searching for all terms available with at least three tumors in common 'tumor_with_term = 3'
-#' check_clinical_terms(tumor = c("BRCA", "UCS", "OV"), term_keyword = "", tumor_with_term = 3)
+#' clinical_terms(tumor = c("BRCA", "UCS", "OV"), term_keyword = "", tumor_with_term = 3)
 #'
 #' #using the analysis with a specified term
-#' check_clinical_terms("UCS", "isoform", term = "vital_status")
+#' clinical_terms("UCS", "isoform", term = "vital_status")
 #' }
-check_clinical_terms <- function(Name,
+clinical_terms <- function(Name,
                                  workDir = "~/Desktop",
                                  tumor = "all",
                                  dataType,

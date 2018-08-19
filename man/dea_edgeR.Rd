@@ -2,23 +2,21 @@
 % Please edit documentation in R/function_edgeR.R
 \name{dea_edgeR}
 \alias{dea_edgeR}
-\title{Run EBSeq gene Differential Expression Analysis (DEA).}
+\title{Run edgeR gene Differential Expression Analysis (DEA).}
 \usage{
-dea_edgeR(dataType, Name, Method = "exacttest", clinical_pair, groupGen,
+dea_edgeR(Name, Method = "exacttest", clinical_pair, groupGen,
   FC.cutoff = 2, workDir, env, FDR.cutoff = 0.05, Width = 2000,
   Height = 1500, Res = 300, Unit = "px", image.format = "png")
 }
 \arguments{
-\item{dataType}{Type of data. It could be \code{"gene"} or \code{"isoform"}.}
-
 \item{Name}{A character string indicating which row name will be used in
 mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
 
 \item{Method}{A character string indicating which method should be used:
 \code{"exacttest"} or \code{"glmlrt"}. The default is \code{"exacttest"}.}
 
-\item{clinical_pair}{A character string containing one of the groups selected
-after statistical analysis runned in \code{check_clinical_terms()}
+\item{clinical_pair}{A character string containing one of the group pairs
+selected after statistical analysis runned in \code{clinical_terms()}
 function.}
 
 \item{groupGen}{A character string indicating the groups generation function:
@@ -35,26 +33,26 @@ function.}
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 
 \item{FDR.cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
@@ -65,11 +63,11 @@ inches ('in'). The default is "png".}
 A matrix with DE genes in row and statistical values in columns.
 }
 \description{
-Run EBSeq gene Differential Expression Analysis (DEA).
+Run edgeR gene Differential Expression Analysis (DEA).
 }
 \examples{
 \dontrun{
 #considering concatenate_files and groups_identification already runned
-dea_edgeR(dataType = "gene", Name = "HIF3A", env = "env name without quotes")
+dea_edgeR(Name = "HIF3A", env = "env name without quotes")
 }
 }

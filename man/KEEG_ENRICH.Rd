@@ -4,8 +4,9 @@
 \alias{KEEG_ENRICH}
 \title{Perform KEEG Pathways Enrichment}
 \usage{
-KEEG_ENRICH(Tool = "edgeR", ID = "GeneID", Width = 8, Height = 4,
-  Res = 300, Unit = "in", image.format = "png", env)
+KEEG_ENRICH(Tool = "edgeR", ID = "GeneID", pairName = "G2_over_G1",
+  Width = 8, Height = 4, Res = 300, Unit = "in",
+  image.format = "png", env)
 }
 \arguments{
 \item{Tool}{A character string indicating which differential expression
@@ -14,20 +15,23 @@ analysis tool was last used.}
 \item{ID}{A character string indicating which ID should be used: "HUGO",
 "GeneSymbol", "ensembl" , "refGene" or "GeneID". The default is \code{"GeneID"}.}
 
+\item{pairName}{A character string indicating which condition name should be
+used. When there are only two groups the default is \code{"G2_over_G1"}.}
+
 \item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
@@ -38,8 +42,8 @@ inches ('in'). The default is "png".}
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 }
 \value{
 Enriched terms.

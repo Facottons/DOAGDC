@@ -5,7 +5,7 @@
 \title{Draw a heatmap}
 \usage{
 draw_heatmap(Tool, FC.cutoff = 2, dataType, Name, Method = "euclidean",
-  pairName = "G2_over_G1", Width = 4, Height = 5, Res = 300,
+  pairName = "G2_over_G1", Width = 6, Height = 6, Res = 300,
   Unit = "in", image.format = "svg", env, ScaleMethod = "row",
   outerMargins = c(0, 0, 0, 0), cexCol = 0, cexRow = 0,
   degree = 45, labRow = NULL, labCol = NULL)
@@ -37,19 +37,19 @@ mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
 there are only two groups the default is \code{"G2_over_G1"}}
 
 \item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{nBreaks = 55, Width = 2000, Height = 1500, Res =
+details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
 \item{image.format}{A character string indicating which image format will be
@@ -60,8 +60,8 @@ inches ('in'). The default is "png".}
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
 \itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data in
-separated matrices).}}}
+\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+in separated matrices).}}}
 
 \item{ScaleMethod}{A character string indicating which method of scale should
 be used: \code{"none"}, \code{"row"}, \code{"column"}. The default is
