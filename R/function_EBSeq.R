@@ -43,7 +43,7 @@
 #' @examples
 #' \dontrun{
 #' #considering concatenate_files and groups_identification already runned
-#' dea_EBSeq("gene", pairName = "G2_over_G1", rounds = 7, Name = "HIF3A", env = "env_name")
+#' dea_EBSeq(pairName = "G2_over_G1", rounds = 7, Name = "HIF3A", env = "env_name")
 #' }
 dea_EBSeq <- function(Name, workDir, env, tumor,
                       groupGen,
@@ -136,15 +136,15 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
             stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
         }
         par(mfrow = c(1,3))
-        plot(test$Alpha, frame=FALSE, xaxp  = c(1, 10, n=1), xlab="Rounds",
+        plot(test$Alpha, frame=FALSE, xlab="Rounds",
              ylab = "Alpha", cex = 1.1, col = "#FECB92", pch = 16, cex.axis = 1.5,
              cex.lab = 1.5)
         lines(test$Alpha, col = "#FDB462", lwd = 2)
-        plot(test$Beta, frame = FALSE, xaxp = c(1, 10, n = 1), xlab = "Rounds",
+        plot(test$Beta, frame = FALSE, xlab = "Rounds",
              ylab = "Beta", cex = 1.1, col = "#FECB92", pch = 16, cex.axis = 1.5,
              cex.lab = 1.5)
         lines(test$Beta, col = "#FDB462", lwd = 2)
-        plot(test$P, frame = FALSE, xaxp = c(1, 10, n = 1), xlab = "Rounds",
+        plot(test$P, frame = FALSE, xlab = "Rounds",
              ylab = "P", cex = 1.1, col = "#FECB92", pch = 16, cex.axis = 1.5, cex.lab = 1.5)
         lines(test$P, col = "#FDB462", lwd = 2)
         dev.off()
@@ -272,22 +272,26 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
     }
 
     # Code ####
-    dataType <- string_vars[["envir_link"]]$dataType
-    dataType <- gsub(" ", "_", dataType)
-    Name <- gsub("-", "_", Name)
-
     if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
 
     string_vars <- list(envir_link = get(envir_link))
+
+    # dataType <- string_vars[["envir_link"]]$dataType
+    # dataType <- gsub(" ", "_", dataType)
+    Name <- gsub("-", "_", Name)
+
     if (missing("workDir")){
         workDir <- string_vars[["envir_link"]]$workDir
     }
 
     dataBase <- string_vars[["envir_link"]]$dataBase
 
-    assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"), envir = get(envir_link))
+    assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
+           envir = get(envir_link))
+
+    assign("groupGen", groupGen, envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){
         PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
@@ -297,18 +301,20 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
     }
 
     #creating the dir to outputs
-    dir.create(paste0(PATH, "/EBSeq_Results.", tolower(dataType), "_", toupper(Name)),
+    dir.create(paste0(PATH, "/EBSeq_Results.", tolower(groupGen), "_", toupper(Name)),
                showWarnings = FALSE)
-    DIR <- paste0(PATH, "/EBSeq_Results.", tolower(dataType), "_", toupper(Name))
+    DIR <- paste0(PATH, "/EBSeq_Results.", tolower(groupGen), "_", toupper(Name))
     # dir.create(file.patMh(DIR, "PCA_Plots"), showWarnings = FALSE)
 
+    # level[1] over level[2]
     Levels <- gsub("[Gg]", "", unlist(strsplit(pairName, "_over_")), perl = TRUE)
 
     # For groups
     if (tolower(groupGen) == "mclust") {
         Grupos.EBSeq <- as.data.frame(string_vars[["envir_link"]]$GROUPS)
         group2_number <- max(Grupos.EBSeq[, "Selected_classification"])
-        Grupos.EBSeq[, "Selected_classification"] <- factor(Grupos.EBSeq[, "Selected_classification"], levels = Levels)
+        Grupos.EBSeq[, "Selected_classification"] <- factor(Grupos.EBSeq[, "Selected_classification"],
+                                                            levels = Levels)
         colnames(Grupos.EBSeq) <- c("condition", "type")
         Grupos.EBSeq[, 2] <- c("paired-end")
         Grupos.EBSeq <- na.omit(Grupos.EBSeq)
@@ -331,7 +337,12 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
         stop(message("Please insert a valid 'groupGen' value!! ('mclust', 'coxHR' or 'clinical')"))
     }
 
-    assign("condHeatmap", Grupos.EBSeq[, 1], envir = get(envir_link))
+    # check patient in common
+    tmp <- rownames(Grupos.EBSeq) %in% colnames(string_vars[["envir_link"]]$gene_tumor_not_normalized)
+
+    Grupos.EBSeq <- Grupos.EBSeq[tmp, ]
+
+    assign("condHeatmapq", Grupos.EBSeq[, 1], envir = get(envir_link))
 
     #selecting specifics patients
     completed.matrix <- string_vars[["envir_link"]]$gene_tumor_not_normalized[, rownames(Grupos.EBSeq)]

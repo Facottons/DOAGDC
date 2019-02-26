@@ -45,9 +45,12 @@ groups_identification_coxHR <- function(Name,
     dataType <- gsub(" ", "_", dataType)
     Name <- gsub("-", "_", Name)
 
-    PATH <- file.path(workDir, "GDCRtools", toupper(tumor), "Analyses", toupper(Name))
+    PATH <- file.path(workDir, "GDCRtools", toupper(tumor), "Analyses", tolower(Name))
 
     dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "Analyses"),
+               showWarnings = FALSE)
+
+    dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "Analyses", tolower(Name)),
                showWarnings = FALSE)
 
     dir.create(file.path(PATH,
@@ -67,16 +70,17 @@ groups_identification_coxHR <- function(Name,
     }
 
     # local functions ####
-    geomSeries <- function(base, max) {
-        base^(0:floor(log(max, base)))
-    }
+    # geomSeries <- function(base, max) {
+    #     base^(0:floor(log(max, base)))
+    # }
 
     # part1 ####
 
     # PART B: CLINICAL EVALUATION
     # Add available files
 
-    MANIFEST <- data.frame(read.table(file=file.path(workDir, "GDCRtools", tumor, folder_name, "manifest.sdrf"),
+    MANIFEST <- data.frame(read.table(file=file.path(workDir, "GDCRtools", toupper(tumor),
+                                                     folder_name, "manifest.sdrf"),
                                       stringsAsFactors = FALSE, header=TRUE, sep="\t"))
 
     AvailableFiles <- MANIFEST$file_name
@@ -131,7 +135,8 @@ groups_identification_coxHR <- function(Name,
         # fileNow <- match("nationwidechildrens.org_clinical.TCGA-BH-A18L.xml", AvailableFiles)
         #Parse xml_data
         # data <- XML::xmlParse(paste("./", tumor, "/", "clinical_xml", "/Raw/", AvailableFiles[fileNow],sep=""))
-        data <- XML::xmlParse(file.path(workDir, "GDCRtools", tumor, folder_name, AvailableFiles[fileNow]))
+        data <- XML::xmlParse(file.path(workDir, "GDCRtools", toupper(tumor),
+                                        folder_name, AvailableFiles[fileNow]))
         xml_data <- XML::xmlToList(data)
 
 
@@ -794,7 +799,8 @@ groups_identification_coxHR <- function(Name,
     # Table File position
 
     if(missing(env)){
-        envir_link <- paste(toupper(tumor), toupper(dataBase), gsub(" ", "_", tolower(dataType)), "tumor_data", sep = "_")
+        # envir_link <- paste(toupper(tumor), toupper(dataBase), gsub(" ", "_", tolower(dataType)), "tumor_data", sep = "_")
+        stop(message("Please, insert the Environment name as 'env' argument!"))
     } else {
         envir_link <- deparse(substitute(env))
     }
@@ -892,10 +898,8 @@ groups_identification_coxHR <- function(Name,
         paste(unlist(strsplit(w, ""))[1:2], collapse="")}))
     framesList[,"TissueTypeSimple"] <- TissueTypeSimple
 
-    tumorValues_RSEM_UQ <- framesList[, Name]
-
     # Calculate z-scores
-    tumorValueszscore <- (tumorValues_RSEM_UQ - mean(tumorValues_RSEM_UQ)) / sd(tumorValues_RSEM_UQ)
+    tumorValueszscore <- as.numeric(scale(framesList[, Name]))
 
     # Save values to table
     framesList[, "log2p1"] <- log2(framesList[, Name]+1)
@@ -921,7 +925,7 @@ groups_identification_coxHR <- function(Name,
     TableNow <- TableNow[!is.nan(TableNow$final_rfs_status_times),]
     TableNow$final_rfs_status_times <- as.numeric(TableNow$final_rfs_status_times)
 
-    # remove patients withou relapse information
+    # remove patients without relapse information
     TableNow$final_rfs_status <- as.integer(gsub("relapse",1, gsub("censored", 0, TableNow$final_rfs_status)))
 
 
@@ -934,13 +938,11 @@ groups_identification_coxHR <- function(Name,
     # define optimization ranges using at least 4% of the patients
     # or 10
     nmin <- round(0.04*dim(TableNow)[1])
-    if(nmin > 10){
-        #nothing
-    } else {
+    if(nmin < 10){
         nmin <- 10
     }
     nmax <- dim(TableNow)[1] - nmin
-    patient_cuts_sequence <- nmin:nmax-1
+    patient_cuts_sequence <- nmin:nmax
 
     # create matrix to receive the results
     cutoff_optimization <- matrix(nrow=length(patient_cuts_sequence), ncol=6)
@@ -971,8 +973,8 @@ groups_identification_coxHR <- function(Name,
                 classification_vector <- factor(classification_vector, levels=c("low", "high"))
 
                 # create the model summary
-                coxmodel <- summary(survival::coxph(survival::Surv(final_rfs_status_times, final_rfs_status) ~ classification_vector,
-                                                     data = TableNow))
+                coxmodel <- suppressWarnings(summary(survival::coxph(survival::Surv(final_rfs_status_times, final_rfs_status) ~ classification_vector,
+                                                     data = TableNow)))
 
                 # collect line now for table
                 lineNow <- match(patientcutnow, cutoff_optimization[,"patientNo"])
@@ -998,8 +1000,8 @@ groups_identification_coxHR <- function(Name,
             classification_vector <- factor(classification_vector, levels=c("low", "high"))
 
             # create the model summary
-            coxmodel <- summary(survival::coxph(survival::Surv(final_rfs_status_times, final_rfs_status) ~ classification_vector,
-                                      data = TableNow))
+            coxmodel <- suppressWarnings(summary(survival::coxph(survival::Surv(final_rfs_status_times, final_rfs_status) ~ classification_vector,
+                                      data = TableNow)))
 
             # collect line now for table
             lineNow <- match(patientcutnow, cutoff_optimization[,"patientNo"])
@@ -1022,136 +1024,152 @@ groups_identification_coxHR <- function(Name,
     removeRows <- -sort(unique(c(which(is.infinite(cutoff_optimization$HR)),
                                  which(is.infinite(cutoff_optimization$HR_min95)),
                                  which(is.infinite(cutoff_optimization$HR_max95)),
-                                 which(is.infinite(cutoff_optimization$logrank_p)))))
-    if(length(removeRows)>0){
-        cutoff_optimization <- cutoff_optimization[removeRows,]
-    }
+                                 which(is.na(cutoff_optimization$logrank_p)))))
+
+    cutoff_optimization <- cutoff_optimization[!is.na(cutoff_optimization$HR_min95), ]
 
     # save optim table
-    write.csv(cutoff_optimization, file=file.path(DIR, "coxHR", paste0("Optimization_", Name, ".csv")))
+    write.csv(cutoff_optimization,
+              file=file.path(DIR, "coxHR", paste0("Optimization_", Name, ".csv")))
+
+    if (nrow(cutoff_optimization) == 0) {
+        stop(message("\nLow expression values. Please, try another expression data!\n"))
+    }
 
     # Collect best z score
-    best_z_table <- cutoff_optimization$zscorecut[which(min(cutoff_optimization$logrank_p, na.rm=TRUE) == cutoff_optimization$logrank_p)][1]
+    best_z_table <- suppressWarnings(cutoff_optimization$zscorecut[which(min(cutoff_optimization$logrank_p,
+                                                                             na.rm=TRUE) == cutoff_optimization$logrank_p)][1])
 
+    if(nrow(cutoff_optimization[removeRows, ]) > 0){
+        # plot
+        if (tolower(image.format) == "png") {
+            png(filename = file.path(DIR, "coxHR",
+                                     paste0("with_confidence_interval_", Name, ".png")),
+                width = Width, height = Height, res = Res, units = Unit)
+        } else if (tolower(image.format) == "svg") {
+            svg(filename = file.path(DIR, "coxHR",
+                                     paste0("with_confidence_interval_", Name, ".svg")),
+                width = Width, height = Height, onefile = TRUE)
+        } else {
+            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        }
+        par(mar = c(5,5,3,5))
+        plot(x=cutoff_optimization$zscorecut,
+             y=cutoff_optimization$HR, type="l",
+             ylim=c(min(cutoff_optimization$HR_min95, na.rm = TRUE),
+                    max(cutoff_optimization$HR_max95, na.rm = TRUE)),
+             xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
+                    max(cutoff_optimization$zscorecut, na.rm = TRUE)),
+             lwd=2, lty=1, xlab="Expression z-score", ylab="Cox HR RFS", axes=FALSE,
+             col=rgb(8,88,158, 240, max=255))
 
-    # plot
-    if (tolower(image.format) == "png") {
-        png(filename = file.path(DIR, "coxHR",
-                                 paste0("with_confidence_interval_", Name, ".png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
-        svg(filename = file.path(DIR, "coxHR",
-                                 paste0("with_confidence_interval_", Name, ".svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        axis(side = 1, lwd = 2, cex.axis=1.5, cex=1.5,
+             at=round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
+                          max(cutoff_optimization$zscorecut, na.rm = TRUE), by = 0.1), 2))
+        axis(side = 2, lwd = 2, cex.axis=1.5, cex=1.5,
+             col=rgb(8,88,158, 255, max=255), las = 1)
+
+        lines(x=cutoff_optimization$zscorecut,
+              y=cutoff_optimization$HR_min95,
+              lwd=1, lty=3, col=rgb(19, 153, 24, 200, max=255))
+        lines(x=cutoff_optimization$zscorecut,
+              y=cutoff_optimization$HR_max95,
+              lwd=1, lty=3, col=rgb(19, 153, 24, 200, max=255))
+
+        # abline(v=best_z_table, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
+        text(best_z_table, max(cutoff_optimization$HR, na.rm = TRUE)+.12, paste0("z-score = ", round(best_z_table, 2)), cex=0.8)
+        points(best_z_table, max(cutoff_optimization$HR, na.rm = TRUE))
+
+        points(TableNow[,"zscore"],
+               rep(min(cutoff_optimization$HR_min95, na.rm = TRUE), length(TableNow[,"zscore"])),
+               pch="|", col=rgb(37,37,37, 90, max=255))
+
+        par(new = T)
+
+        plot(x=cutoff_optimization$zscorecut,
+             y=cutoff_optimization$logrank_p, type="l",
+             ylim=c(max(cutoff_optimization$logrank_p, na.rm = TRUE),
+                    min(cutoff_optimization$logrank_p, na.rm = TRUE)-0.1),
+             xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
+                    max(cutoff_optimization$zscorecut, na.rm = TRUE)),
+             lwd=2, lty=1, xlab=NA, ylab=NA,
+             axes=FALSE, cex=1.5, col=rgb(252,78,42, 150, max=255))
+        axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las =1)
+        mtext(side = 4, line = 3.8, "p logrank", cex=1.2)
+
+        min_p <- min(cutoff_optimization$logrank_p , na.rm = TRUE)
+
+        # abline(h = min_p, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
+        text(best_z_table, min_p-.01, paste0("p logrank = ", round(min_p, 4)), cex=0.8)
+        points(best_z_table, min_p)
+
+        # par(xpd = TRUE)
+        # text(x = par("usr")[2]+0.2, y = mean(par("usr")[3:4]), "p logrank", srt = 270, cex=1.3)
+        dev.off()
+
+        # plot HR log2
+        if (tolower(image.format) == "png") {
+            png(filename = file.path(DIR, "coxHR", paste0("Log2_with_confidence_interval_",
+                                                          Name, ".png")),
+                width = Width, height = Height, res = Res, units = Unit)
+        } else if (tolower(image.format) == "svg") {
+            svg(filename = file.path(DIR, "coxHR", paste0("Log2_with_confidence_interval_",
+                                                          Name, ".svg")),
+                width = Width, height = Height, onefile = TRUE)
+        } else {
+            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        }
+        par(mar = c(5,5,3,5))
+        plot(x=cutoff_optimization$zscorecut,
+             y=log2(cutoff_optimization$HR), type="l",
+             ylim=c(min(log2(cutoff_optimization$HR_min95), na.rm = TRUE),
+                    max(log2(cutoff_optimization$HR_max95), na.rm = TRUE)),
+             xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
+                    max(cutoff_optimization$zscorecut, na.rm = TRUE)),
+             lwd=2, lty=1, xlab="Expression z-score", ylab=expression('Log'[2]*'(Cox HR RFS)'), axes=F,
+             col=rgb(8,88,158, 240, max=255))
+
+        axis(side = 1, lwd = 2, cex.axis=1.5, cex=1.5,
+             at=round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
+                          max(cutoff_optimization$zscorecut, na.rm = TRUE), by = 0.1), 2))
+        axis(side = 2, lwd = 2, cex.axis=1.5, cex=1.5,
+             col=rgb(8,88,158, 255, max=255), las =1)
+
+        lines(x=cutoff_optimization$zscorecut,
+              y=log2(cutoff_optimization$HR_min95),
+              lwd=1, lty=3, col=rgb(19, 153, 24, 200, max=255))
+        lines(x=cutoff_optimization$zscorecut,
+              y=log2(cutoff_optimization$HR_max95),
+              lwd=1, lty=3, col=rgb(19, 153, 24, 200, max=255))
+
+        text(best_z_table, max(log2(cutoff_optimization$HR), na.rm = TRUE)+.105,
+             paste0("z-score = ", round(best_z_table, 2)), cex=0.8)
+        points(best_z_table, max(log2(cutoff_optimization$HR), na.rm = TRUE))
+
+        points(TableNow[,"zscore"],
+               rep(min(log2(cutoff_optimization$HR_min95), na.rm = TRUE), length(TableNow[,"zscore"])),
+               pch="|", col=rgb(37,37,37, 90, max=255))
+        par(new = T)
+
+        plot(x=cutoff_optimization$zscorecut,
+             y=cutoff_optimization$logrank_p, type="l",
+             ylim=c(max(cutoff_optimization$logrank_p, na.rm = TRUE),
+                    min(cutoff_optimization$logrank_p, na.rm = TRUE)),
+             xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
+                    max(cutoff_optimization$zscorecut, na.rm = TRUE)),
+             lwd=2, lty=1, xlab=NA, ylab=NA,
+             axes=F, cex=1.5, col=rgb(252,78,42, 150, max=255))
+        axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las =1)
+        mtext(side = 4, line = 3.8, "p logrank", cex=1.2)
+
+        min_p <- min(cutoff_optimization$logrank_p , na.rm = TRUE)
+
+        text(best_z_table, min_p-.015, paste0("p logrank = ", round(min_p, 4)), cex=0.8)
+        points(best_z_table, min_p)
+
+        dev.off()
+
     }
-    par(mar = c(5,5,2,5))
-    plot(x=cutoff_optimization$zscorecut,
-         y=cutoff_optimization$HR, type="l",
-         ylim=c(min(cutoff_optimization$HR_min95, na.rm = TRUE),
-                max(cutoff_optimization$HR_max95, na.rm = TRUE)),
-         xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                max(cutoff_optimization$zscorecut, na.rm = TRUE)),
-         lwd=2, lty=1, xlab="Expression z-score", ylab="Cox HR RFS", axes=F,
-         col=rgb(8,88,158, 240, max=255))
-
-    axis(side = 1, lwd = 2, cex.axis=1.5, cex=1.5,
-         at=round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                      max(cutoff_optimization$zscorecut, na.rm = TRUE), by = 0.2), 2))
-    axis(side = 2, lwd = 2, cex.axis=1.5, cex=1.5,
-         col=rgb(8,88,158, 255, max=255), las = 1)
-
-    lines(x=cutoff_optimization$zscorecut,
-          y=cutoff_optimization$HR_min95,
-          lwd=1, lty=3, col=rgb(19, 153, 24, 200, max=255))
-    lines(x=cutoff_optimization$zscorecut,
-          y=cutoff_optimization$HR_max95,
-          lwd=1, lty=3, col=rgb(19, 153, 24, 200, max=255))
-
-    abline(v=best_z_table, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
-    mtext(at = best_z_table,
-          text = paste0("z-score = ", round(best_z_table, 2)), cex=0.8)
-
-    points(TableNow[,"zscore"],
-           rep(min(cutoff_optimization$HR_min95, na.rm = TRUE), length(TableNow[,"zscore"])),
-           pch="|", col=rgb(37,37,37, 90, max=255))
-
-    par(new = T)
-
-    plot(x=cutoff_optimization$zscorecut,
-         y=cutoff_optimization$logrank_p, type="l",
-         ylim=c(max(cutoff_optimization$logrank_p, na.rm = TRUE),
-                min(cutoff_optimization$logrank_p, na.rm = TRUE)-0.1),
-         xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                max(cutoff_optimization$zscorecut, na.rm = TRUE)),
-         lwd=2, lty=1, xlab=NA, ylab=NA,
-         axes=F, cex=1.5, col=rgb(252,78,42, 150, max=255))
-    axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las =1,
-         at = geomSeries(base=0.1, max=min(cutoff_optimization$logrank_p, na.rm = TRUE)))
-    # mtext(side = 4, line = 3.8, "p logrank", cex=1.5)
-    par(xpd = TRUE)
-    text(x = par("usr")[2]+0.2, y = mean(par("usr")[3:4]), "p logrank", srt = 270, cex=1.3)
-    dev.off()
-
-    # plot HR log2
-    if (tolower(image.format) == "png") {
-        png(filename = file.path(DIR, "coxHR", paste0("Log2_with_confidence_interval_",
-                                                      Name, ".png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
-        svg(filename = file.path(DIR, "coxHR", paste0("Log2_with_confidence_interval_",
-                                                      Name, ".svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-    }
-    par(mar = c(5,5,2,5))
-    plot(x=cutoff_optimization$zscorecut,
-         y=log2(cutoff_optimization$HR), type="l",
-         ylim=c(min(log2(cutoff_optimization$HR_min95), na.rm = TRUE),
-                max(log2(cutoff_optimization$HR_max95), na.rm = TRUE)),
-         xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                max(cutoff_optimization$zscorecut, na.rm = TRUE)),
-         lwd=2, lty=1, xlab="Expression z-score", ylab=expression('Log'[2]*'(Cox HR RFS)'), axes=F,
-         col=rgb(8,88,158, 240, max=255))
-
-    axis(side = 1, lwd = 2, cex.axis=1.5, cex=1.5,
-         at=round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                      max(cutoff_optimization$zscorecut, na.rm = TRUE), by = 0.2), 2))
-    axis(side = 2, lwd = 2, cex.axis=1.5, cex=1.5,
-         col=rgb(8,88,158, 255, max=255), las =1)
-
-    lines(x=cutoff_optimization$zscorecut,
-          y=log2(cutoff_optimization$HR_min95),
-          lwd=1, lty=3, col=rgb(19, 153, 24, 200, max=255))
-    lines(x=cutoff_optimization$zscorecut,
-          y=log2(cutoff_optimization$HR_max95),
-          lwd=1, lty=3, col=rgb(19, 153, 24, 200, max=255))
-
-    abline(v=best_z_table, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
-    mtext(at = best_z_table,
-          text = paste0("z-score = ", round(best_z_table, 2)), cex=0.8)
-
-    points(TableNow[,"zscore"],
-           rep(min(log2(cutoff_optimization$HR_min95), na.rm = TRUE), length(TableNow[,"zscore"])),
-           pch="|", col=rgb(37,37,37, 90, max=255))
-    par(new = T)
-
-    plot(x=cutoff_optimization$zscorecut,
-         y=cutoff_optimization$logrank_p, type="l",
-         ylim=c(max(cutoff_optimization$logrank_p, na.rm = TRUE),
-                min(cutoff_optimization$logrank_p, na.rm = TRUE)),
-         xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                max(cutoff_optimization$zscorecut, na.rm = TRUE)),
-         lwd=2, lty=1, xlab=NA, ylab=NA,
-         axes=F, cex=1.5, col=rgb(252,78,42, 150, max=255))
-    axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las =1,
-         at = geomSeries(base=0.1, max=min(cutoff_optimization$logrank_p, na.rm = TRUE)))
-    # mtext(side = 4, line = 3.8, "p logrank", cex=1.5)
-    par(xpd = TRUE)
-    text(x = par("usr")[2]+0.2, y = mean(par("usr")[3:4]), "p logrank", srt = 270, cex=1.3)
-    dev.off()
 
     # hide outliers
     # plot
@@ -1166,39 +1184,41 @@ groups_identification_coxHR <- function(Name,
     } else {
         stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
     }
-    par(mar = c(5,5,2,5))
+    par(mar = c(5,5,3,5))
     plot(x=cutoff_optimization$zscorecut,
          y=cutoff_optimization$HR, type="l",
-         lwd=2, lty=1, xlab="Expression z-score", ylab="Cox HR RFS", axes=F,
+         lwd=2, lty=1, xlab="Expression z-score", ylab="Cox HR RFS", axes=FALSE,
          col=rgb(8,88,158, alpha = 100, max=255))
 
     axis(side = 1, lwd = 2, cex.axis=1.5, cex=1.5,
          at=round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                      max(cutoff_optimization$zscorecut, na.rm = TRUE), by = 0.2), 2))
+                      max(cutoff_optimization$zscorecut, na.rm = TRUE), by = 0.1), 2))
     axis(side = 2, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(8,88,158, 255, max=255), las = 1)
     # las = 1, at = round(seq(min(cutoff_optimization$HR, na.rm = TRUE),
     #                   max(cutoff_optimization$HR, na.rm = TRUE), by = 0.2), 1))
 
-    abline(v=best_z_table, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
-    mtext(at = best_z_table,
-          text = paste0("z-score = ", round(best_z_table, 2)), cex=0.8)
+    text(best_z_table, max(cutoff_optimization$HR, na.rm = TRUE)+.12,
+         paste0("z-score = ", round(best_z_table, 2)), cex=0.8)
+    points(best_z_table, max(cutoff_optimization$HR, na.rm = TRUE))
 
     points(cutoff_optimization$zscorecut,
            rep(min(cutoff_optimization$HR, na.rm = TRUE), length(cutoff_optimization$zscorecut)),
            pch="|", col=rgb(37,37,37, 90, max=255))
 
     par(new = T)
-
     plot(x=cutoff_optimization$zscorecut,
          y=cutoff_optimization$logrank_p, type="l",
          ylim=c(max(cutoff_optimization$logrank_p, na.rm = TRUE), min(cutoff_optimization$logrank_p, na.rm = TRUE)),
          lwd=3, lty=1, xlab=NA, ylab=NA,
          axes=F, cex=1.5, col=rgb(252,78,42, alpha = 100, max=255))
-    axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las =1,
-         at = geomSeries(base=0.1, max=min(cutoff_optimization$logrank_p, na.rm = TRUE)))
-    # mtext(side = 4, line = 3.8, "p logrank", cex=1.5)
-    par(xpd = TRUE)
-    text(x = par("usr")[2]+0.2, y = mean(par("usr")[3:4]), "p logrank", srt = 270, cex=1.3)
+    axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las = 1)
+    mtext(side = 4, line = 3.8, "p logrank", cex=1.2)
+
+    min_p <- min(cutoff_optimization$logrank_p , na.rm = TRUE)
+    # abline(h = min_p, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
+    text(best_z_table, min_p-.01, paste0("p logrank = ", round(min_p, 4)), cex=0.8)
+    points(best_z_table, min_p)
+
     dev.off()
 
     # plot HR log2
@@ -1213,21 +1233,22 @@ groups_identification_coxHR <- function(Name,
     } else {
         stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
     }
-    par(mar = c(5,5,2,5))
+    par(mar = c(5,5,3,5))
     plot(x=cutoff_optimization$zscorecut,
          y=log2(cutoff_optimization$HR), type="l",
          lwd=2, lty=1, xlab="Expression z-score", ylab=expression('Log'[2]*'(Cox HR RFS)'), axes=F,
          col=rgb(8,88,158, alpha = 100, max=255))
 
     axis(side = 1, lwd = 2, cex.axis=1.5, cex=1.5,
-         at=round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),max(cutoff_optimization$zscorecut, na.rm = TRUE), by = 0.2), 2))
+         at=round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
+                      max(cutoff_optimization$zscorecut, na.rm = TRUE), by = 0.1), 2))
     axis(side = 2, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(8,88,158, 255, max=255), las = 1)
     # las = 1, at = round(seq(min(log2(cutoff_optimization$HR), na.rm = TRUE),
     #                         max(log2(cutoff_optimization$HR), na.rm = TRUE), by = 0.2), 1))
 
-    abline(v=best_z_table, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
-    mtext(at = best_z_table,
-          text = paste0("z-score = ", round(best_z_table, 2)), cex=0.8)
+    text(best_z_table, max(log2(cutoff_optimization$HR), na.rm = TRUE)+.105,
+         paste0("z-score = ", round(best_z_table, 2)), cex=0.8)
+    points(best_z_table, max(log2(cutoff_optimization$HR), na.rm = TRUE))
 
     points(cutoff_optimization$zscorecut,
            rep(min(log2(cutoff_optimization$HR), na.rm = TRUE), length(cutoff_optimization$zscorecut)),
@@ -1240,11 +1261,14 @@ groups_identification_coxHR <- function(Name,
          ylim=c(max(cutoff_optimization$logrank_p, na.rm = TRUE), min(cutoff_optimization$logrank_p, na.rm = TRUE)),
          lwd=3, lty=1, xlab=NA, ylab=NA,
          axes=F, cex=1.5, col=rgb(252,78,42, alpha = 100, max=255))
-    axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las =1,
-         at = geomSeries(base=0.1, max=min(cutoff_optimization$logrank_p, na.rm = TRUE)))
-    # mtext(side = 4, line = 3.8, "p logrank", cex=1.5)
-    par(xpd = TRUE)
-    text(x = par("usr")[2]+0.2, y = mean(par("usr")[3:4]), "p logrank", srt = 270, cex=1.3)
+    axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las = 1)
+    mtext(side = 4, line = 3.8, "p logrank", cex=1.2)
+
+    min_p <- min(cutoff_optimization$logrank_p , na.rm = TRUE)
+    # abline(h = min_p, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
+    text(best_z_table, min_p-.01, paste0("p logrank = ", round(min_p, 4)), cex=0.8)
+    points(best_z_table, min_p)
+
     dev.off()
 
     # Save best z table
@@ -1282,31 +1306,33 @@ groups_identification_coxHR <- function(Name,
     # define the formula now
     formulaNow <- formula(framesList[, "log2p1"] ~ framesList[, "full_classification"])
 
-    # Pirate plotting - Basic
-    # plot HR log2
-    if (tolower(image.format) == "png") {
-        png(filename = file.path(DIR, "kaplan_maier",
-                                 paste0(Name, "_PiratePlot_log2RSEM_all_conditions.png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
-        svg(filename = file.path(DIR, "kaplan_maier",
-                                 paste0(Name, "_PiratePlot_log2RSEM_all_conditions.svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    if (nrow(framesList) > 0) {
+        # Pirate plotting - Basic
+        # plot HR log2
+        if (tolower(image.format) == "png") {
+            png(filename = file.path(DIR, "kaplan_maier",
+                                     paste0(Name, "_PiratePlot_log2RSEM_all_conditions.png")),
+                width = Width, height = Height, res = Res, units = Unit)
+        } else if (tolower(image.format) == "svg") {
+            svg(filename = file.path(DIR, "kaplan_maier",
+                                     paste0(Name, "_PiratePlot_log2RSEM_all_conditions.svg")),
+                width = Width, height = Height, onefile = TRUE)
+        } else {
+            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        }
+        #bottom, left, top and right
+        par(mar=c(3,4.8,4,2))
+        yarrr::pirateplot(formula = formulaNow,
+                          data=framesList, gl.lwd = 0,
+                          ylab = expression('Log'[2]*'(Expression + 1)'),
+                          # main = paste(Name, "_", names(framesList), sep=""),
+                          inf.method="iqr", cex.lab=1.2, cex.axis=1.8,
+                          inf.disp="rect", jitter.val = 0.08, theme=2, cex.names=1.5,
+                          pal="pony", avg.line.fun = median, point.cex = 1.3,
+                          inf.f.col=rgb(200,200,200, 255, max=255), xlab = "",
+                          inf.b.col=rgb(120,120,120, 255, max=255))
+        dev.off()
     }
-    #bottom, left, top and right
-    par(mar=c(3,4.8,4,2))
-    yarrr::pirateplot(formula = formulaNow,
-               data=framesList, gl.lwd = 0,
-               ylab = expression('Log'[2]*'(Expression + 1)'),
-               # main = paste(Name, "_", names(framesList), sep=""),
-               inf.method="iqr", cex.lab=1.2, cex.axis=1.8,
-               inf.disp="rect", jitter.val = 0.08, theme=2, cex.names=1.5,
-               pal="pony", avg.line.fun = median, point.cex = 1.3,
-               inf.f.col=rgb(200,200,200, 255, max=255), xlab = "",
-               inf.b.col=rgb(120,120,120, 255, max=255))
-    dev.off()
 
     # ANOVA followed by tukey
     sink(file=file.path(DIR, "kaplan_maier", paste0(Name, "_PiratePlot_log2RSEM",
@@ -1465,6 +1491,7 @@ groups_identification_coxHR <- function(Name,
     } else {
         stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
     }
+    par(mar=c(3,3,3,6))
     print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
                      linetype=c(1,1), conf.int = TRUE,
                      #palette = "grey",
@@ -1490,32 +1517,35 @@ groups_identification_coxHR <- function(Name,
 
     message("Pirate plotting \n")
 
-    # Pirate plotting - Basic
-    if (tolower(image.format) == "png") {
-        png(filename = file.path(DIR, "kaplan_maier",
-                                 paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival.png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
-        svg(filename = file.path(DIR, "kaplan_maier",
-                                 paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival.svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    if (nrow(framesList) > 0) {
+        # Pirate plotting - Basic
+        if (tolower(image.format) == "png") {
+            png(filename = file.path(DIR, "kaplan_maier",
+                                     paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival.png")),
+                width = Width, height = Height, res = Res, units = Unit)
+        } else if (tolower(image.format) == "svg") {
+            svg(filename = file.path(DIR, "kaplan_maier",
+                                     paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival.svg")),
+                width = Width, height = Height, onefile = TRUE)
+        } else {
+            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        }
+        #bottom, left, top and right
+        par(mar=c(3,4.8,4,2))
+        yarrr::pirateplot(formula = formulaNow,
+                          data=KaplanTableNow,
+                          ylab = expression('Log'[2]*'(Expression + 1)'),
+                          xlab = "",
+                          # main = paste(Name, "_", names(framesList), sep=""),
+                          inf.method="iqr", cex.lab=1.2, cex.axis=1.8,
+                          inf.disp="rect", jitter.val = 0.08, theme=2, cex.names=1.5,
+                          pal="pony", avg.line.fun = median, point.cex = 1.3,
+                          inf.f.col=rgb(200,200,200, 255, max=255),
+                          inf.b.col=rgb(120,120,120, 255, max=255))
+        #sortx = "alphabetical")
+        dev.off()
     }
-    #bottom, left, top and right
-    par(mar=c(3,4.8,4,2))
-    yarrr::pirateplot(formula = formulaNow,
-               data=KaplanTableNow,
-               ylab = expression('Log'[2]*'(Expression + 1)'),
-               xlab = "",
-               # main = paste(Name, "_", names(framesList), sep=""),
-               inf.method="iqr", cex.lab=1.2, cex.axis=1.8,
-               inf.disp="rect", jitter.val = 0.08, theme=2, cex.names=1.5,
-               pal="pony", avg.line.fun = median, point.cex = 1.3,
-               inf.f.col=rgb(200,200,200, 255, max=255),
-               inf.b.col=rgb(120,120,120, 255, max=255))
-    #sortx = "alphabetical")
-    dev.off()
+
 
     # ANOVA followed by tukey
     sink(file=file.path(DIR, "kaplan_maier",
@@ -1652,6 +1682,7 @@ groups_identification_coxHR <- function(Name,
     } else {
         stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
     }
+    par(mar=c(3,3,3,6))
     print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
                      linetype=c(1,1), conf.int = TRUE,
                      #palette = "grey",
@@ -1678,32 +1709,34 @@ groups_identification_coxHR <- function(Name,
 
     message("Pirate plotting \n")
 
-    # Pirate plotting - Basic
-    if (tolower(image.format) == "png") {
-        png(filename = file.path(DIR, "kaplan_maier",
-                                 paste0(Name,"PiratePlot_log2RSEM__5yr_rfs.png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
-        svg(filename = file.path(DIR, "kaplan_maier",
-                                 paste0(Name,"PiratePlot_log2RSEM__5yr_rfs.svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    if (nrow(framesList) > 0) {
+        # Pirate plotting - Basic
+        if (tolower(image.format) == "png") {
+            png(filename = file.path(DIR, "kaplan_maier",
+                                     paste0(Name,"PiratePlot_log2RSEM__5yr_rfs.png")),
+                width = Width, height = Height, res = Res, units = Unit)
+        } else if (tolower(image.format) == "svg") {
+            svg(filename = file.path(DIR, "kaplan_maier",
+                                     paste0(Name,"PiratePlot_log2RSEM__5yr_rfs.svg")),
+                width = Width, height = Height, onefile = TRUE)
+        } else {
+            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        }
+        #bottom, left, top and right
+        par(mar=c(3,4.8,4,2))
+        yarrr::pirateplot(formula = formulaNow,
+                          data=KaplanTableNow,
+                          xlab = "",
+                          ylab = expression('Log'[2]*'(Expression + 1)'),
+                          # main = paste(Name, "_", names(framesList), sep=""),
+                          inf.method="iqr", cex.lab=1.2, cex.axis=1.8,
+                          inf.disp="rect", jitter.val = 0.08, theme=2, cex.names=1.5,
+                          pal="pony", avg.line.fun = median,
+                          inf.f.col=rgb(200,200,200, 255, max=255),
+                          inf.b.col=rgb(120,120,120, 255, max=255))
+        #sortx = "alphabetical")
+        dev.off()
     }
-    #bottom, left, top and right
-    par(mar=c(3,4.8,4,2))
-    yarrr::pirateplot(formula = formulaNow,
-               data=KaplanTableNow,
-               xlab = "",
-               ylab = expression('Log'[2]*'(Expression + 1)'),
-               # main = paste(Name, "_", names(framesList), sep=""),
-               inf.method="iqr", cex.lab=1.2, cex.axis=1.8,
-               inf.disp="rect", jitter.val = 0.08, theme=2, cex.names=1.5,
-               pal="pony", avg.line.fun = median,
-               inf.f.col=rgb(200,200,200, 255, max=255),
-               inf.b.col=rgb(120,120,120, 255, max=255))
-    #sortx = "alphabetical")
-    dev.off()
 
     # ANOVA followed by tukey
     sink(file=file.path(DIR, "kaplan_maier",
@@ -1845,6 +1878,7 @@ groups_identification_coxHR <- function(Name,
     } else {
         stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
     }
+    par(mar=c(3,3,3,6))
     print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
                      linetype=c(1,1), conf.int = TRUE,
                      #palette = "grey",
@@ -1869,32 +1903,34 @@ groups_identification_coxHR <- function(Name,
     # define the formula now
     formulaNow <- formula(log2(get(Name)+1) ~ yr5_status)
 
-    # Pirate plotting - Basic
-    if (tolower(image.format) == "png") {
-        png(filename = file.path(DIR, "kaplan_maier",
-                                 paste0(Name,"_PiratePlot_log2RSEM__5yr_dmfs.png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
-        svg(filename = file.path(DIR, "kaplan_maier",
-                                 paste0(Name,"_PiratePlot_log2RSEM__5yr_dmfs.svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-    }
-    #bottom, left, top and right
-    par(mar=c(3,4.8,4,2))
-    yarrr::pirateplot(formula = formulaNow,
-               data=KaplanTableNow,
-               xlab = "",
-               ylab = expression('Log'[2]*'(Expression + 1)'),
-               # main = paste(Name, "_", names(framesList), sep=""),
-               inf.method="iqr", cex.lab=1.2, cex.axis=1.8,
-               inf.disp="rect", jitter.val = 0.08, theme=2, cex.names=1.5,
-               pal="pony", avg.line.fun = median,
-               inf.f.col=rgb(200,200,200, 255, max=255),
-               inf.b.col=rgb(120,120,120, 255, max=255))
-    #sortx = "alphabetical")
-    dev.off()
+    # if (nrow(framesList) > 0) {
+    #     # Pirate plotting - Basic
+    #     if (tolower(image.format) == "png") {
+    #         png(filename = file.path(DIR, "kaplan_maier",
+    #                                  paste0(Name,"_PiratePlot_log2RSEM__5yr_dmfs.png")),
+    #             width = Width, height = Height, res = Res, units = Unit)
+    #     } else if (tolower(image.format) == "svg") {
+    #         svg(filename = file.path(DIR, "kaplan_maier",
+    #                                  paste0(Name,"_PiratePlot_log2RSEM__5yr_dmfs.svg")),
+    #             width = Width, height = Height, onefile = TRUE)
+    #     } else {
+    #         stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    #     }
+    #     #bottom, left, top and right
+    #     par(mar=c(3,4.8,4,2))
+    #     yarrr::pirateplot(formula = formulaNow,
+    #                       data=KaplanTableNow,
+    #                       xlab = "",
+    #                       ylab = expression('Log'[2]*'(Expression + 1)'),
+    #                       # main = paste(Name, "_", names(framesList), sep=""),
+    #                       inf.method="iqr", cex.lab=1.2, cex.axis=1.8,
+    #                       inf.disp="rect", jitter.val = 0.08, theme=2, cex.names=1.5,
+    #                       pal="pony", avg.line.fun = median,
+    #                       inf.f.col=rgb(200,200,200, 255, max=255),
+    #                       inf.b.col=rgb(120,120,120, 255, max=255))
+    #     #sortx = "alphabetical")
+    #     dev.off()
+    # }
 
     # check to skip one conditions
     if(length(unique(KaplanTableNow$yr5_status))>=2){
@@ -2006,8 +2042,8 @@ groups_identification_coxHR <- function(Name,
               legend.title = ggplot2::element_blank(),
               panel.grid.major = ggplot2::element_blank(),
               panel.grid.minor = ggplot2::element_blank(),
-              axis.text.x=ggplot2::element_text(colour = "black", size=4),
-              axis.text.y=ggplot2::element_text(colour = "black", size=11)
+              axis.text.x=ggplot2::element_text(colour = "black", size=14),
+              axis.text.y=ggplot2::element_text(colour = "black", size=13)
         )
     print(p4)
     dev.off()

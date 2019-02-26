@@ -25,10 +25,10 @@ There are some possible paths in GDCRtools analysis workflow:
 
 The start point for all possible analyses is the `download_gdc()` function. As the name suggests, this function automatically download all selected data, and store it inside the appropriate folders. After this step, the download data can be concatenated into a single table using the `concatenate_files()` function. Then, choose which functions should be used in the next steps:
 
-1.  groups identification (like `groups_identification_coxHR()`, `groups_identification_mclust()`, or `check_clinical_terms()`).
-2.  differential expression analysis (dea) (like `dea_DESeq2()`, `dea_EBSeq()`, and/or `dea_edgeR()`).
-3.  visualization (like `draw_heatmap()`, or `PCA_Analysis()`).
-4.  Pathway enrichment analysis (like `groups_identification_coxHR()`, `groups_identification_mclust()`, or `check_clinical_terms()`).
+1.  Groups Identification (like `groups_identification_coxHR()`, `groups_identification_mclust()`, or `check_clinical_terms()`).
+2.  Differential Expression Analysis (dea) (like `dea_DESeq2()`, `dea_EBSeq()`, and/or `dea_edgeR()`).
+3.  Visualization (like `draw_heatmap()`, or `PCA_Analysis()`).
+4.  Pathway enrichment analysis (like `GOnto()`, `GSEA()`, `DO.REAC.ENRICH()`, or `KEEG_ENRICH()`).
 
 Example
 -------

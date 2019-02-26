@@ -1,6 +1,7 @@
 #' Perform KEEG Pathways Enrichment
 #'
 #' @param Tool
+#' @param FDR.cutoff
 #' @param ID
 #' @param pairName
 #' @param Width,Height,Res,Unit,image.format
@@ -17,6 +18,7 @@
 #' KEEG_ENRICH(Tool = "edgeR", env = "env name without quotes")
 #' }
 KEEG_ENRICH <- function(Tool = "edgeR",
+                        FDR.cutoff = 0.05,
                         ID = "GeneID",
                         pairName = "G2_over_G1",
                         Width = 8,
@@ -32,6 +34,8 @@ KEEG_ENRICH <- function(Tool = "edgeR",
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
+    groupGen <- string_vars[["envir_link"]]$groupGen
+    Name <- string_vars[["envir_link"]]$Name
 
     # assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
     #        envir = get(envir_link))
@@ -42,9 +46,34 @@ KEEG_ENRICH <- function(Tool = "edgeR",
         PATH <- string_vars[["envir_link"]]$PATH
     }
 
-    dir.create(path = paste0(PATH, "/KEGG_GAGE_", tolower(Tool)), showWarnings = FALSE)
-    dir.create(path = paste0(PATH, "/KEGG_GAGE_", tolower(Tool), "/aux_files"), showWarnings = FALSE)
-    DIR <- paste0(PATH, "/KEGG_GAGE_", tolower(Tool))
+    if (grepl("crosstable", tolower(Tool))) {
+        if (tolower(Tool) == "crosstable.deseq2") {
+            DIR <- paste0(PATH, "/CrossData_deseq2")
+        } else if (tolower(Tool) == "crosstable.edger") {
+            DIR <- paste0(PATH, "/CrossData_edger")
+        } else if (tolower(Tool) == "crosstable.ebseq") {
+            DIR <- paste0(PATH, "/CrossData_ebseq")
+        }
+        dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
+        DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
+
+        File <- "resultadosDE.crossed"
+
+    } else {
+        File <- paste("resultadosDE", Tool, sep = ".")
+
+        dir.create(paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
+                          Tool, "_", toupper(Name)), showWarnings = FALSE)
+        DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_", Tool, "_", toupper(Name))
+
+    }
+
+    DIR <- paste0(DIR, "/KEGG_GAGE_", tolower(Tool))
+
+    dir.create(DIR, showWarnings = FALSE)
+    dir.create(file.path(DIR, "aux_files"), showWarnings = FALSE)
+
+
     #http://www.gettinggeneticsdone.com/2015/12/tutorial-rna-seq-differential.html
 
     #kegg.sets.hs list of 229 elements with gene Entrez IDs for a single KEGG pathway
@@ -60,9 +89,6 @@ KEEG_ENRICH <- function(Tool = "edgeR",
     kegg.sets.hs <- kegg.sets.hs[sigmet.idx.hs]
     # head(kegg.sets.hs, 3)
 
-    File <- paste("resultadosDE", Tool, sep = ".")
-    # File2 <- paste("Results.Completed", Tool, sep = ".")
-
     #input DE genes
     resultadosDE <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
     # Results.Completed <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
@@ -77,9 +103,10 @@ KEEG_ENRICH <- function(Tool = "edgeR",
         resultadosDE$GeneID <- annotation_table[resultadosDE$ensembl, "GeneID"]
     }
 
-    foldchanges <- resultadosDE[, "log2FC", drop = FALSE]
-    rownames(foldchanges) <- resultadosDE$GeneID
-    # names(foldchanges) <- resultadosDE$GeneID
+    # foldchanges <- resultadosDE[, "log2FC", drop = FALSE]
+    # rownames(foldchanges) <- resultadosDE$GeneID
+    foldchanges <- resultadosDE[, "log2FC", drop = TRUE]
+    names(foldchanges) <- resultadosDE$GeneID
 
     keggres <- gage::gage(foldchanges, gsets = kegg.sets.hs, same.dir = TRUE)
 
@@ -87,7 +114,12 @@ KEEG_ENRICH <- function(Tool = "edgeR",
     # library(magrittr)
     keggrespathways <- data.frame(id=rownames(keggres$greater), keggres$greater)
     keggrespathways <- na.exclude(keggrespathways)
-    keggrespathways <- as.character(keggrespathways$id)
+    keggrespathways$id<- as.character(keggrespathways$id)
+    keggrespathways <- keggrespathways[keggrespathways$q.val < FDR.cutoff, ]
+
+    if (nrow(keggrespathways) == 0) {
+        stop(message("There is not any kegg pathway with FDR < ", FDR.cutoff, "\n"))
+    }
 
     # Get the IDs.
     keggresids <- unname(sapply(keggrespathways, function(w){
@@ -126,7 +158,7 @@ KEEG_ENRICH <- function(Tool = "edgeR",
 
     #see Plotting fold changes in genomic space in http://www.bioconductor.org/help/workflows/rnaseqGene/
     # #for ids
-    # File$name <-    mapIds(org.Hs.eg.db,
+    # File$name <-    AnnotationDbi::mapIds(org.Hs.eg.db,
     #                     keys=row.names(File),
     #                     column="GENENAME",
     #                     column="ENTREZID",

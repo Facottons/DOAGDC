@@ -53,7 +53,9 @@ GOnto <- function(condition,
         #   the given \code{env}. Use the function \code{table2GDCRtools} to allocate
         #   your table inside the given \code{env}.
 
-        if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+        if(missing(env)){
+            stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))
+        }
 
         envir_link <- deparse(substitute(env))
         string_vars <- list(envir_link = get(envir_link))
@@ -78,8 +80,8 @@ GOnto <- function(condition,
             } else if (tolower(Tool) == "crosstable.ebseq") {
                 DIR <- paste0(PATH, "/CrossData_ebseq")
             }
-            dir.create(file.path(DIR, "Ontology_Results"), showWarnings = FALSE)
-            DIR <- file.path(DIR, "Ontology_Results")
+            dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
+            DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
 
             File <- "resultadosDE.crossed"
             File2 <- "Results.Completed.crossed"
@@ -88,9 +90,10 @@ GOnto <- function(condition,
             File <- paste("resultadosDE", Tool, sep = ".")
             File2 <- paste("Results.Completed", Tool, sep = ".")
 
-            dir.create(paste0(PATH, "/Ontology_Results_", Tool, "_", toupper(Name)),
-                       showWarnings = FALSE)
-            DIR <- paste0(PATH, "/Ontology_Results_", Tool, "_", toupper(Name))
+            dir.create(paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
+                              Tool, "_", toupper(Name)), showWarnings = FALSE)
+            DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
+                          Tool, "_", toupper(Name))
         }
 
         # generate annotation table
@@ -99,7 +102,7 @@ GOnto <- function(condition,
 
         #input DE genes
         resultadosDE <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
-        Results.Completed <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
+        Results.Completed <- get(File2, envir = string_vars[["envir_link"]])[[pairName]]
 
         #pre-GO        gbutils::isNA
         if (tolower(ID) == "geneid") {
@@ -108,6 +111,19 @@ GOnto <- function(condition,
                 rownames(annotation_table) <- annotation_table$ensembl
                 resultadosDE$GeneID <- annotation_table[resultadosDE$ensembl, "GeneID"]
                 Results.Completed$GeneID <- annotation_table[Results.Completed$ensembl, "GeneID"]
+
+
+
+
+                resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                annotation_table <- GDCRtools::annotation_table
+                selected <- intersect(annotation_table$ensembl, gsub(pattern = "\\..*", "", rownames(resultadosDE)))
+                geneID <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "GeneID")])
+                # Outer_join
+                resultadosDE <- merge(x = resultadosDE, y = geneID, by = "ensembl", all = TRUE)
+
+
+
             }
 
             #remove any duplicates and NA
@@ -116,10 +132,6 @@ GOnto <- function(condition,
 
             Results.Completed <- Results.Completed[!is.na(Results.Completed$GeneID), ]
             Results.Completed <- Results.Completed[!duplicated(Results.Completed$GeneID), ]
-            # rownames(DEGenes.up) <- resultadosDE[which(resultadosDE$FDR < p.cutoff & resultadosDE$log2FC > log2(FC.cutoff)),
-            #                                        "GeneID"]
-            # rownames(DEGenes.down) <- resultadosDE[which(resultadosDE$FDR < p.cutoff & resultadosDE$log2FC < -log2(FC.cutoff)),
-            #                                          "GeneID"]
 
 
             #upregulated DE
@@ -157,14 +169,15 @@ GOnto <- function(condition,
             #remove any duplicates and NA
             resultadosDE <- resultadosDE[!is.na(resultadosDE$GeneSymbol), ]
             resultadosDE[resultadosDE$GeneSymbol == "SLC35E2", "GeneSymbol"][1] <- "SLC35E2B"
-            resultadosDE[duplicated(resultadosDE$GeneSymbol), "GeneSymbol"] <- paste0("?",
-                                                                                      1:length(resultadosDE[duplicated(resultadosDE$GeneSymbol),
+            resultadosDE[duplicated(resultadosDE$GeneSymbol),
+                         "GeneSymbol"] <- paste0("?", 1:length(resultadosDE[duplicated(resultadosDE$GeneSymbol),
                                                                                                             "GeneSymbol"]))
 
             Results.Completed <- Results.Completed[!is.na(Results.Completed$GeneSymbol), ]
             Results.Completed[Results.Completed$GeneSymbol == "SLC35E2", "GeneSymbol"][1] <- "SLC35E2B"
-            Results.Completed[duplicated(Results.Completed$GeneSymbol), "GeneSymbol"] <- paste0("?",
-                                                                                      1:length(Results.Completed[duplicated(Results.Completed$GeneSymbol),
+            Results.Completed[duplicated(Results.Completed$GeneSymbol),
+                              "GeneSymbol"] <- paste0("?",
+                                                      1:length(Results.Completed[duplicated(Results.Completed$GeneSymbol),
                                                                                                             "GeneSymbol"]))
 
             #upregulated DE
@@ -380,7 +393,7 @@ GOnto <- function(condition,
     }
 
 
-    GO.wall.FUN <- function(x, n) {
+    GO.wall.FUN <- function(x, n, KEGG = FALSE) {
 
         if (nrow(x) != 0) {
 
@@ -401,83 +414,107 @@ GOnto <- function(condition,
             new.inf <- log.10.GO[order(log.10.GO, decreasing = TRUE)]
             log.10.GO[log.10.GO == "Inf"] <- (new.inf[new.inf != "Inf"][1]+1)
 
-            if (tolower(image.format) == "png") {
-                png(filename = paste0(DIR,
-                                  "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
-                                  MainNames_short[n], "_", tolower(condition), "_", ID,
-                                  "_", pairName,".png"),
-                    width = Width, height = Height, res = Res, units = Unit)
-            } else if (tolower(image.format) == "svg") {
-                svg(filename = paste0(DIR,
-                                  "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
-                                  MainNames_short[n], "_", tolower(condition), "_", ID,
-                                  "_", pairName,".svg"),
-                    width = Width, height = Height, onefile = TRUE)
+            longest_word <- max(stringr::str_count(PlotNowGO$term))
+
+            if (longest_word > 50) {
+                longest_Width <- Width * 1.2
             } else {
-                stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+                longest_Width <- Width
             }
 
-            Count <- PlotNowGO$numDEInCat
+            if (KEGG){
+                PlotNowGO$term <- PlotNowGO$Pathway
 
-            p <- ggplot2::ggplot(PlotNowGO, ggplot2::aes(x = log.10.GO,
-                                                         y = forcats::fct_reorder(Description, log.10.GO))) +
-                ggplot2::geom_point(ggplot2::aes(size = Count, color = GeneRatio)) +
-                ggplot2::scale_colour_gradient(limits=c(min(GeneRatio), 1), low="red", high = "blue") +
-                ggplot2::labs(y = "", x = "-log(FDR)", title = MainNames[n]) +
-                ggplot2::theme_bw(base_size = 10) +
-                ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
-                                                                    size = 16),
-                               axis.text = ggplot2::element_text(face = "bold",
-                                                                 color = "#011600", size = 12),
-                               title = ggplot2::element_text(face = "bold",
-                                                             size = 18),
-                               plot.title = ggplot2::element_text(hjust = 0.5))
-            print(p)
-            dev.off()
-
-            if (tolower(image.format) == "png") {
-                png(filename = paste0(DIR,
-                                      "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
-                                      MainNames_short[n], "_", tolower(condition), "_", ID,
-                                      "_", pairName,"_2.png"),
-                    width = Width*3, height = Height *1.5, res = Res, units = Unit)
-            } else if (tolower(image.format) == "svg") {
-                svg(filename = paste0(DIR,
-                                      "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
-                                      MainNames_short[n], "_", tolower(condition), "_", ID,
-                                      "_", pairName,"_2.svg"),
-                    width = Width, height = Height, onefile = TRUE)
+                if (!is.numeric(PlotNowGO$GeneRatio)) {
+                    skip <- TRUE
+                } else {
+                    skip <- FALSE
+                }
             } else {
-                stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-            }
-            par(mar = c(5, 45, 2, 2), lwd = 2.5)
-            barplot(log.10.GO,
-                    names = PlotNowGO[, "term"], las = 2, horiz = TRUE,
-                    xlab = "-log(FDR)", main = MainNames[n], lwd = 2,
-                    cex.lab = 1.7, cex.axis = 2, cex.main=2,
-                    axes = FALSE, col = RColorBrewer::brewer.pal(8,"Set1")[n],
-                    border = "white",
-                    cex.names = 1.5, space = 0.001)
-
-            if (-log10(min(as.numeric(PlotNowGO[, "over_represented_BH"]))) == "Inf"){
-                abline(v = 1:floor(0), col = "white", lwd = 4)
-            } else {
-                abline(v = 1:floor(-log10(min(as.numeric(PlotNowGO[, "over_represented_BH"]), na.rm = TRUE))),
-                       col = "white", lwd = 4)
+                skip <- FALSE
             }
 
-            abline(v = -log10(FDR.cutoff), lwd = 3)
+            if (!skip) {
+                if (tolower(image.format) == "png") {
+                    png(filename = paste0(DIR,
+                                          "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
+                                          MainNames_short[n], "_", tolower(condition), "_", ID,
+                                          "_", pairName,".png"),
+                        width = longest_Width, height = Height, res = Res, units = Unit)
+                } else if (tolower(image.format) == "svg") {
+                    svg(filename = paste0(DIR,
+                                          "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
+                                          MainNames_short[n], "_", tolower(condition), "_", ID,
+                                          "_", pairName,".svg"),
+                        width = longest_Width, height = Height, onefile = TRUE)
+                } else {
+                    stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+                }
 
-            axis(side = 1, 0:(max(log.10.GO)+2),
-                 lwd = 4, cex.axis = 1.2)
+                Count <- PlotNowGO$numDEInCat
+                Gene_Ratio <- round(as.numeric(PlotNowGO$GeneRatio), 2)
 
-            par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), mar=c(0, 0, 1, 0), new=TRUE)
-            plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+                p <- ggplot2::ggplot(PlotNowGO, ggplot2::aes(x = log.10.GO,
+                                                             y = forcats::fct_reorder(term, log.10.GO))) +
+                    ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
+                    ggplot2::scale_colour_gradient(limits=c(0, 1),
+                                                   low="red", high = "blue") +
+                    ggplot2::labs(y = "", x = "-log(FDR)", title = MainNames[n]) +
+                    ggplot2::theme_bw(base_size = 10) +
+                    ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
+                                                                        size = 16),
+                                   axis.text = ggplot2::element_text(face = "bold",
+                                                                     color = "#011600", size = 12),
+                                   title = ggplot2::element_text(face = "bold",
+                                                                 size = 18),
+                                   plot.title = ggplot2::element_text(hjust = 0.5))
+                print(p)
+                dev.off()
 
-            legend("topright", "-log(FDR.cutoff)", lty = 1, lwd = 4,
-                   bty = "n", cex = 1)
-
-            dev.off()
+                # if (tolower(image.format) == "png") {
+                #     png(filename = paste0(DIR,
+                #                           "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
+                #                           MainNames_short[n], "_", tolower(condition), "_", ID,
+                #                           "_", pairName,"_2.png"),
+                #         width = Width, height = Height *1.5, res = Res, units = Unit)
+                # } else if (tolower(image.format) == "svg") {
+                #     svg(filename = paste0(DIR,
+                #                           "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
+                #                           MainNames_short[n], "_", tolower(condition), "_", ID,
+                #                           "_", pairName,"_2.svg"),
+                #         width = Width, height = Height, onefile = TRUE)
+                # } else {
+                #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+                # }
+                # par(mar = c(3, 45, 2, 2), lwd = 2.5)
+                # barplot(log.10.GO,
+                #         names = PlotNowGO[, "term"], las = 2, horiz = TRUE,
+                #         xlab = "-log(FDR)", main = MainNames[n], lwd = 2,
+                #         cex.lab = 1.7, cex.axis = 2, cex.main=2,
+                #         axes = FALSE, col = RColorBrewer::brewer.pal(8,"Set1")[n],
+                #         border = "white",
+                #         cex.names = 1.5, space = 0.001)
+                #
+                # if (-log10(min(as.numeric(PlotNowGO[, "over_represented_BH"]))) == "Inf"){
+                #     abline(v = 1:floor(0), col = "white", lwd = 4)
+                # } else {
+                #     abline(v = 1:floor(-log10(min(as.numeric(PlotNowGO[, "over_represented_BH"]), na.rm = TRUE))),
+                #            col = "white", lwd = 4)
+                # }
+                #
+                # abline(v = -log10(FDR.cutoff), lwd = 3)
+                #
+                # axis(side = 1, 0:(max(log.10.GO)+2),
+                #      lwd = 4, cex.axis = 1.2)
+                #
+                # par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), mar=c(0, 0, 1, 0), new=TRUE)
+                # plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+                #
+                # legend("topright", "-log(FDR.cutoff)", lty = 1, lwd = 4,
+                #        bty = "n", cex = 1)
+                #
+                # dev.off()
+            }
 
         } else {
             message(paste0("There are no terms with FDR < ", FDR.cutoff, " to plot."))
@@ -485,14 +522,6 @@ GOnto <- function(condition,
     }
 
     # code GO ####
-    message("Running GO preparations...")
-
-    prepar_path_enrich(ID = ID,
-                       pairName = pairName,
-                       env = env,
-                       Tool = Tool)
-
-    message("Starting GO estimation...")
 
     if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
 
@@ -508,9 +537,17 @@ GOnto <- function(condition,
     if (missing(Tool)){Tool <- string_vars[["envir_link"]]$Tool}
 
     Name <- string_vars[["envir_link"]]$Name
-    pairName <- string_vars[["envir_link"]]$pairName
     dataBase <- string_vars[["envir_link"]]$dataBase
+    groupGen <- string_vars[["envir_link"]]$groupGen
 
+    message("Running GO preparations...")
+
+    prepar_path_enrich(ID = ID,
+                       pairName = pairName,
+                       env = env,
+                       Tool = Tool)
+
+    message("Starting GO estimation...")
     if (grepl("crosstable", tolower(Tool))) {
         if (tolower(Tool) == "crosstable.deseq2") {
             DIR <- paste0(PATH, "/CrossData_deseq2")
@@ -519,10 +556,12 @@ GOnto <- function(condition,
         } else if (tolower(Tool) == "crosstable.ebseq") {
             DIR <- paste0(PATH, "/CrossData_ebseq")
         }
-        dir.create(file.path(DIR, "Ontology_Results"), showWarnings = FALSE)
-        DIR <- file.path(DIR, "Ontology_Results")
+        dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
+        DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
     } else {
-        DIR <- paste0(PATH, "/Ontology_Results_", Tool, "_", toupper(Name))
+        dir.create(paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
+                          Tool, "_", toupper(Name)), showWarnings = FALSE)
+        DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_", Tool, "_", toupper(Name))
     }
 
     dir.create(file.path(DIR, "GO_Output"), showWarnings = FALSE)
@@ -615,6 +654,14 @@ GOnto <- function(condition,
     GO.wall_BH_BP <- GO.wall[GO.wall[, "ontology"] == 'BP', ]
     GO.wall_BH_MF <- GO.wall[GO.wall[, "ontology"] == 'MF', ]
 
+    # Define category order
+    MainNames <- c("Cellular component", "Biological Process", "Molecular Funcion", "KEGG")
+    MainNames_short <- c("CC", "BP", "MF", "KEGG")
+
+    GO.wall.FUN(x = GO.wall_BH_CC, n = 1)
+    GO.wall.FUN(x = GO.wall_BH_BP, n = 2)
+    GO.wall.FUN(x = GO.wall_BH_MF, n = 3)
+
     suppressPackageStartupMessages(GO.wall <- goseq::goseq(pwf, genome_version, formatted.ID,
                                                            test.cats=c("KEGG"),
                                                            method = "Wallenius",
@@ -624,6 +671,7 @@ GOnto <- function(condition,
                                             method = "BH")
     GO.wall$category <- paste0("hsa", GO.wall$category)
     colnames(GO.wall)[1] <- "Pathway"
+    GO.wall$GeneRatio <- GO.wall$numDEInCat/GO.wall$numInCat
     GO.wall_BH_KEGG <- GO.wall[GO.wall[, "over_represented_BH"] < FDR.cutoff, ]
 
     message("Writting tables...\n")
@@ -648,15 +696,7 @@ GOnto <- function(condition,
                                            "_FDR_", FDR.cutoff,
                                            "_", pairName,".csv"))
 
-    # Define category order
-    MainNames <- c("Cellular component", "Biological Process", "Molecular Funcion", "KEGG")
-    MainNames_short <- c("CC", "BP", "MF", "KEGG")
-
-
-    GO.wall.FUN(x = GO.wall_BH_CC, n = 1)
-    GO.wall.FUN(x = GO.wall_BH_BP, n = 2)
-    GO.wall.FUN(x = GO.wall_BH_MF, n = 3)
-    GO.wall.FUN(x = GO.wall_BH_KEGG, n = 4)
+    GO.wall.FUN(x = GO.wall_BH_KEGG, n = 4, KEGG = TRUE)
     #################### GO ENRICHMENT
     #################### END
     remove(hg19.knownGene.LENGTH, envir = .GlobalEnv)
@@ -665,19 +705,19 @@ GOnto <- function(condition,
 
     # code enrichGO ####
 
-    if (grepl("crosstable", tolower(Tool))) {
-        if (tolower(Tool) == "crosstable.deseq2") {
-            DIR <- paste0(PATH, "/CrossData_deseq2")
-        } else if (tolower(Tool) == "crosstable.edger") {
-            DIR <- paste0(PATH, "/CrossData_edger")
-        } else if (tolower(Tool) == "crosstable.ebseq") {
-            DIR <- paste0(PATH, "/CrossData_ebseq")
-        }
-        dir.create(file.path(DIR, "Ontology_Results"), showWarnings = FALSE)
-        DIR <- file.path(DIR, "Ontology_Results")
-    } else {
-        DIR <- paste0(PATH, "/Ontology_Results_", Tool, "_", toupper(Name))
-    }
+    # if (grepl("crosstable", tolower(Tool))) {
+    #     if (tolower(Tool) == "crosstable.deseq2") {
+    #         DIR <- paste0(PATH, "/CrossData_deseq2")
+    #     } else if (tolower(Tool) == "crosstable.edger") {
+    #         DIR <- paste0(PATH, "/CrossData_edger")
+    #     } else if (tolower(Tool) == "crosstable.ebseq") {
+    #         DIR <- paste0(PATH, "/CrossData_ebseq")
+    #     }
+    #     dir.create(file.path(DIR, "Ontology_Results"), showWarnings = FALSE)
+    #     DIR <- file.path(DIR, "Ontology_Results")
+    # } else {
+    #     DIR <- paste0(PATH, "/Ontology_Results_", Tool, "_", toupper(Name))
+    # }
 
     dir.create(file.path(DIR, "enrichGO_Output"), showWarnings = FALSE)
     dir.create(file.path(DIR, "enrichGO_Output", "GraphOutput"),
@@ -697,8 +737,6 @@ GOnto <- function(condition,
 
     # clusterProfiler::bitr(x, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db")
 
-    org.Hs.eg.db <- org.Hs.eg.db::org.Hs.eg.db
-
     erichgo <- function(Ont, Condition, n) {
         if (tolower(Condition) == "upregulated") {
             gene_vector <- string_vars[["envir_link"]]$gene.vector.up
@@ -708,69 +746,93 @@ GOnto <- function(condition,
             gene_vector <- string_vars[["envir_link"]]$gene.vector.all
         }
 
-        enrichGO_obj <- clusterProfiler::enrichGO(gene = names(gene_vector),
-                                         OrgDb = org.Hs.eg.db,
+        enrichGO_obj <- clusterProfiler::enrichGO(gene = names(gene_vector)[gene_vector != 0],
+                                         OrgDb = org.Hs.eg.db::org.Hs.eg.db,
                                          keytype = formatted.ID2,
                                          ont = Ont,
                                          pAdjustMethod = "BH",
-                                         pvalueCutoff = 0.05,
-                                         # readable = TRUE,
-                                         qvalueCutoff  = 0.05)
+                                         pvalueCutoff = FDR.cutoff)
 
         enrichGO_resuts <- enrichGO_obj@result
 
-        enrichGO_resuts <- enrichGO_resuts[order(enrichGO_resuts$p.adjust), ]
+        if (nrow(enrichGO_resuts) > 0) {
+            enrichGO_resuts <- enrichGO_resuts[order(enrichGO_resuts$p.adjust), ]
 
-        if (nrow(enrichGO_resuts) >= 10){
-            PlotNowGO <- enrichGO_resuts[1:10, ]
-        } else{
-            PlotNowGO <- enrichGO_resuts
+            ratios_splited <- unname(sapply(enrichGO_resuts$GeneRatio, function(w){
+                unlist(strsplit(w, "\\/"))}))
+
+            num_ratios <- as.numeric(ratios_splited[1, ])/as.numeric(ratios_splited[2, ])
+
+
+            enrichGO_resuts$GeneRatioNum <- num_ratios
+
+
+            if (nrow(enrichGO_resuts) >= 15){
+                PlotNowGO <- enrichGO_resuts[1:15, ]
+            } else{
+                PlotNowGO <- enrichGO_resuts
+            }
+
+            PlotNowGO[, 2] <- gsub(" of", "", PlotNowGO[, 2])
+            # large <- lengths(strsplit(PlotNowGO[, 2], "\\W+")) > 7
+            PlotNowGO[, 2] <- gsub("-", " ", PlotNowGO[, 2])
+            large <- lengths(strsplit(PlotNowGO[, 2], " ")) > 3
+            PlotNowGO[large, 2] <- unname(sapply(PlotNowGO[large, 2],
+                                                 function(w){paste(unlist(strsplit(w, " "))[1:4],
+                                                                   collapse = " ")}))
+
+            log.10.GO <- -log10(as.numeric(PlotNowGO[, "p.adjust"]))
+            new.inf <- log.10.GO[order(log.10.GO, decreasing = TRUE)]
+            log.10.GO[log.10.GO == "Inf"] <- (new.inf[new.inf != "Inf"][1]+1)
+
+            longest_word <- max(stringr::str_count(PlotNowGO$Description))
+
+            if (longest_word > 40) {
+                longest_Width <- Width * 1.2
+            } else {
+                longest_Width <- Width
+            }
+
+            if (nrow(enrichGO_resuts) > 0) {
+                if (tolower(image.format) == "png") {
+                    png(filename = paste0(DIR,
+                                          "/enrichGO_Output/GraphOutput/enrichGO_smallest_FDR_Ont_", Ont, "_",
+                                          tolower(condition), "_", ID,
+                                          "_", pairName,".png"),
+                        width = longest_Width, height = Height, res = Res, units = Unit)
+                } else if (tolower(image.format) == "svg") {
+                    svg(filename = paste0(DIR,
+                                          "/enrichGO_Output/GraphOutput/enrichGO_smallest_FDR_", Ont, "_",
+                                          tolower(condition), "_", ID,
+                                          "_", pairName,".svg"),
+                        width = longest_Width, height = Height, onefile = TRUE)
+                } else {
+                    stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+                }
+
+                # Count <- PlotNowGO$numDEInCat
+                Gene_Ratio <- round(as.numeric(PlotNowGO$GeneRatioNum), 2)
+
+                ## plot alternative to barplot
+                p <- ggplot2::ggplot(PlotNowGO, ggplot2::aes(x = log.10.GO,
+                                                             y = forcats::fct_reorder(Description, log.10.GO))) +
+                    ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
+                    ggplot2::scale_colour_gradient(limits=c(0, 1),
+                                                   low="red", high = "blue") +
+                    ggplot2::labs(y = "", x = "-log(FDR)", title = MainNames[n]) +
+                    ggplot2::theme_bw(base_size = 10) +
+                    ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
+                                                                        size = 16),
+                                   axis.text = ggplot2::element_text(face = "bold",
+                                                                     color = "#011600", size = 12),
+                                   title = ggplot2::element_text(face = "bold",
+                                                                 size = 18),
+                                   plot.title = ggplot2::element_text(hjust = 0.5))
+                print(p)
+
+                dev.off()
+            }
         }
-
-        PlotNowGO[, 2] <- gsub(" of", "", PlotNowGO[, 2])
-        # large <- lengths(strsplit(PlotNowGO[, 2], "\\W+")) > 7
-        large <- lengths(strsplit(PlotNowGO[, 2], " ")) > 7
-        PlotNowGO[large, 2] <- unname(sapply(PlotNowGO[large, 2],
-                                             function(w){paste(unlist(strsplit(w, " "))[1:7],
-                                                               collapse = " ")}))
-
-        log.10.GO <- -log10(as.numeric(PlotNowGO[, "p.adjust"]))
-        new.inf <- log.10.GO[order(log.10.GO, decreasing = TRUE)]
-        log.10.GO[log.10.GO == "Inf"] <- (new.inf[new.inf != "Inf"][1]+1)
-
-        if (tolower(image.format) == "png") {
-            png(filename = paste0(DIR,
-                                  "/enrichGO_Output/GraphOutput/enrichGO_smallest_FDR_Ont_", Ont, "_",
-                                  tolower(condition), "_", ID,
-                                  "_", pairName,".png"),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
-            svg(filename = paste0(DIR,
-                                  "/enrichGO_Output/GraphOutput/enrichGO_smallest_FDR_", Ont, "_",
-                                  tolower(condition), "_", ID,
-                                  "_", pairName,".svg"),
-                width = Width, height = Height, onefile = TRUE)
-        } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-        }
-
-        ## plot alternative to barplot
-        p <- ggplot2::ggplot(PlotNowGO, ggplot2::aes(x = log.10.GO,
-                                                y = forcats::fct_reorder(Description, log.10.GO))) +
-            ggplot2::geom_point(ggplot2::aes(size = Count, color = p.adjust)) +
-            ggplot2::scale_colour_gradient(limits=c(0, FDR.cutoff), low="red", high = "blue") +
-            ggplot2::labs(y = "", x = "-log(FDR)", title = MainNames[n]) +
-            ggplot2::theme_bw(base_size = 10) +
-            ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
-                                                                size = 16),
-                           axis.text = ggplot2::element_text(face = "bold",
-                                                             color = "#011600", size = 12),
-                           title = ggplot2::element_text(face = "bold",
-                                                                size = 18),
-                           plot.title = ggplot2::element_text(hjust = 0.5))
-        print(p)
-
-        dev.off()
 
         return(enrichGO_resuts)
     }

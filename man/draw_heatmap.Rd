@@ -4,11 +4,11 @@
 \alias{draw_heatmap}
 \title{Draw a heatmap}
 \usage{
-draw_heatmap(Tool, FC.cutoff = 2, dataType, Name, Method = "euclidean",
-  pairName = "G2_over_G1", Width = 6, Height = 6, Res = 300,
-  Unit = "in", image.format = "svg", env, ScaleMethod = "row",
-  outerMargins = c(0, 0, 0, 0), cexCol = 0, cexRow = 0,
-  degree = 45, labRow = NULL, labCol = NULL)
+draw_heatmap(Tool, FC.cutoff = 2, Name, Method = "euclidean",
+  pairName = "G2_over_G1", RawValues = FALSE, Width = 6,
+  Height = 6, Res = 300, Unit = "in", image.format = "svg", env,
+  ScaleMethod = "row", outerMargins = c(0, 0, 0, 0), cexCol = 0,
+  cexRow = 0, degree = 45, labRow = NULL, labCol = NULL)
 }
 \arguments{
 \item{Tool}{A character string indicating which differential expression
@@ -16,13 +16,6 @@ analysis tool was last used.}
 
 \item{FC.cutoff}{Numerical value indicating the maximum value for Fold Change
 (FC). The default is \code{2}.}
-
-\item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
-in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-  quantification", "miRNA isoform quantification", "isoform", "image",
-  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
 
 \item{Name}{A character string indicating which row name will be used in
 mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
@@ -35,6 +28,9 @@ mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
 
 \item{pairName}{A character string indicating the pair name to be used. When
 there are only two groups the default is \code{"G2_over_G1"}}
+
+\item{RawValues}{A logical value. If \code{"TRUE"} the expression values are
+going to be converted to Z-Score before draw the heat map.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
@@ -80,16 +76,15 @@ default size.}
 \item{degree}{The \code{"labCol"} rotation in degrees. The default value is
 45 degrees.}
 
-\item{labRow, labCol}{A character vectors with row and column labels desired,
-respectively. Another possibility is to assign "rownames" as \code{"labRow"}
-and "colnames" \code{"labCol"} as to use the default values from expression
-table. The default is none for both, in order to kepp the plot clean.}
+\item{labRow, labCol}{A logical value. If \code{"TRUE"} it is displayed row
+names (\code{"labRow"}) and col names (\code{"labCol"}). The default is
+\code{"FALSE"} for both, in order to kepp the plot clean.}
 }
 \description{
 Draw a heatmap
 }
 \examples{
 \dontrun{
-draw_heatmap("EBSeq", dataType = "gene", Name = "HIF3A", env = "env name without quotes")
+draw_heatmap("EBSeq", Name = "HIF3A", env = "env name without quotes")
 }
 }

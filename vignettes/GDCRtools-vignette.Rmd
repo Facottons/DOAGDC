@@ -38,7 +38,13 @@ knitr::opts_chunk$set(
 
 ---
 
+<img src="GDCRtools_logo.png" align="center" width="346" height="50"/>
+
+<br>
+<br>
+
 # Package Description
+
 
 The **GDCRtools** package was developed to download, organize and analyze Genomic Data Commons (GDC) data. It uses several well-known R packages, as _DESeq2_^[Anders, Simon, and Wolfgang Huber. 2010. “Differential Expression Analysis for Sequence Count Data.” Genome Biology 11 (10): R106. https://doi.org/10.1186/gb-2010-11-10-r106], _edgeR_^[Robinson, M. D., D. J. McCarthy, and G. K. Smyth. 2010. “EdgeR: A Bioconductor Package for Differential Expression Analysis of Digital Gene Expression Data.” Bioinformatics 26 (1): 139–40. https://doi.org/10.1093/bioinformatics/btp616], _mclust_^[Scrucca, Luca, Michael Fop, T Brendan Murphy, and Adrian E Raftery. 2016. “Mclust 5: Clustering, Classification and Density Estimation Using Gaussian Finite Mixture Models.” https://journal.r-project.org/archive/2016/RJ-2016-021/RJ-2016-021.pdf], and _WGCNA_^[Langfelder, Peter, and Steve Horvath. 2008. “WGCNA: An R Package for Weighted Correlation Network Analysis.” BMC Bioinformatics 9 (1): 559. https://doi.org/10.1186/1471-2105-9-559]. This is a free open-source software that implements academic research by the authors and co-workers. If you use it, please support the project by citing the appropriate journal article listed running the following command `citation("GDCRtools")`:
 
@@ -50,15 +56,16 @@ citation("GDCRtools")
 
 ---
 
-# Starting workflow - Function to function explanation 
+# Starting workflow - Functions explanation 
 
 The following image summarize the GDCRtools package workflow:
 
+<img src="VIGNETTE-package_flow.png" align="center" width="595" height="842"/>
 
 
 ## Downloading GDC Data Portal or GDC Legacy Archive data
 
-GDC Data Portal and GDC Legacy Archive availableis composed by different types of data (e.g. gene and isoform expression data). It is possible to use the `dataType` argument to retrieve specific data. For instance, one could use `dataType = "methylation"` to download Methylation data or `dataType = "protein"` to download Protein Expression data. See `help("download_gdc")` for more information about the applicable parameters.
+GDC Data Portal and GDC Legacy Archive are composed by different types of data (e.g. gene and isoform expression data). It is possible to use the `dataType` argument to retrieve specific data. For instance, one could use `dataType = "methylation"` to download Methylation data or `dataType = "protein"` to download Protein Expression data. See `help("download_gdc")` for more information about the applicable parameters.
 
 > **Important Note** - In this package all tumor names in `tumor` argument must be
 given by their abbreviation. For example, 'BRCA' must be used as `tumor` argument
@@ -105,14 +112,14 @@ page](https://tcga-data.nci.nih.gov/docs/publications/tcga/?) for more details.
 
 > <b>Important Note</b> - Some data are specific to a database: 
 
-* Only present in GDC Legacy Archive: "protein", "Exon quantification", "miRNA gene quantification", "miRNA isoform quantification", "isoform", "image", and "clinical".
-* Only present in GDC Data Portal: code{"miRNA Expression Quantification", "Isoform Expression Quantification"(miRNA).
+* Exclusive in in GDC Legacy Archive: "protein", "Exon quantification", "miRNA gene quantification", "miRNA isoform quantification", "isoform", "image", and "clinical".
+* Exclusive in in GDC Data Portal: code{"miRNA Expression Quantification", "Isoform Expression Quantification"(miRNA).
 
 <br>
 
 ## Concatenate patients in one table
 
-The downloaded files are individualized by patients. All next analysis provided by **GDCRtools** require the values organized in a single table (object). This requirement can be achieved by running the `concatenate_files()` function. See `help("concatenate_files")` for more information.
+The downloaded files are individualized by patients. All next analysis In the example below:d by **GDCRtools** require the values organized in a single table (object). This requirement can be achieved by running the `concatenate_files()` function. See `help("concatenate_files")` for more information.
 
 ### Concatenate data from Uterine carcinosarcoma (UCS) examples:
 * **Isoform expression normalized data from GDC Legacy Archive:**
@@ -247,7 +254,7 @@ clinical_terms(workDir = "/path/to/home/dir",
                 term = "weight_kg_at_diagnosis")
 ```
 
-A box plot and text files with all statistics run is generated. See `help("clinical_terms")` for more information about the applicable parameters.
+A box plot and text files with all statistics run are generated. See `help("clinical_terms")` for more information about the applicable parameters.
 
 Another usage of this function is an exploratory analysis of all possible terms shared by 'n' tumors containing the `term_keyword` desired. The next example shows the mentioned usage by finding among three tumors ("UCS", "OV", and "BRCA") all terms containing the word 'weight', common to the three tumors at same time, using the `tumor_with_term` argument equal to `3`.
 
@@ -262,7 +269,7 @@ clinical_terms(workDir = "/path/to/home/dir",
 
 ### Using Cox HR
 
-Cox HR is another option to group identification. This is the most time consuming compared to the other two methods. As before, expression values are need as well as the environment name to be assign to `env` argument. Therefore, the `concatenate_files()` function should be run before this step. The same is true for the last two "Groups formation" options.  
+Cox HR is another option for group identification. This is the most time consuming method compared to the other two. As before, expression values are need as well as the environment name to be assign to `env` argument. Therefore, the `concatenate_files()` function should be run before this step. The same is true for the last two "Groups formation" options.  
 
 A Kaplan-Meier^[Kaplan EL, Meier P. Nonparametric estimation from incomplete observations. Journal of the American Statistical Association. 1958;53:457–81] analysis is also performed within this function and it is divided by Distant Metastasis-Free Survival , Relapse-Free Survival, and Overall Survival. See `help("groups_identification_coxHR")` for more information about the applicable parameters.
 
@@ -282,7 +289,7 @@ groups_identification_coxHR(Name = "HIF3A",
 The **GDCRtools** is powered by three different packages for this step of the analysis: _EBSeq_^[Leng, Ning, John a. Dawson, James a. Thomson, Victor Ruotti, Anna I. Rissman, Bart M G Smits, Jill D. Haag, Michael N. Gould, Ron M. Stewart, and Christina Kendziorski. 2013. “EBSeq: An Empirical Bayes Hierarchical Model for Inference in RNA-Seq Experiments.” Bioinformatics 29 (8): 1035–43. https://doi.org/10.1093/bioinformatics/btt087], _DESeq2_, and _edgeR_.
 
 ### EBSeq DEA example
-* Using the "BRCA2" gene expression (inside the environment object, i.e. `UCS_LEGACY_gene_tumor_data`) to compare the "G2_over_G1", two of the groups identified by the `groups_identification_mclust()` function. In use, seven rounds, and the "LRT" test provide by the _EBSeq_, FDR values maximum of .05, and Fold Change cutoff of ±2. See `help("dea_EBSeq")` for more information about the applicable parameters.
+* Using the "BRCA2" gene expression (inside the environment object, i.e. `UCS_LEGACY_gene_tumor_data`) to compare the "G2_over_G1", two of the groups identified by the `groups_identification_mclust()` function. In the example below: seven rounds, and the "LRT" test provided by the _EBSeq_, FDR values maximum of .05, and Fold Change cutoff of ±2. See `help("dea_EBSeq")` for more information about the applicable parameters.
 ``` r
 dea_EBSeq(Name = "BRCA2",
             dataBase = "legacy",
@@ -297,7 +304,7 @@ dea_EBSeq(Name = "BRCA2",
 ```
 
 ### DESeq2 DEA example
-* Using the "HIF3A" gene expression (inside the environment object, i.e. `UCS_LEGACY_gene_tumor_data`) to compare the "Stage_IV_over_Stage_I", two of the subgroups formed by the clinical term "clinical_stage". In use, two CPU cores ( _DESeq2_ offers parallelization), and the "LRT" test provide by the _DESeq2_, FDR values maximum of .01, and Fold Change cutoff of ±3. See `help("dea_DESeq2")` for more information about the applicable parameters.
+* Using the "HIF3A" gene expression (inside the environment object, i.e. `UCS_LEGACY_gene_tumor_data`) to compare the "Stage_IV_over_Stage_I", two of the subgroups formed by the clinical term "clinical_stage". In the example below: two CPU cores ( _DESeq2_ offers parallelization), and the "LRT" test In the example below:d by the _DESeq2_, FDR values maximum of .01, and Fold Change cutoff of ±3. See `help("dea_DESeq2")` for more information about the applicable parameters.
 ``` r
 dea_DESeq2(Name = "HIF3A",
             dataBase = "legacy",
@@ -312,7 +319,7 @@ dea_DESeq2(Name = "HIF3A",
 ```
 
 ### edgeR DEA example
-* Using the "ENSG00000242268.2" gene expression (inside the environment object, i.e. `UCS_GDC_gene_tumor_data`) to compare the "G2_over_G1", two of the groups identified by the `groups_identification_coxHR()` function. In use, the "exacttest" method provide by the _edgeR_, FDR values maximum of .1, and Fold Change cutoff of ±3. See `help("dea_edgeR")` for more information about the applicable parameters.
+* Using the "ENSG00000242268.2" gene expression (inside the environment object, i.e. `UCS_GDC_gene_tumor_data`) to compare the "G2_over_G1", two of the groups identified by the `groups_identification_coxHR()` function. In the example below: the "exacttest" method In the example below:d by the _edgeR_, FDR values maximum of .1, and Fold Change cutoff of ±3. See `help("dea_edgeR")` for more information about the applicable parameters.
 ``` r
 dea_edgeR(Name = "ENSG00000242268.2",
             dataBase = "gdc",
@@ -327,7 +334,7 @@ dea_edgeR(Name = "ENSG00000242268.2",
 
 ## Venn diagram of differential expression genes list
 
-Alternatively, it is possible to use more than one DEA package. When the case, **GDCRtools** provides `CrossThem()`. This function executes a Venn diagram, returning only one consensus list of genes between the DEA packages. Then this list consensus of genes can be used in Pathway Enrichment Analysis workflow step. See `help("CrossThem")` for more information about the applicable parameters.
+Alternatively, it is possible to use more than one DEA package. When the case, **GDCRtools** In the example below:s `CrossThem()`. This function executes a Venn diagram, returning only one consensus list of genes between the DEA packages. This consensus genes list can be used in Pathway Enrichment Analysis workflow step. See `help("CrossThem")` for more information about the applicable parameters.
 
 ### Venn diagram example
 
@@ -364,7 +371,7 @@ PCA_Analysis(Tool = "DESeq2",
 
 ### Heat map example
 
-* Using the gene list generated from `CrossThem()` function, after compare "G2_over_G1" pair groups formed by the `groups_identification_mclust()` function using "Caspase-8-M-E" protein expression data, in the "UCS" tumor type (all inside the environment object, i.e. `UCS_LEGACY_protein_tumor_data`). In use, the "euclidean" method, "row" as method of scale, and custom image Width/Height of 6 inches (default unit). See `help("draw_heatmap")` for more information about the applicable parameters.
+* Using the gene list generated from `CrossThem()` function, after compare "G2_over_G1" pair groups formed by the `groups_identification_mclust()` function using "Caspase-8-M-E" protein expression data, in the "UCS" tumor type (all inside the environment object, i.e. `UCS_LEGACY_protein_tumor_data`). In the example below: the "euclidean" method, "row" as method of scale, and custom image Width/Height of 6 inches (default unit). See `help("draw_heatmap")` for more information about the applicable parameters.
 ``` r
 draw_heatmap(Tool = "CrossThem.edgeR", 
             dataType = "protein", 
@@ -386,7 +393,7 @@ Analysis, Disease Ontology, Reactome Enrichment, and KEEG.
 
 In order to perform the GO analysis, the `GOnto()` function should be used. This function is powered by _goseq_ and `enrichGO()` from ( _clusterProfiler_ package). There are three possible condition arguments to be used in the GO analysis: `"Upregulated"`, `"Downregulated"`, or `"ALL"` (without the Upregulated and Downregulated separation).
 
-* Using the gene list generated by _DESeq2_, after comparison of "G2_over_G1" pair groups formed by the `groups_identification_coxHR()` function using "uc002peg.3" isoform expression data, in the "UCS" tumor type (all inside the `UCS_LEGACY_isoform_tumor_data` environment object). In use "GeneID". See `help("GOnto")` for more information about the applicable parameters.
+* Using the gene list generated by _DESeq2_, after comparison of "G2_over_G1" pair groups formed by the `groups_identification_coxHR()` function using "uc002peg.3" isoform expression data, in the "UCS" tumor type (all inside the `UCS_LEGACY_isoform_tumor_data` environment object). In the example below: "GeneID". See `help("GOnto")` for more information about the applicable parameters.
 ``` r
 GOnto(condition = "Upregulated", 
         Tool = "edgeR", 
@@ -397,7 +404,7 @@ GOnto(condition = "Upregulated",
 
 ### Gene Set Enrichment Analysis example
 
-* Using the gene list generated by _edgeR_, after compare "G2_over_G1" pair groups formed by the `groups_identification_coxHR()` function using "uc002peg.3" isoform expression data, in the "UCS" tumor type (all inside the `UCS_LEGACY_isoform_tumor_data` environment object). In use "GeneID", and FDR values maximum of .05. See `help("GSEA")` for more information about the applicable parameters.
+* Using the gene list generated by _edgeR_, after compare "G2_over_G1" pair groups formed by the `groups_identification_coxHR()` function using "uc002peg.3" isoform expression data, in the "UCS" tumor type (all inside the `UCS_LEGACY_isoform_tumor_data` environment object). In the example below: "GeneID", and FDR values maximum of .05. See `help("GSEA")` for more information about the applicable parameters.
 ``` r
 GSEA(Tool = "edgeR", 
     ID = "GeneID", 
@@ -408,7 +415,7 @@ GSEA(Tool = "edgeR",
 
 ### Disease Ontology and Reactome Enrichment example
 
-* Using the gene list generated by _edgeR_, after compare "G2_over_G1" pair groups formed by the `groups_identification_coxHR()` function using an isoform expression data, in the "UCS" tumor type (all inside the `UCS_LEGACY_isoform_tumor_data` environment object). In use default values. See `help("DO.REAC.ENRICH")` for more information about the applicable parameters.
+* Using the gene list generated by _edgeR_, after compare "G2_over_G1" pair groups formed by the `groups_identification_coxHR()` function using an isoform expression data, in the "UCS" tumor type (all inside the `UCS_LEGACY_isoform_tumor_data` environment object). In the example, default values were passed. See `help("DO.REAC.ENRICH")` for more information about the applicable parameters.
 ``` r
 DO.REAC.ENRICH(Tool = "edgeR",
                 pairName = "G2_over_G1",   
@@ -417,7 +424,7 @@ DO.REAC.ENRICH(Tool = "edgeR",
 
 ### KEEG example
 
-* Using the gene list generated by _EBSeq_, after compare "G2_over_G1" pair groups formed by the `groups_identification_mclust()` function using methylation probe "cg16672562" data, in the "UCS" tumor type (all inside the `UCS_LEGACY_methylation_tumor_data` environment object). In use default values. See `help("KEEG_ENRICH")` for more information about the applicable parameters.
+* Using the gene list generated by _EBSeq_, after compare "G2_over_G1" pair groups formed by the `groups_identification_mclust()` function using methylation probe "cg16672562" data, in the "UCS" tumor type (all inside the `UCS_LEGACY_methylation_tumor_data` environment object). In the example, default values were passed. See `help("KEEG_ENRICH")` for more information about the applicable parameters.
 ``` r
 KEEG_ENRICH(Tool = "EBSeq", 
             pairName = "G2_over_G1",    
@@ -514,8 +521,7 @@ groups_identification_mclust(dataType = Data,
   env = UCS_LEGACY_protein_tumor_data)
 
 ``` 
-<!-- ![](image_ref_a32ff4ads =667x500) -->
-<!-- [image_ref_a32ff4ads]: data:/home/fabio/GDCRtools/man/figures/README-mixture_log2_expression_1.png -->
+<img src="VIGNETTE-mixture_log2_expression_1.png" align="center" width="667" height="500"/>
 
 ``` r
 ## step 4: DEA
@@ -527,7 +533,7 @@ dea_edgeR(dataType = Data,
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<!-- <img src="man/figures/README-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/> -->
+<img src="VIGNETTE-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/>
 
 ``` r  
 ## step 5: visualization 
@@ -539,7 +545,7 @@ PCA_Analysis(Tool = "edgeR",
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<!-- <img src="man/figures/README-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/> -->
+<img src="VIGNETTE-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/>
 
 ``` r
 # Heat Map of 'G2_over_G1'  
@@ -551,7 +557,7 @@ draw_heatmap(Tool = "edgeR",
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<!-- <img src="man/figures/README-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/> -->
+<img src="VIGNETTE-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/>
 
 ``` r
 ## step 6: Pathway enrichment analysis
@@ -563,7 +569,7 @@ GOnto(condition = "Upregulated",
 
 ```
 
-<!-- <img src="man/figures/README-enrichGO_smallest_FDR_Ont_BP_upregulated_GeneID_G2_over_G1.png" align="center" width="600" height="600"/> -->
+<img src="VIGNETTE-enrichGO_smallest_FDR_Ont_BP_upregulated_GeneID_G2_over_G1.png" align="center" width="600" height="600"/>
 
 <br>
 

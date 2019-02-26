@@ -94,6 +94,6 @@ Run EBSeq gene Differential Expression Analysis (DEA).
 \examples{
 \dontrun{
 #considering concatenate_files and groups_identification already runned
-dea_EBSeq("gene", pairName = "G2_over_G1", rounds = 7, Name = "HIF3A", env = "env_name")
+dea_EBSeq(pairName = "G2_over_G1", rounds = 7, Name = "HIF3A", env = "env_name")
 }
 }

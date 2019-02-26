@@ -34,6 +34,7 @@ Imports:
     methods,
     pheatmap,
     ggplot2,
+    gplots,
     EBSeq,
     edgeR,
     DESeq2,
@@ -59,9 +60,7 @@ Imports:
     SummarizedExperiment,
     xlsx,
     survival,
-    survminer,
     ggthemes,
-    yarrr,
     grid,
     reshape,
     extrafont,
@@ -75,6 +74,8 @@ Suggests:
     rmarkdown (>= 0.9),
     knitr (>= 1.12),
     WGCNA,
+    yarrr,
+    survminer,
     ggbiplot,
     gageData,
     testthat
@@ -84,5 +85,5 @@ BugReports: https://github.com/Facottons/GDCRtools/issues
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)

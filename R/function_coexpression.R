@@ -5,6 +5,7 @@
 #' @param Data Used for external non-log expression data. Matrix or data frame.
 #'   This \code{Data} must have patients/sample code as \code{colnames} and
 #'   genes as \code{rownames}.
+#' @param Name
 #' @param workDir
 #' @param tumor
 #' @param normalization
@@ -38,6 +39,8 @@
 #' @param loadCheckpoint Logical value where TRUE indicates that the saved
 #'   checkpoint will be loaded and the analysis is going to continue from that
 #'   point. The default is FALSE.
+#' @param pearsonCutoff Numerical value specifying the minimum Pearson
+#'   correlation value. The default is 0.5.
 #' @inheritParams concatenate_files
 #' @inheritParams groups_identification_mclust
 #' @inheritParams dea_EBSeq
@@ -51,6 +54,7 @@
 #' co_expression(Data, workDir, tumor, env = "env name without quotes")
 #' }
 co_expression <- function(Data = NULL,
+                          Name,
                           workDir, tumor,
                           normalization = TRUE,
                           tumorData = TRUE,
@@ -67,7 +71,8 @@ co_expression <- function(Data = NULL,
                           image.format = "png",
                           env,
                           saveCheckpoints = FALSE,
-                          loadCheckpoint = FALSE){
+                          loadCheckpoint = NULL,
+                          pearsonCutoff = 0.5){
 
     # library(WGCNA, km2gcn, sleuth)
 
@@ -147,26 +152,26 @@ co_expression <- function(Data = NULL,
         }
         par(mar = c(0,4,2,0), cex = 0.6)
         plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
-             cex.axis = 1.5, cex.main = 2)
+             cex.axis = 1.5, cex.main = 2, las = 1)
         dev.off()
 
         message("Your plot was saved in ",
                 file.path(DIR, "sampleClustering."), image.format,
                 ". Please, check this plot in order to insert the cutHeight value.")
-        cutHeight <- readline(prompt = "Please, insert the cutHeight value: ")
+        cutHeight <- as.numeric(readline(prompt = "Please, insert the cutHeight value: "))
 
         if (tolower(image.format) == "png") {
-            png(filename = file.path(DIR, "sampleClustering.png"),
+            png(filename = file.path(DIR, "sampleClustering2.png"),
                 width = Width, height = Height, res = Res, units = Unit)
         } else if (tolower(image.format) == "svg") {
-            svg(filename = file.path(DIR, "sampleClustering.svg"),
+            svg(filename = file.path(DIR, "sampleClustering2.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
             stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
         }
         par(mar = c(0,4,2,0), cex = 0.6)
         plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
-             cex.axis = 1.5, cex.main = 2)
+             cex.axis = 1.5, cex.main = 2, las = 1)
         abline(h = cutHeight, col = "red")
         dev.off()
 
@@ -176,15 +181,15 @@ co_expression <- function(Data = NULL,
             # clust 1 contains the samples we want to keep.
             keepSamples <- (clust==1)
             datExpr <- datExpr0[keepSamples, ]
+
+            # clustering to detect outliers
+            sampleTree <- hclust(dist(datExpr), method = "average")
         } else {
             datExpr <- datExpr0
         }
 
         remove(datExpr0)
         gc(verbose = FALSE)
-
-        # clustering to detect outliers
-        sampleTree <- hclust(dist(datExpr), method = "average")
 
         if (tolower(image.format) == "png") {
             png(filename = file.path(DIR, "sampleClustering_after_cut.png"),
@@ -197,7 +202,7 @@ co_expression <- function(Data = NULL,
         }
         par(mar = c(0,4,2,0), cex = 0.6)
         plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
-             cex.axis = 1.5, cex.main = 2)
+             cex.axis = 1.5, cex.main = 2, las = 1)
         dev.off()
 
         # for trait data - part1 ####
@@ -277,10 +282,12 @@ co_expression <- function(Data = NULL,
         nGenes <- ncol(datExpr)
         nSamples <- nrow(datExpr)
 
-        softPower <- readline(prompt = "Please, insert the soft threshold value: ")
+        softPower <- as.numeric(readline(prompt = "Please, insert the soft threshold value: "))
+
+        message("Calculating adjacency...")
 
         adjacency <- WGCNA::adjacency(datExpr, power = softPower, type = networkType)
-        k <- softConnectivity(datExpr, power = softPower, type = networkType)
+        k <- WGCNA::softConnectivity(datExpr, power = softPower, type = networkType)
 
         if (tolower(image.format) == "png") {
             png(filename = file.path(DIR, "softConnectivity.png"),
@@ -367,12 +374,14 @@ co_expression <- function(Data = NULL,
     MEs <- MEList$eigengenes
 
     # Calculate dissimilarity of module eigengenes
-    #MEDiss = 1-cor(MEs, use = 'pairwise.complete.obs')
-    #MEDiss["MEgrey" == rownames(MEDiss), ] <- 0
-    #METree = hclust(dist(MEDiss), method = "average")
+    MEDiss = 1-cor(MEs, use = 'pairwise.complete.obs')
+    MEDiss["MEgrey" == rownames(MEDiss), ] <- 0
+    METree = hclust(dist(MEDiss), method = "average")
+
+    # Error NA/NaN/Inf in foreign function call
     # Cluster module eigengenes
-    MEDiss <- 1-cor(MEs)
-    METree <- hclust(as.dist(MEDiss), method = "average")
+    # MEDiss <- 1-cor(MEs)
+    # METree <- hclust(as.dist(MEDiss), method = "average")
 
     # Plot the result
     if (tolower(image.format) == "png") {
@@ -415,56 +424,56 @@ co_expression <- function(Data = NULL,
 
     moduleColors <- mergedColors
     # numerical labels matching color and module
-    colorOrder <- c("grey", standardColors(50))
+    colorOrder <- c("grey", WGCNA::standardColors(50))
     moduleLabels <- match(moduleColors, colorOrder)-1
     MEs <- mergedMEs
 
     # Step 5 - blockwise ####
-    bwnet <- WGCNA::blockwiseModules(datExpr, maxBlockSize = 5000,
-                             power = softPower, TOMType = networkType, minModuleSize = minModuleSize,
-                             reassignThreshold = 0, mergeCutHeight = MEDissThres,
-                             numericLabels = TRUE,
-                             saveTOMs = FALSE, #or TRUE
-                             saveTOMFileBase = file.path(DIR,"TOM-blockwise"),
-                             verbose = 3)
-
-    # blockwise label again module
-    bwLabels <- matchLabels(bwnet$colors, moduleLabels)
-    # convert labels in colors
-    bwModuleColors <- WGCNA::labels2colors(bwLabels)
-
-    # Plot dendogram and module1's colors for 1 block
-    if (tolower(image.format) == "png") {
-        png(filename = file.path(DIR, "Gene_dendrogram_and_module_colors.png"),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
-        svg(filename = file.path(DIR, "Gene_dendrogram_and_module_colors.svg"),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-    }
-    WGCNA::plotDendroAndColors(bwnet$dendrograms[[1]], bwModuleColors[bwnet$blockGenes[[1]]],
-                        "Module colors", main = "Gene dendrogram and module colors in block 1",
-                        dendroLabels = FALSE, hang = 0.03,
-                        addGuide = TRUE, guideHang = 0.05)
-    dev.off()
-
-    if (tolower(image.format) == "png") {
-        png(filename = file.path(DIR, "Single_block_gene_dendrogram.png"),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
-        svg(filename = file.path(DIR, "Single_block_gene_dendrogram.svg"),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-    }
-    WGCNA::plotDendroAndColors(geneTree,
-                        cbind(moduleColors, bwModuleColors),
-                        c("Single block", "2 blocks"),
-                        main = "Single block gene dendrogram and module colors",
-                        dendroLabels = FALSE, hang = 0.03,
-                        addGuide = TRUE, guideHang = 0.05)
-    dev.off()
+    # bwnet <- WGCNA::blockwiseModules(datExpr, maxBlockSize = 5000,
+    #                          power = softPower, TOMType = networkType, minModuleSize = minModuleSize,
+    #                          reassignThreshold = 0, mergeCutHeight = MEDissThres,
+    #                          numericLabels = TRUE,
+    #                          saveTOMs = FALSE, #or TRUE
+    #                          saveTOMFileBase = file.path(DIR,"TOM-blockwise"),
+    #                          verbose = 3)
+    #
+    # # blockwise label again module
+    # bwLabels <- WGCNA::matchLabels(bwnet$colors, moduleLabels)
+    # # convert labels in colors
+    # bwModuleColors <- WGCNA::labels2colors(bwLabels)
+    #
+    # # Plot dendogram and module1's colors for 1 block
+    # if (tolower(image.format) == "png") {
+    #     png(filename = file.path(DIR, "Gene_dendrogram_and_module_colors.png"),
+    #         width = Width, height = Height, res = Res, units = Unit)
+    # } else if (tolower(image.format) == "svg") {
+    #     svg(filename = file.path(DIR, "Gene_dendrogram_and_module_colors.svg"),
+    #         width = Width, height = Height, onefile = TRUE)
+    # } else {
+    #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    # }
+    # WGCNA::plotDendroAndColors(bwnet$dendrograms[[1]], bwModuleColors[bwnet$blockGenes[[1]]],
+    #                     "Module colors", main = "Gene dendrogram and module colors in block 1",
+    #                     dendroLabels = FALSE, hang = 0.03,
+    #                     addGuide = TRUE, guideHang = 0.05)
+    # dev.off()
+    #
+    # if (tolower(image.format) == "png") {
+    #     png(filename = file.path(DIR, "Single_block_gene_dendrogram.png"),
+    #         width = Width, height = Height, res = Res, units = Unit)
+    # } else if (tolower(image.format) == "svg") {
+    #     svg(filename = file.path(DIR, "Single_block_gene_dendrogram.svg"),
+    #         width = Width, height = Height, onefile = TRUE)
+    # } else {
+    #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    # }
+    # WGCNA::plotDendroAndColors(geneTree,
+    #                     cbind(moduleColors, bwModuleColors),
+    #                     c("Single block", "2 blocks"),
+    #                     main = "Single block gene dendrogram and module colors",
+    #                     dendroLabels = FALSE, hang = 0.03,
+    #                     addGuide = TRUE, guideHang = 0.05)
+    # dev.off()
 
     # for trait data - part2 ####
     if (!is.null(traitData)) {
@@ -528,7 +537,7 @@ co_expression <- function(Data = NULL,
     write.table(all_module, file = paste(DIR, fileNameAll, sep = "/"),
                 row.names = TRUE, col.names = FALSE)
 
-    module <- all_module$mergedColors[grep("HIF3A", all_module$probes)]
+    module <- all_module$mergedColors[grep(toupper(Name), all_module$probes)]
     inModule <- (moduleColors==module)
     modProbes <- probes[inModule]
     # Select the corresponding Topological Overlap
@@ -538,37 +547,65 @@ co_expression <- function(Data = NULL,
     dimnames(modTOM) <- list(modProbes, modProbes)
 
     if (tolower(networkType) == "unsigned"){
-        Threshold <- abs((0.5*(1-MEDissThres)))
+        Threshold <- abs((0.5*pearsonCutoff))
     } else {
-        Threshold <- abs(0.5+(0.5*(1-MEDissThres)))
+        Threshold <- abs(0.5+(0.5*pearsonCutoff))
     }
 
     # export to cytoscape
     cyt <- WGCNA::exportNetworkToCytoscape(modTOM,
-                                   edgeFile = paste0(DIR, "CytoscapeInput-edges-",
-                                                     paste(module, collapse="-"),
-                                                     "half_threshold = ",
-                                                     (Threshold**softPower)/2, ".txt"),
-                                   nodeFile = paste0(DIR, "CytoscapeInput-nodes-",
-                                                     paste(module, collapse="-"),
-                                                     "half_threshold = ",
-                                                     (Threshold**softPower)/2, ".txt"),
+                                   edgeFile = paste0(DIR, "/CytoscapeInput-edges-",
+                                                     paste(module, collapse="-"), "with_threshold_",
+                                                     Threshold**softPower, ".txt"),
+                                   nodeFile = paste0(DIR, "/CytoscapeInput-nodes-",
+                                                     paste(module, collapse="-"), "with_threshold_",
+                                                     Threshold**softPower, ".txt"),
                                    weighted = TRUE,
-                                   threshold = (Threshold**softPower)/2,#Threshold**softPower, # Threshold**14
+                                   threshold = Threshold**softPower,
                                    nodeNames = modProbes,
                                    nodeAttr = moduleColors[inModule])
 
-    cyt <- WGCNA::exportNetworkToCytoscape(modTOM,
-                                   edgeFile = paste0(DIR, "CytoscapeInput-edges-",
-                                                     paste(module, collapse="-"), "with_threshold_",
-                                                     Threshold**softPower, ".txt"),
-                                   nodeFile = paste0(DIR, "CytoscapeInput-nodes-",
-                                                     paste(module, collapse="-"), "with_threshold_",
-                                                     Threshold**softPower, ".txt"),
-                                   weighted = TRUE,
-                                   threshold = Threshold**softPower, # Threshold**14
-                                   nodeNames = modProbes,
-                                   nodeAttr = moduleColors[inModule])
+
+
+    filenodes <- read.table(paste0(DIR, "/CytoscapeInput-nodes-",
+                                   paste(module, collapse="-"), "with_threshold_",
+                                   Threshold**softPower, ".txt"),
+                            header = TRUE, stringsAsFactors = FALSE)
+
+    filenodes <- filenodes[, -2]
+
+    write.table(fileedges, paste0(DIR, "/CytoscapeInput-nodes-",
+                                  paste(module, collapse="-"), "with_threshold_",
+                                  Threshold**softPower, ".txt"))
+
+
+    fileedges <- read.table(paste0(DIR, "/CytoscapeInput-edges-",
+                                   paste(module, collapse="-"), "with_threshold_",
+                                   Threshold**softPower, ".txt"),
+                            header = TRUE, stringsAsFactors = FALSE)
+
+    fileedges <- fileedges[, 1:3]
+
+    possible_cor <- seq(from = -1, to = 1, by = 1e-3)
+    threshold = abs(0.5+(0.5*possible_cor))**softPower
+    threshold <- round(threshold, 3)
+    names(threshold) <- possible_cor
+    pearson_values <- sapply(as.numeric(fileedges$weight), function(x){
+        unique(round(as.numeric(names(threshold)[threshold == round(x, 3)]), 3))[1]
+    })
+
+    fileedges <- dplyr::mutate(fileedges, weightPearson = pearson_values)
+
+    # fileedges[, 1] <- unname(sapply(fileedges[, 1], function(w){
+    #     paste0(unlist(strsplit(w, "\\|"))[2])}))
+    #
+    # fileedges[, 2] <- unname(sapply(fileedges[, 2], function(w){
+    #     paste0(unlist(strsplit(w, "\\|"))[2])}))
+
+    write.table(fileedges, paste0(DIR, "/CytoscapeInput-edges-",
+                                  paste(module, collapse="-"), "with_threshold_",
+                                  Threshold**softPower, ".txt"))
+
 
     # optional (antonio)####
     # network <- list(moduleColors=moduleColors, MEs=MEs)

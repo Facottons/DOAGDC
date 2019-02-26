@@ -4,13 +4,16 @@
 \alias{KEEG_ENRICH}
 \title{Perform KEEG Pathways Enrichment}
 \usage{
-KEEG_ENRICH(Tool = "edgeR", ID = "GeneID", pairName = "G2_over_G1",
-  Width = 8, Height = 4, Res = 300, Unit = "in",
-  image.format = "png", env)
+KEEG_ENRICH(Tool = "edgeR", FDR.cutoff = 0.05, ID = "GeneID",
+  pairName = "G2_over_G1", Width = 8, Height = 4, Res = 300,
+  Unit = "in", image.format = "png", env)
 }
 \arguments{
 \item{Tool}{A character string indicating which differential expression
 analysis tool was last used.}
+
+\item{FDR.cutoff}{Numerical value indicating the maximum value for FDR
+values. The default is \code{0.05}.}
 
 \item{ID}{A character string indicating which ID should be used: "HUGO",
 "GeneSymbol", "ensembl" , "refGene" or "GeneID". The default is \code{"GeneID"}.}

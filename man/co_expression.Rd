@@ -4,17 +4,20 @@
 \alias{co_expression}
 \title{Co-Expression Analyses}
 \usage{
-co_expression(Data = NULL, workDir, tumor, normalization = TRUE,
+co_expression(Data = NULL, Name, workDir, tumor, normalization = TRUE,
   tumorData = TRUE, traitData = NULL, networkType = "unsigned",
   minModuleSize = 15, max_softpower = 20, nthreads = 1,
   MEDissThres = 0.25, Width = 2000, Height = 1500, Res = 300,
   Unit = "px", image.format = "png", env, saveCheckpoints = FALSE,
-  loadCheckpoint = FALSE)
+  loadCheckpoint = FALSE, pearsonCutoff = 0.5)
 }
 \arguments{
 \item{Data}{Used for external non-log expression data. Matrix or data frame.
 This \code{Data} must have patients/sample code as \code{colnames} and
 genes as \code{rownames}.}
+
+\item{Name}{A character string indicating which row name will be used in
+mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
@@ -93,6 +96,9 @@ default is FALSE.}
 \item{loadCheckpoint}{Logical value where TRUE indicates that the saved
 checkpoint will be loaded and the analysis is going to continue from that
 point. The default is FALSE.}
+
+\item{pearsonCutoff}{Numerical value specifying the minimum Pearson
+correlation value. The default is 0.5.}
 }
 \description{
 Powered by WGCNA

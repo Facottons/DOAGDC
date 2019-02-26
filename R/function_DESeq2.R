@@ -32,7 +32,8 @@
 dea_DESeq2 <- function(Name,
                        coreNumber = 2,
                        test = "Default Test",
-                       groupGen,clinical_pair,
+                       groupGen,
+                       clinical_pair,
                        FC.cutoff = 2,
                        workDir,
                        tumor,
@@ -195,10 +196,6 @@ dea_DESeq2 <- function(Name,
 
     # Code ####
 
-    dataType <- string_vars[["envir_link"]]$dataType
-    dataType <- gsub(" ", "_", dataType)
-    Name <- gsub("-", "_", Name)
-
     BiocParallel::register(BiocParallel::SnowParam(coreNumber))
 
     if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
@@ -206,6 +203,11 @@ dea_DESeq2 <- function(Name,
     envir_link <- deparse(substitute(env))
 
     string_vars <- list(envir_link = get(envir_link))
+
+    # dataType <- string_vars[["envir_link"]]$dataType
+    # dataType <- gsub(" ", "_", dataType)
+    Name <- gsub("-", "_", Name)
+
     if (missing("workDir")){
         workDir <- string_vars[["envir_link"]]$workDir
     }
@@ -215,6 +217,8 @@ dea_DESeq2 <- function(Name,
     assign("PATH", file.path(workDir, "GDCRtools",
                              toupper(string_vars[["envir_link"]]$tumor), "Analyses"), envir = get(envir_link))
 
+    assign("groupGen", groupGen, envir = get(envir_link))
+
     if (exists("Name.e", envir = get(envir_link))){
         PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
         dir.create(PATH, showWarnings = FALSE)
@@ -222,9 +226,9 @@ dea_DESeq2 <- function(Name,
         PATH <- string_vars[["envir_link"]]$PATH
     }
 
-    dir.create(paste0(PATH, "/DESeq2_Results.", tolower(dataType), "_", toupper(Name)),
+    dir.create(paste0(PATH, "/DESeq2_Results.", tolower(groupGen), "_", toupper(Name)),
                showWarnings = FALSE)
-    DIR <- paste0(PATH, "/DESeq2_Results.", tolower(dataType), "_", toupper(Name))
+    DIR <- paste0(PATH, "/DESeq2_Results.", tolower(groupGen), "_", toupper(Name))
     # dir.create(file.path(DIR,
     #                   "PCA_Plots"), showWarnings = FALSE)
 
@@ -256,6 +260,12 @@ dea_DESeq2 <- function(Name,
         stop(message("Please insert a valid 'groupGen' value!! ('mlcust', 'coxHR' or 'clinical')"))
     }
 
+
+    # check patient in common
+    tmp <- rownames(Grupos.DESeq2) %in% colnames(string_vars[["envir_link"]]$gene_tumor_not_normalized)
+
+    Grupos.DESeq2 <- Grupos.DESeq2[tmp, ]
+
     assign("condHeatmap", Grupos.DESeq2[, 1], envir = get(envir_link))
 
     #selecting specifics patients
@@ -273,16 +283,11 @@ dea_DESeq2 <- function(Name,
 
     dataBase <- string_vars[["envir_link"]]$dataBase
     #Importing data into DESeq2 object
-    if (tolower(dataBase) == "legacy") {
-        dds <- DESeq2::DESeqDataSetFromMatrix(
-            countData = completed.matrix,
-            colData = Grupos.DESeq2,
-            design = ~condition)
-    } else if (tolower(dataBase) == "gdc") {
-        dds <- DESeq2::DESeqDataSetFromHTSeqCount(sampleTable = completed.matrix,
-                                                  # directory = directory,
-                                                  design= ~ condition)
-    }
+    dds <- DESeq2::DESeqDataSetFromMatrix(
+        countData = completed.matrix,
+        colData = Grupos.DESeq2,
+        design = ~condition)
+
 
     # separate conditoins for more than 1 pair
     group2_number <- max(as.numeric(levels(Grupos.DESeq2[, 1])))
@@ -441,12 +446,20 @@ dea_DESeq2 <- function(Name,
             colnames(Results.Completed_local)[c(2, 5, 6)] <- c("log2FC", "Pvalue", "FDR")
 
             Results.Completed_local$FC <- 2**(Results.Completed_local$log2FC)
+            Results.Completed_local$FC <- ifelse(Results.Completed_local$FC < 1,
+                                                 (-1/Results.Completed_local$FC),
+                                                 Results.Completed_local$FC)
+
 
             Results.Completed_local <- Results.Completed_local[, c(7,8,5,6,9,2,1,3,4)]
         } else {
             colnames(Results.Completed_local)[c(2, 5, 6)] <- c("log2FC", "Pvalue", "FDR")
 
             Results.Completed_local$FC <- 2**(Results.Completed_local$log2FC)
+
+            Results.Completed_local$FC <- ifelse(Results.Completed_local$FC < 1,
+                                                 (-1/Results.Completed_local$FC),
+                                                 Results.Completed_local$FC)
 
             Results.Completed_local <- Results.Completed_local[, c(5,6,7,2,1,3,4)]
         }

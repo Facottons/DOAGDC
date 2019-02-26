@@ -4,20 +4,12 @@
 \alias{PCA_Analysis}
 \title{Generate plot for Principal Component Analysis}
 \usage{
-PCA_Analysis(Tool, dataType, Name, workDir, pairName = "G2_over_G1",
-  Width = 4, Height = 2, Res = 300, Unit = "in",
-  image.format = "png", env)
+PCA_Analysis(Tool, Name, workDir, pairName = "G2_over_G1", Width = 4,
+  Height = 2, Res = 300, Unit = "in", image.format = "png", env)
 }
 \arguments{
 \item{Tool}{A character string indicating which differential expression
 analysis tool was last used.}
-
-\item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
-in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-  quantification", "miRNA isoform quantification", "isoform", "image",
-  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
 
 \item{Name}{A character string indicating which row name will be used in
 mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}

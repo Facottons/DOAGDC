@@ -301,7 +301,8 @@ download_gdc <- function(dataType = "gene",
 
             manifest.df[, "cases"] <- as.character(manifest.df[, "cases"])
 
-            write.table(x = manifest.df, file = paste0(DIR, "/manifest.sdrf"),
+            write.table(x = manifest.df, file = paste0(DIR, "/", toupper(HTSeq),
+                                                       "_manifest.sdrf"),
                         quote = FALSE, row.names = FALSE, sep = "\t")
 
             manifest.df <- manifest.df[, c("file_name", "md5sum", "file_id")]
@@ -323,13 +324,16 @@ download_gdc <- function(dataType = "gene",
 
         if(tolower(dataBase) == "legacy"){
 
+            platform <- "%22value%22:%5B%22Illumina%20GA%22,%22Illumina%20HiSeq%22%5D%7D%7D"
             #legacy exclusive
             if (tolower(Platform) %in% "all"){
-                platform <- "%22value%22:%5B%22Illumina%20GA%22,%22Illumina%20HiSeq%22%5D%7D%7D"
+                tmp <- "Illumina GA|Illumina HiSeq"
             } else if (tolower(Platform) %in% "illumina ga"){
-                platform <- "%22value%22:%5B%22Illumina%20GA%22%5D%7D%7D"
+                # platform <- "%22value%22:%5B%22Illumina%20GA%22%5D%7D%7D"
+                tmp <- "Illumina GA"
             } else if (tolower(Platform) %in% "illumina hiseq"){
-                platform <- "%22value%22:%5B%22Illumina%20HiSeq%22%5D%7D%7D"
+                # platform <- "%22value%22:%5B%22Illumina%20HiSeq%22%5D%7D%7D"
+                tmp <- "Illumina HiSeq"
             }
 
             url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
@@ -363,6 +367,11 @@ download_gdc <- function(dataType = "gene",
 
         json  <- jsonlite::fromJSON(url, simplifyDataFrame = TRUE)
 
+        json <- tryCatch(jsonlite::fromJSON(url, simplifyDataFrame = TRUE),
+                 error = function(e) stop(e),
+                 finally = message("The tumor ", toupper(tumor),
+                                   " does not have ", tolower(dataType), "data!"))
+
         manifest.df <- json$data$hits
 
         #checkin' if there are available data to download (e.g. LAML)
@@ -393,7 +402,8 @@ download_gdc <- function(dataType = "gene",
         write.table(x = manifest.df, file = paste0(DIR, "/manifest.sdrf"),
                     quote = FALSE, row.names = FALSE, sep = "\t")
 
-        manifest.df <- manifest.df[, c("file_name", "md5sum", "file_id")]
+        manifest.df <- manifest.df[grep(tmp, head(manifest.df)$platform),
+                                   c("file_name", "md5sum", "file_id")]
 
         colnames(manifest.df) <- c("filename", "md5", "id" )
 
@@ -406,12 +416,16 @@ download_gdc <- function(dataType = "gene",
                    showWarnings = FALSE)
         DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
 
+        platform <- "%22value%22:%5B%22Illumina%20Human%20Methylation%20450%22,%22Illumina%20Human%20Methylation%2027%22%5D%7D%7D"
+
         if (tolower(Platform) %in% "all"){
-            platform <- "%22value%22:%5B%22Illumina%20Human%20Methylation%20450%22,%22Illumina%20Human%20Methylation%2027%22%5D%7D%7D"
+            tmp <- "Illumina Human Methylation 450|Illumina Human Methylation 27"
         } else if (tolower(Platform) %in% "illumina human methylation 450"){
-            platform <- "%22value%22:%5B%22Illumina%20Human%20Methylation%20450%22%5D%7D%7D"
+            # platform <- "%22value%22:%5B%22Illumina%20Human%20Methylation%20450%22%5D%7D%7D"
+            tmp <- "Illumina Human Methylation 450"
         } else if (tolower(Platform) %in% "illumina human methylation 27"){
-            platform <- "%22value%22:%5B%22Illumina%20Human%20Methylation%2027%22%5D%7D%7D"
+            # platform <- "%22value%22:%5B%22Illumina%20Human%20Methylation%2027%22%5D%7D%7D"
+            tmp <- "Illumina Human Methylation 27"
         }
 
         if(tolower(dataBase) == "legacy"){
@@ -444,7 +458,13 @@ download_gdc <- function(dataType = "gene",
                           "%22%5D%7D%7D%5D%7D&format=JSON")
         }
         message("\n\nDownloading manifest...\n")
-        json <- jsonlite::fromJSON(url, simplifyDataFrame = TRUE)
+        # json <- jsonlite::fromJSON(url, simplifyDataFrame = TRUE)
+
+
+        json <- tryCatch(jsonlite::fromJSON(url, simplifyDataFrame = TRUE),
+                 error = function(e) stop(e),
+                 finally = message("The tumor ", toupper(tumor),
+                                   " does not have ", tolower(dataType), "data!"))
 
         manifest.df <- json$data$hits
 
@@ -478,7 +498,8 @@ download_gdc <- function(dataType = "gene",
         write.table(x = manifest.df, file = paste0(DIR, "/manifest.sdrf"),
                     quote = FALSE, row.names = FALSE, sep = "\t")
 
-        manifest.df <- manifest.df[, c("file_name", "md5sum", "file_id")]
+        manifest.df <- manifest.df[grep(tmp, head(manifest.df)$platform),
+                                   c("file_name", "md5sum", "file_id")]
 
         colnames(manifest.df) <- c("filename", "md5", "id" )
 
@@ -697,16 +718,22 @@ download_gdc <- function(dataType = "gene",
                    showWarnings = FALSE)
         DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
 
+        platform <- ""
+
         if (tolower(Platform) %in% "all"){
-            platform <- ""
+            tmp <- "Illumina HiSeq|Illumina GA|H-miRNA_8x15Kv2|H-miRNA_8x15Kv"
         } else if (tolower(Platform) %in% "illumina hiseq"){
             platform <- ",%7B%22op%22:%22in%22,%22content%22:%7B%22field%22:%22files.platform%22,%22value%22:%5B%22Illumina%20HiSeq%22%5D%7D%7D"
+            tmp <- "Illumina HiSeq"
         } else if (tolower(Platform) %in% "illumina ga"){
             platform <- ",%7B%22op%22:%22in%22,%22content%22:%7B%22field%22:%22files.platform%22,%22value%22:%5B%22Illumina%20GA%22%5D%7D%7D"
+            tmp <- "Illumina GA"
         } else if (tolower(Platform) %in% "h-mirna_8x15kv2") {
             platform <- ",%7B%22op%22:%22in%22,%22content%22:%7B%22field%22:%22files.platform%22,%22value%22:%5B%22H-miRNA_8x15Kv2%22%5D%7D%7D"
+            tmp <- "H-miRNA_8x15Kv2"
         } else if (tolower(Platform) %in% "h-mirna_8x15kv") {
             platform <- ",%7B%22op%22:%22in%22,%22content%22:%7B%22field%22:%22files.platform%22,%22value%22:%5B%22H-miRNA_8x15Kv%22%5D%7D%7D"
+            tmp <- "H-miRNA_8x15Kv"
         }
 
         if(tolower(dataBase) == "legacy"){
@@ -761,7 +788,11 @@ download_gdc <- function(dataType = "gene",
             }
         }
         message("\n\nDownloading manifest...\n")
-        json <- jsonlite::fromJSON(url, simplifyDataFrame = TRUE)
+
+        json <- tryCatch(jsonlite::fromJSON(url, simplifyDataFrame = TRUE),
+                 error = function(e) stop(e),
+                 finally = message("The tumor ", toupper(tumor),
+                                   " does not have ", tolower(dataType), "data!"))
 
         manifest.df <- json$data$hits
 
@@ -795,7 +826,8 @@ download_gdc <- function(dataType = "gene",
         write.table(x = manifest.df, file = paste0(DIR, "/manifest.sdrf"),
                     quote = FALSE, row.names = FALSE, sep = "\t")
 
-        manifest.df <- manifest.df[, c("file_name", "md5sum", "file_id")]
+        manifest.df <- manifest.df[grep(tmp, head(manifest.df)$platform),
+                                   c("file_name", "md5sum", "file_id")]
 
         colnames(manifest.df) <- c("filename", "md5", "id" )
 
@@ -812,12 +844,16 @@ download_gdc <- function(dataType = "gene",
                    showWarnings = FALSE)
         DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
 
+        platform <- "%22value%22:%5B%22Illumina%20GA%22,%22Illumina%20HiSeq%22%5D%7D%7D"
+
         if (tolower(Platform) %in% "all"){
-            platform <- "%22value%22:%5B%22Illumina%20GA%22,%22Illumina%20HiSeq%22%5D%7D%7D"
+            tmp <- "Illumina GA|Illumina HiSeq"
         } else if (tolower(Platform) %in% "illumina ga"){
-            platform <- "%22value%22:%5B%22Illumina%20GA%22%5D%7D%7D"
+            # platform <- "%22value%22:%5B%22Illumina%20GA%22%5D%7D%7D"
+            tmp <- "Illumina GA"
         } else if (tolower(Platform) %in% "illumina hiseq"){
-            platform <- "%22value%22:%5B%22Illumina%20HiSeq%22%5D%7D%7D"
+            # platform <- "%22value%22:%5B%22Illumina%20HiSeq%22%5D%7D%7D"
+            tmp <- "Illumina HiSeq"
         }
 
         size <- size.par(tumor = tumor, typeOfData = "Gene expression", DB = "legacy")
@@ -835,7 +871,12 @@ download_gdc <- function(dataType = "gene",
 
 
         message("\n\nDownloading manifest...\n")
-        json <- jsonlite::fromJSON(url, simplifyDataFrame = TRUE)
+
+        json <- tryCatch(jsonlite::fromJSON(url, simplifyDataFrame = TRUE),
+                 error = function(e) stop(e),
+                 finally = message("The tumor ", toupper(tumor),
+                                   " does not have ", tolower(dataType), "data!"))
+
 
         manifest.df <- json$data$hits
 
@@ -855,7 +896,8 @@ download_gdc <- function(dataType = "gene",
         write.table(x = manifest.df, file = paste0(DIR, "/manifest.sdrf"),
                     quote = FALSE, row.names = FALSE, sep = "\t")
 
-        manifest.df <- manifest.df[, c("file_name", "md5sum", "file_id")]
+        manifest.df <- manifest.df[grep(tmp, head(manifest.df)$platform),
+                                   c("file_name", "md5sum", "file_id")]
 
         colnames(manifest.df) <- c("filename", "md5", "id" )
 

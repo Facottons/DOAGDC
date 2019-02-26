@@ -44,6 +44,8 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
     Name <- string_vars[["envir_link"]]$Name
     # pairName <- string_vars[["envir_link"]]$pairName
     dataBase <- string_vars[["envir_link"]]$dataBase
+    groupGen <- string_vars[["envir_link"]]$groupGen
+
     if (grepl("crosstable", tolower(Tool))) {
         TCGAExpression <- string_vars[["envir_link"]]$Results.Completed.crossed
     } else {
@@ -67,10 +69,12 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
         } else if (tolower(Tool) == "crosstable.ebseq") {
             DIR <- paste0(PATH, "/CrossData_ebseq")
         }
-        dir.create(file.path(DIR, "Ontology_Results"), showWarnings = FALSE)
-        DIR <- file.path(DIR, "Ontology_Results")
+        dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
+        DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
     } else {
-        DIR <- paste0(PATH, "/Ontology_Results_", Tool, "_", toupper(Name))
+        dir.create(paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
+                          Tool, "_", toupper(Name)), showWarnings = FALSE)
+        DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_", Tool, "_", toupper(Name))
     }
 
     dir.create(file.path(DIR, "REACTOME_Output"), showWarnings = FALSE)
@@ -108,7 +112,8 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
     # Write
     write.csv(DO.Enriched.summary,
               file=paste0(DIR,
-                          "/DO_Output/DO_enrichment_", pairName, ".csv"))
+                          "/DO_Output/DO_enrichment_", pairName, ".csv"),
+              row.names = FALSE)
 
     #Get fdr <0.05
     DO.Enriched.fdr <- DO.Enriched.summary[which(DO.Enriched.summary$p.adjust < FDR.cutoff), ]
@@ -135,22 +140,37 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
         new.inf <- log.10.DO[order(log.10.DO, decreasing = TRUE)]
         log.10.DO[log.10.DO == "Inf"] <- (new.inf[new.inf != "Inf"][1]+1)
 
+        longest_word <- max(stringr::str_count(PlotNowDO$Description))
+
+        Gene_Ratio1 <- unname(sapply(PlotNowDO$GeneRatio,
+                                    function(w){unlist(strsplit(w, "/"))[1]}))
+        Gene_Ratio2 <- unname(sapply(PlotNowDO$GeneRatio,
+                                     function(w){unlist(strsplit(w, "/"))[2]}))
+
+        Gene_Ratio <- round(as.numeric(Gene_Ratio1)/as.numeric(Gene_Ratio2), 2)
+
+        if (longest_word > 50) {
+            longest_Width <- Width * 1.5
+        } else {
+            longest_Width <- Width
+        }
+
         if (tolower(image.format) == "png") {
             png(file = paste0(DIR,
                               "/DO_Output/DO_EnrichPlot_10first_", pairName, ".png"),
-                width = Width, height = Height, res = Res, units = Unit)
+                width = longest_Width, height = Height, res = Res, units = Unit)
         } else if (tolower(image.format) == "svg") {
             svg(file = paste0(DIR,
                               "/DO_Output/DO_EnrichPlot_10first_", pairName, ".svg"),
-                width = Width, height = Height, onefile = TRUE)
+                width = longest_Width, height = Height, onefile = TRUE)
         } else {
             stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
         }
 
         p <- ggplot2::ggplot(PlotNowDO, ggplot2::aes(x = log.10.DO,
                                                      y = forcats::fct_reorder(Description, log.10.DO))) +
-            ggplot2::geom_point(ggplot2::aes(size = Count, color = p.adjust)) +
-            ggplot2::scale_colour_gradient(limits=c(0, FDR.cutoff), low="red", high = "blue") +
+            ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
+            ggplot2::scale_colour_gradient(limits=c(0, 1), low="red", high = "blue") +
             ggplot2::labs(y = "", x = "-log(FDR)") +
             ggplot2::theme_bw(base_size = 10) +
             ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
@@ -163,45 +183,45 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
         print(p)
         dev.off()
 
-        if (tolower(image.format) == "png") {
-            png(file = paste0(DIR,
-                              "/DO_Output/DO_EnrichPlot_10first_", pairName, "_2.png"),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
-            svg(file = paste0(DIR,
-                              "/DO_Output/DO_EnrichPlot_10first_", pairName, "_2.svg"),
-                width = Width, height = Height, onefile = TRUE)
-        } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-        }
-        # par(oma = c(0,10,0,0),lwd = 2.5)
-        par(mar = c(4.5,18,2,2),lwd = 2.5)
-
-        barplot(log.10.DO,
-                names=PlotNowDO[,"Description"], las=2, horiz=TRUE, xlab = "-log(FDR)",
-                main="Disease Ontology", lwd=2, cex.lab=1, cex.axis=2, cex.main=1.4,
-                axes=FALSE, col = RColorBrewer::brewer.pal(8,"Set1")[5],
-                border="white",
-                cex.names=0.8, space=0.001)
-
-        if (-log10(min(as.numeric(PlotNowDO[, "p.adjust"]))) == "Inf"){
-            abline(v = 1:floor(0), col = "white", lwd = 4)
-        } else {
-            abline(v=1:floor(-log10(min(as.numeric(PlotNowDO[, "p.adjust"]), na.rm = TRUE))),
-                   col="white", lwd=4)
-        }
-
-        axis(side = 1, 0:(max(log.10.DO)+2),
-             lwd = 1.5, cex.axis = 1.2)
-
-        abline(v = -log10(FDR.cutoff), lwd = 3)
-
-        par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), mar=c(0, 0, 1, 0), new=TRUE)
-        plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
-
-        legend("topright", "-log(FDR.cutoff)", lty = 1, lwd = 4,
-               bty = "n", cex = 0.5)
-        dev.off()
+        # if (tolower(image.format) == "png") {
+        #     png(file = paste0(DIR,
+        #                       "/DO_Output/DO_EnrichPlot_10first_", pairName, "_2.png"),
+        #         width = longest_Width, height = Height, res = Res, units = Unit)
+        # } else if (tolower(image.format) == "svg") {
+        #     svg(file = paste0(DIR,
+        #                       "/DO_Output/DO_EnrichPlot_10first_", pairName, "_2.svg"),
+        #         width = longest_Width, height = Height, onefile = TRUE)
+        # } else {
+        #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        # }
+        # # par(oma = c(0,10,0,0),lwd = 2.5)
+        # par(mar = c(4.5,18,2,2),lwd = 2.5)
+        #
+        # barplot(log.10.DO,
+        #         names=PlotNowDO[,"Description"], las=2, horiz=TRUE, xlab = "-log(FDR)",
+        #         main="Disease Ontology", lwd=2, cex.lab=1, cex.axis=2, cex.main=1.4,
+        #         axes=FALSE, col = RColorBrewer::brewer.pal(8,"Set1")[5],
+        #         border="white",
+        #         cex.names=0.8, space=0.001)
+        #
+        # if (-log10(min(as.numeric(PlotNowDO[, "p.adjust"]))) == "Inf"){
+        #     abline(v = 1:floor(0), col = "white", lwd = 4)
+        # } else {
+        #     abline(v=1:floor(-log10(min(as.numeric(PlotNowDO[, "p.adjust"]), na.rm = TRUE))),
+        #            col="white", lwd=4)
+        # }
+        #
+        # axis(side = 1, 0:(max(log.10.DO)+2),
+        #      lwd = 1.5, cex.axis = 1.2)
+        #
+        # abline(v = -log10(FDR.cutoff), lwd = 3)
+        #
+        # par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), mar=c(0, 0, 1, 0), new=TRUE)
+        # plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+        #
+        # legend("topright", "-log(FDR.cutoff)", lty = 1, lwd = 4,
+        #        bty = "n", cex = 0.5)
+        # dev.off()
 
     } else {
          message(cat("There is nothing to show in Disease Ontology\n"))
@@ -223,7 +243,7 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
     # Write
     write.csv(REACTOME.Enriched.summary,
               file=paste0(DIR,
-                         "/REACTOME_Output/REAC_enrichment_", pairName, ".csv"))
+                         "/REACTOME_Output/REAC_enrichment_", pairName, ".csv"), row.names = FALSE)
 
     #Get fdr <0.05
     REACTOME.Enriched.fdr <- REACTOME.Enriched.summary[which(REACTOME.Enriched.summary$p.adjust < FDR.cutoff), ]
@@ -250,22 +270,37 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
         new.inf <- log.10.REACT[order(log.10.REACT, decreasing = TRUE)]
         log.10.REACT[log.10.REACT == "Inf"] <- (new.inf[new.inf != "Inf"][1]+1)
 
+        longest_word <- max(stringr::str_count(PlotNowREACT$Description))
+
+        Gene_Ratio1 <- unname(sapply(PlotNowREACT$GeneRatio,
+                                     function(w){unlist(strsplit(w, "/"))[1]}))
+        Gene_Ratio2 <- unname(sapply(PlotNowREACT$GeneRatio,
+                                     function(w){unlist(strsplit(w, "/"))[2]}))
+
+        Gene_Ratio <- round(as.numeric(Gene_Ratio1)/as.numeric(Gene_Ratio2), 2)
+
+        if (longest_word > 50) {
+            longest_Width <- Width * 1.5
+        } else {
+            longest_Width <- Width
+        }
+
         if (tolower(image.format) == "png") {
             png(file = paste0(DIR,
                               "/REACTOME_Output/REACT_EnrichPlot_10first_", pairName, ".png"),
-                width = Width, height = Height, res = Res, units = Unit)
+                width = longest_Width, height = Height, res = Res, units = Unit)
         } else if (tolower(image.format) == "svg") {
             svg(file = paste0(DIR,
                               "/REACTOME_Output/REACT_EnrichPlot_10first_", pairName, ".svg"),
-                width = Width, height = Height, onefile = TRUE)
+                width = longest_Width, height = Height, onefile = TRUE)
         } else {
             stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
         }
 
         p <- ggplot2::ggplot(PlotNowREACT, ggplot2::aes(x = log.10.REACT,
                                                      y = forcats::fct_reorder(Description, log.10.REACT))) +
-            ggplot2::geom_point(ggplot2::aes(size = Count, color = p.adjust)) +
-            ggplot2::scale_colour_gradient(limits=c(0, FDR.cutoff), low="red", high = "blue") +
+            ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
+            ggplot2::scale_colour_gradient(limits=c(0, 1), low="red", high = "blue") +
             ggplot2::labs(y = "", x = "-log(FDR)") +
             ggplot2::theme_bw(base_size = 10) +
             ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
@@ -278,45 +313,45 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
         print(p)
         dev.off()
 
-        if (tolower(image.format) == "png") {
-            png(file = paste0(DIR,
-                              "/REACTOME_Output/REACT_EnrichPlot_10first_", pairName, "_2.png"),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
-            svg(file = paste0(DIR,
-                              "/REACTOME_Output/REACT_EnrichPlot_10first_", pairName, "_2.svg"),
-                width = Width, height = Height, onefile = TRUE)
-        } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-        }
-        # par(oma = c(0,10,0,0),lwd = 2.5)
-        par(mar = c(4.5,20,2,2),lwd = 2.5)
-        barplot(log.10.REACT,
-                names = PlotNowREACT[, "Description"], las = 2, horiz = TRUE,
-                xlab = "-log(FDR)", main = "REACTOME", lwd = 2, cex.lab = 1.1,
-                cex.axis = 1, cex.main = 1.5, axes = FALSE,
-                col = RColorBrewer::brewer.pal(8, "Set1")[4], border = "white",
-                cex.names = 0.8, space = 0.001)
-
-        if (-log10(min(as.numeric(PlotNowREACT[, "p.adjust"]))) == "Inf"){
-            abline(v = 1:floor(0), col = "white", lwd = 4)
-        } else {
-            abline(v = 1:floor(-log10(min(PlotNowREACT[, "p.adjust"]))),
-                   col = "white", lwd = 4)
-        }
-
-        axis(side = 1, lwd = 1.5, cex.axis = 1.1,
-             0:(max(log.10.REACT)+2))
-
-        abline(v = -log10(FDR.cutoff), lwd = 3)
-
-        par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), mar=c(0, 0, 1, 0), new=TRUE)
-        plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
-
-        legend("topright", "-log(FDR.cutoff)", lty = 1, lwd = 4,
-               bty = "n", cex = 0.5)
-
-        dev.off()
+        # if (tolower(image.format) == "png") {
+        #     png(file = paste0(DIR,
+        #                       "/REACTOME_Output/REACT_EnrichPlot_10first_", pairName, "_2.png"),
+        #         width = longest_Width, height = Height, res = Res, units = Unit)
+        # } else if (tolower(image.format) == "svg") {
+        #     svg(file = paste0(DIR,
+        #                       "/REACTOME_Output/REACT_EnrichPlot_10first_", pairName, "_2.svg"),
+        #         width = longest_Width, height = Height, onefile = TRUE)
+        # } else {
+        #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        # }
+        # # par(oma = c(0,10,0,0),lwd = 2.5)
+        # par(mar = c(4.5,20,2,2),lwd = 2.5)
+        # barplot(log.10.REACT,
+        #         names = PlotNowREACT[, "Description"], las = 2, horiz = TRUE,
+        #         xlab = "-log(FDR)", main = "REACTOME", lwd = 2, cex.lab = 1.1,
+        #         cex.axis = 1, cex.main = 1.5, axes = FALSE,
+        #         col = RColorBrewer::brewer.pal(8, "Set1")[4], border = "white",
+        #         cex.names = 0.8, space = 0.001)
+        #
+        # if (-log10(min(as.numeric(PlotNowREACT[, "p.adjust"]))) == "Inf"){
+        #     abline(v = 1:floor(0), col = "white", lwd = 4)
+        # } else {
+        #     abline(v = 1:floor(-log10(min(PlotNowREACT[, "p.adjust"]))),
+        #            col = "white", lwd = 4)
+        # }
+        #
+        # axis(side = 1, lwd = 1.5, cex.axis = 1.1,
+        #      0:(max(log.10.REACT)+2))
+        #
+        # abline(v = -log10(FDR.cutoff), lwd = 3)
+        #
+        # par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), mar=c(0, 0, 1, 0), new=TRUE)
+        # plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+        #
+        # legend("topright", "-log(FDR.cutoff)", lty = 1, lwd = 4,
+        #        bty = "n", cex = 0.5)
+        #
+        # dev.off()
 
         # # Plot Specific Pathways with fold-changes
         # for(kiwi in 1:length(REACTOME.Enriched.fdr[, "Description"])){
@@ -347,7 +382,8 @@ DO_REAC_ENRICH <- function(p.cutoff = 0.05,
     # Write
     write.csv(REACTOME.Enriched.summary,
               file=paste0(DIR,
-                          "/REACTOME_Output/REAC_enrichment_under_cutoff_", pairName, ".csv"))
+                          "/REACTOME_Output/REAC_enrichment_under_cutoff_", pairName, ".csv"),
+              row.names = FALSE)
 
     #
     #

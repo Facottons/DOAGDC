@@ -100,7 +100,7 @@ dea_edgeR <- function(Name,
 
         tableDE$FC <- 2**tableDE[, "logFC"]
         tableDE <- tableDE[, c(5, 1, 2 ,3 ,4)]
-        colnames(tableDE)[c(2, 5)] <- c("log2FC", "adj_PValue_BH")
+        colnames(tableDE)[c(2, 5)] <- c("log2FC", "FDR")
 
         # tableDE <- tableDE[order(rownames(tableDE)), ]
         if (tolower(dataBase) == "legacy") {
@@ -116,7 +116,7 @@ dea_edgeR <- function(Name,
         }
 
         Results.Completed_local <- tableDE
-        tableDE <- tableDE[tableDE$adj_PValue_BH < FDR.cutoff, ]
+        tableDE <- tableDE[tableDE$FDR < FDR.cutoff, ]
         tableDE <- tableDE[abs(tableDE$log2FC) > log2(FC.cutoff), ]
 
         write.csv(x = tableDE, file = paste0(DIR, "/ResultsDE_exactTest_",
@@ -180,7 +180,7 @@ dea_edgeR <- function(Name,
         tableDE <- edgeR::topTags(tested_local, n = nrow(tested_local$table),
                                   adjust.method="BH", sort.by="PValue")$table
         # tableDE <- cbind(tested_local$table, FDR = p.adjust(tested_local$table$PValue, "fdr"))
-        colnames(tableDE)[c(1,2,5)] <- c("log2FC", "log2CPM", "adj_PValue_BH")
+        colnames(tableDE)[c(1,2,5)] <- c("log2FC", "log2CPM", "FDR")
         tableDE[, "FC"] <- 2**tableDE[, "log2FC"]
         tableDE <- tableDE[order(rownames(tableDE)), ]
 
@@ -197,7 +197,7 @@ dea_edgeR <- function(Name,
         }
 
         Results.Completed_local <- tableDE
-        tableDE <- tableDE[tableDE$adj_PValue_BH < FDR.cutoff, ]
+        tableDE <- tableDE[tableDE$FDR < FDR.cutoff, ]
         tableDE <- tableDE[abs(tableDE$log2FC) > log2(FC.cutoff), ]
         write.csv(x = tableDE, file = paste0(DIR, "/ResultsDE_glmLRT_",
                                              comb_name, ".csv"),
@@ -256,18 +256,18 @@ dea_edgeR <- function(Name,
         Results.Completed_local$Colour = rgb(100, 100, 100, 50, maxColorValue = 255)
 
         # Set new column values to appropriate colours
-        Results.Completed_local$Colour[Results.Completed_local$log2FC >= log2(FC.cutoff) & Results.Completed_local$adj_PValue_BH <= FDR.cutoff] <- rgb(222, 22, 22, 50, maxColorValue = 255)
-        Results.Completed_local$Colour[Results.Completed_local$log2FC < -log2(FC.cutoff) & Results.Completed_local$adj_PValue_BH <= FDR.cutoff] <- rgb(56, 50, 237, 50, maxColorValue = 255)
+        Results.Completed_local$Colour[Results.Completed_local$log2FC >= log2(FC.cutoff) & Results.Completed_local$FDR <= FDR.cutoff] <- rgb(222, 22, 22, 50, maxColorValue = 255)
+        Results.Completed_local$Colour[Results.Completed_local$log2FC < -log2(FC.cutoff) & Results.Completed_local$FDR <= FDR.cutoff] <- rgb(56, 50, 237, 50, maxColorValue = 255)
 
         ####Volcano Plot
         axislimits_x <- ceiling(max(c(-min(Results.Completed_local$log2FC, na.rm = TRUE) - 1,
                                       max(Results.Completed_local$log2FC, na.rm = TRUE) + 1)))
 
-        log.10.adj_PValue_BH <- -log10(Results.Completed_local$adj_PValue_BH)
-        new.inf <- log.10.adj_PValue_BH[order(log.10.adj_PValue_BH, decreasing = TRUE)]
-        log.10.adj_PValue_BH[log.10.adj_PValue_BH == "Inf"] <- (new.inf[new.inf != "Inf"][1] + 1)
+        log.10.FDR <- -log10(Results.Completed_local$FDR)
+        new.inf <- log.10.FDR[order(log.10.FDR, decreasing = TRUE)]
+        log.10.FDR[log.10.FDR == "Inf"] <- (new.inf[new.inf != "Inf"][1] + 1)
 
-        axislimits_y <- ceiling(max(log.10.adj_PValue_BH, na.rm = TRUE)) + 1
+        axislimits_y <- ceiling(max(log.10.FDR, na.rm = TRUE)) + 1
 
         message("Start volcano plot...")
         #Volcano Plot
@@ -283,7 +283,7 @@ dea_edgeR <- function(Name,
             stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
         }
         par(mar = c(4,6,3,2), mgp = c(2,.7,0), tck = -0.01)
-        plot(Results.Completed_local$log2FC, log.10.adj_PValue_BH, axes = FALSE,
+        plot(Results.Completed_local$log2FC, log.10.FDR, axes = FALSE,
              xlim = c(-axislimits_x, axislimits_x), ylim = c(0, axislimits_y),
              xlab = expression('log'[2]*'(FC)'),
              # xlab = bquote(.("") ~ 'log'[2]*.('(FC)')),
@@ -292,7 +292,7 @@ dea_edgeR <- function(Name,
              cex.lab = 1.5, cex.main = 2,
              cex.sub = 2,
              pch = 16, col = Results.Completed_local$Colour, cex = 2.5, las = 1)
-        title(ylab = "-log(adj_PValue_BH)", line = 4, cex.lab = 1.5, family = "Calibri Light")
+        title(ylab = "-log(FDR)", line = 4, cex.lab = 1.5, family = "Calibri Light")
         axis(1, cex.axis = 1.5)
         axis(2, cex.axis = 1.5, las = 1)
         abline(v = log2(FC.cutoff), col = "black", lty = 6, cex = 0.8,
@@ -301,11 +301,11 @@ dea_edgeR <- function(Name,
                lwd = 4)
         abline(h = -log10(FDR.cutoff), col = "black", lwd = 4, lty = 3)
         text(x = -axislimits_x + 0.3, y = axislimits_y/10, labels =
-                 length(Results.Completed_local$Colour[Results.Completed_local$log2FC <= -log2(FC.cutoff) & Results.Completed_local$adj_PValue_BH <= FDR.cutoff]),
+                 length(Results.Completed_local$Colour[Results.Completed_local$log2FC <= -log2(FC.cutoff) & Results.Completed_local$FDR <= FDR.cutoff]),
              cex = 1, col = "blue")
         # text(x = -axislimits_x + 0.3, y = ((axislimits_y/10)+1.1), labels = "DOWN",
         #      cex = 0.8, col = "blue")
-        text(x = axislimits_x - 0.4, y = axislimits_y/10, labels = length(Results.Completed_local$Colour[Results.Completed_local$log2FC >= log2(FC.cutoff) & Results.Completed_local$adj_PValue_BH <= FDR.cutoff]),
+        text(x = axislimits_x - 0.4, y = axislimits_y/10, labels = length(Results.Completed_local$Colour[Results.Completed_local$log2FC >= log2(FC.cutoff) & Results.Completed_local$FDR <= FDR.cutoff]),
              cex = 1, col = "red")
         # text(x = axislimits_x - 0.4, y = ((axislimits_y/10)+1.1), labels = "UP",
         #      cex = 0.8, col = "red")
@@ -321,22 +321,26 @@ dea_edgeR <- function(Name,
     }
 
     # Code ####
-    dataType <- string_vars[["envir_link"]]$dataType
-    dataType <- gsub(" ", "_", dataType)
-    Name <- gsub("-", "_", Name)
-
     if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
 
     string_vars <- list(envir_link = get(envir_link))
+
+    # dataType <- string_vars[["envir_link"]]$dataType
+    # dataType <- gsub(" ", "_", dataType)
+    Name <- gsub("-", "_", Name)
+
     if (missing("workDir")){
         workDir <- string_vars[["envir_link"]]$workDir
     }
 
     dataBase <- string_vars[["envir_link"]]$dataBase
 
-    assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"), envir = get(envir_link))
+    assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
+           envir = get(envir_link))
+
+    assign("groupGen", groupGen, envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){
         PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
@@ -347,8 +351,8 @@ dea_edgeR <- function(Name,
 
     #creating the dir to outputs
     dir.create(paste0(PATH, "/edgeR_Results.",
-                      tolower(dataType), "_", toupper(Name)), showWarnings = FALSE)
-    DIR <- paste0(PATH, "/edgeR_Results.", tolower(dataType), "_", toupper(Name))
+                      tolower(groupGen), "_", toupper(Name)), showWarnings = FALSE)
+    DIR <- paste0(PATH, "/edgeR_Results.", tolower(groupGen), "_", toupper(Name))
     # dir.create(file.path(DIR, "PCA_Plots"), showWarnings = FALSE)
 
     # for the groups
@@ -376,6 +380,11 @@ dea_edgeR <- function(Name,
     } else {
         stop(message("Please insert a valid 'groupGen' value!! ('mlcust', coxHR or 'clinical')"))
     }
+
+    # check patient in common
+    tmp <- rownames(Grupos.edgeR) %in% colnames(string_vars[["envir_link"]]$gene_tumor_not_normalized)
+
+    Grupos.edgeR <- Grupos.edgeR[tmp, ]
 
     assign("condHeatmap", Grupos.edgeR[, 1], envir = get(envir_link))
 

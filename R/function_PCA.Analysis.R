@@ -1,7 +1,6 @@
 #' Generate plot for Principal Component Analysis
 #'
 #' @param Tool
-#' @param dataType
 #' @param Name
 #' @param workDir
 #' @param pairName
@@ -19,7 +18,7 @@
 #' PCA_Analysis("EBSeq", "gene", "HIF3A", pairName = "G2_over_G1", env = "env name without quotes")
 #' }
 PCA_Analysis <- function(Tool,
-                         dataType, Name, workDir,
+                         Name, workDir,
                          pairName = "G2_over_G1",
                          Width = 4,
                          Height = 2,
@@ -57,7 +56,7 @@ PCA_Analysis <- function(Tool,
                                     circle = TRUE,
                                     alpha = 0.5,
                                     var.axes = FALSE) +
-                scale_color_discrete(name = 'Groups') +
+                scale_color_manual(name = 'Groups', values = color_pallete[unique(condHeatmap)]) +
                 theme(axis.title.y = element_text(size = rel(0.6), angle = 90)) +
                 theme(axis.title.x = element_text(size = rel(0.6), angle = 00)) +
                 theme(legend.title = element_text(size=4, face = "bold")) +
@@ -69,13 +68,14 @@ PCA_Analysis <- function(Tool,
         } else if(is.numeric(SIZE)) {
 
             GENETOP <- SIZE
-            resultadosDE2 <- resultadosDE[order(resultadosDE$FC), ]
-            resultadosDE_Down <- resultadosDE2[1:GENETOP, ]
-            #row.names(resultadosDE_Down) <- resultadosDE2[1:GENETOP, "gene"]
-            resultadosDE3 <- resultadosDE[order(resultadosDE$FC, decreasing = TRUE), ]
-            resultadosDE_Up <- resultadosDE3[1:GENETOP, ]
-            #row.names(resultadosDE_Up) <- resultadosDE3[1:GENETOP, "gene"]
-            resultadosPlot <- rbind(resultadosDE_Down, resultadosDE_Up)
+            # resultadosDE2 <- resultadosDE[order(resultadosDE$FC), ]
+            # resultadosDE_Down <- resultadosDE2[1:GENETOP, ]
+            # resultadosDE3 <- resultadosDE[order(resultadosDE$FC, decreasing = TRUE), ]
+            # resultadosDE_Up <- resultadosDE3[1:GENETOP, ]
+            # resultadosPlot <- rbind(resultadosDE_Down, resultadosDE_Up)
+
+            resultadosPlot <- resultadosDE[order(resultadosDE$FDR, -abs(resultadosDE$FC)), ]
+            resultadosPlot <- resultadosPlot[1:GENETOP, ]
 
             # Separacao para os heatmaps
             ParaHeatmaps <- NormalizedExpression[match(rownames(resultadosPlot), rownames(NormalizedExpression)), ]
@@ -102,7 +102,8 @@ PCA_Analysis <- function(Tool,
                                     circle = TRUE,
                                     alpha = 0.5,
                                     var.axes = FALSE) +
-                scale_color_discrete(name = 'Groups') +
+                # scale_color_discrete(name = 'Groups') +
+                scale_color_manual(name = 'Groups', values = color_pallete[unique(condHeatmap)]) +
                 theme(axis.title.y = element_text(size = rel(0.6), angle = 90)) +
                 theme(axis.title.x = element_text(size = rel(0.6), angle = 00)) +
                 theme(legend.title = element_text(size=4, face = "bold")) +
@@ -114,7 +115,6 @@ PCA_Analysis <- function(Tool,
     }
 
     # code ####
-    dataType <- gsub(" ", "_", dataType)
     Name <- gsub("-", "_", Name)
 
     if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
@@ -136,20 +136,22 @@ PCA_Analysis <- function(Tool,
         PATH <- string_vars[["envir_link"]]$PATH
     }
 
+    groupGen <- string_vars[["envir_link"]]$groupGen
+
     #creating the dir to outputs
     if (tolower(Tool) == "ebseq") {
         DIR <- paste0(PATH, "/EBSeq_Results.",
-                      tolower(dataType), "_", toupper(Name))
+                      tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.EBSeq[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.EBSeq
     } else if (tolower(Tool) == "edger") {
         DIR <- paste0(PATH, "/edgeR_Results.",
-                      tolower(dataType), "_", toupper(Name))
+                      tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.edgeR[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.edgeR
     } else if (tolower(Tool) == "deseq2") {
         DIR <- paste0(PATH, "/DESeq2_Results.",
-                      tolower(dataType), "_", toupper(Name))
+                      tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.DESeq2[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
     } else if (tolower(Tool) == "crosstable.deseq2") {
@@ -169,9 +171,16 @@ PCA_Analysis <- function(Tool,
     }
     dir.create(file.path(DIR, "PCA_Plots"), showWarnings = FALSE)
 
-    condHeatmap <- string_vars[["envir_link"]]$condHeatmap
+    condHeatmap <- eval(parse(text= paste0("string_vars[['envir_link']]$condHeatmap")))
 
-    # cores <- ifelse(ParaGrafico == "Low", "#E41A1C","#377EB8")
+    patients_stay <- unlist(strsplit(gsub("G", "", pairName), "_over_"))
+
+    # keep the desired group pair
+    NormalizedExpression <- NormalizedExpression[, condHeatmap %in% patients_stay]
+
+    condHeatmap <- droplevels(condHeatmap[condHeatmap %in% patients_stay])
+
+    color_pallete <- RColorBrewer::brewer.pal(8, "Set2")
 
     if (nrow(resultadosDE) != 0 ){
         PCA_Anal_local(SIZE = "All", FILE = paste0("/PCA_Plots/PCA_GENETOP=all_",

@@ -2,7 +2,6 @@
 #'
 #' @param Tool
 #' @param FC.cutoff
-#' @param dataType
 #' @param Name
 #' @param Method The agglomeration method to be used: \code{"euclidean",
 #'   "maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
@@ -11,6 +10,8 @@
 #'   \code{amap} package \link{Dist} \code{method} argument.
 #' @param pairName A character string indicating the pair name to be used. When
 #'   there are only two groups the default is \code{"G2_over_G1"}
+#' @param RawValues A logical value. If \code{"TRUE"} the expression values are
+#'   going to be converted to Z-Score before draw the heat map.
 #' @param Width,Height,Res,Unit,image.format
 #' @param env
 #' @param ScaleMethod A character string indicating which method of scale should
@@ -26,10 +27,9 @@
 #'   default size.
 #' @param degree The \code{"labCol"} rotation in degrees. The default value is
 #'   45 degrees.
-#' @param labRow,labCol A character vectors with row and column labels desired,
-#'   respectively. Another possibility is to assign "rownames" as \code{"labRow"}
-#'   and "colnames" \code{"labCol"} as to use the default values from expression
-#'   table. The default is none for both, in order to kepp the plot clean.
+#' @param labRow,labCol A logical value. If \code{"TRUE"} it is displayed row
+#'   names (\code{"labRow"}) and col names (\code{"labCol"}). The default is
+#'   \code{"FALSE"} for both, in order to kepp the plot clean.
 #' @inheritParams groups_identification_mclust
 #' @inheritParams dea_EBSeq
 #' @inheritParams GOnto
@@ -39,12 +39,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' draw_heatmap("EBSeq", dataType = "gene", Name = "HIF3A", env = "env name without quotes")
+#' draw_heatmap("EBSeq", Name = "HIF3A", env = "env name without quotes")
 #' }
 draw_heatmap <- function(Tool, FC.cutoff = 2,
-                         dataType, Name,
+                         Name,
                          Method = "euclidean",
                          pairName = "G2_over_G1",
+                         RawValues = FALSE,
                          Width = 6,
                          Height = 6,
                          Res = 300,
@@ -117,7 +118,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
                           lwid = NULL,
                           NumColSideColors = 1,
                           NumRowSideColors = 1,
-                          KeyValueName="Value",...){
+                          KeyValueName,...){
 
         # created by obigriffith in "https://raw.githubusercontent.com/trinityrnaseq/trinityrnaseq/master/Analysis/DifferentialExpression/R/heatmap.3.R"
         ## pulled from here, and then tweaked slightly: http://www.biostars.org/p/18211/
@@ -737,7 +738,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
             stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
         }
         par(oma = outerMargins)
-        heatmap.3(log2(ParaHeatmaps+1),
+        heatmap.3(DF,
                   scale=Scale.Method,
                   dendrogram="both",
                   margins=c(3, 9),
@@ -755,7 +756,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
                   cexRow = cexRow,
                   degree = degree, col=RampaDeCor,
                   #main=main_title, ColSideColorsSize=1,
-                  KeyValueName= "Raw values")
+                  KeyValueName = color_key_name)
         legend("topright", legend=paste0("G", levels(condHeatmap)), title = "Groups",
                fill=possible_colors[as.numeric(levels(condHeatmap))], border=FALSE,
                bty="n", y.intersp = 0.7, cex=0.7)
@@ -783,7 +784,6 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
     }
 
     #code ####
-    dataType <- gsub(" ", "_", dataType)
     Name <- gsub("-", "_", Name)
 
     if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
@@ -803,20 +803,22 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
         PATH <- string_vars[["envir_link"]]$PATH
     }
 
+    groupGen <- string_vars[["envir_link"]]$groupGen
+
     #creating the dir to outputs
     if (tolower(Tool) == "ebseq") {
         DIR <- paste0(PATH, "/EBSeq_Results.",
-                      tolower(dataType), "_", toupper(Name))
+                      tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.EBSeq[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.EBSeq
     } else if (tolower(Tool) == "edger") {
         DIR <- paste0(PATH, "/edgeR_Results.",
-                      tolower(dataType), "_", toupper(Name))
+                      tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.edgeR[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.edgeR
     } else if (tolower(Tool) == "deseq2") {
         DIR <- paste0(PATH, "/DESeq2_Results.",
-                      tolower(dataType), "_", toupper(Name))
+                      tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.DESeq2[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
     } else if (tolower(Tool) == "crosstable.deseq2") {
@@ -837,7 +839,14 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
 
     dir.create(file.path(DIR, "Heatmaps"), showWarnings = FALSE)
 
-    condHeatmap <- string_vars[["envir_link"]]$condHeatmap
+    condHeatmap <- eval(parse(text= paste0("string_vars[['envir_link']]$condHeatmap")))
+
+    patients_stay <- unlist(strsplit(gsub("G", "", pairName), "_over_"))
+
+    # keep the desired group pair
+    NormalizedExpression <- NormalizedExpression[, condHeatmap %in% patients_stay]
+
+    condHeatmap <- droplevels(condHeatmap[condHeatmap %in% patients_stay])
 
     # Create table just with DE and with FC cutoff
     resultadosDEUP <- resultadosDE[resultadosDE$log2FC > log2(FC.cutoff), ]
@@ -850,7 +859,8 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
     colnames(ParaHeatmaps) <- 1:length(colnames(ParaHeatmaps))
 
     #Preparing color ramp
-    RampaDeCor <- rev(colorRampPalette(RColorBrewer::brewer.pal(11, "RdBu"))(256))
+    # RampaDeCor <- rev(colorRampPalette(RColorBrewer::brewer.pal(11, "RdBu"))(512))
+    RampaDeCor <- gplots::colorpanel(512,"blue","white","red")
 
     #ex deseq2
     # condHeatmap <- Grupos.DESeq2[, 1]
@@ -863,9 +873,21 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
     rownames(colour.groups) <- 1:nrow(colour.groups)
     colnames(colour.groups) <- "Groups"
 
+
+    if (tolower(ScaleMethod) == "none" && RawValues) {
+        DF <- log2(ParaHeatmaps+1)
+        color_key_name <- "Log2(Expression Values + 1)"
+    } else if (tolower(ScaleMethod) == "none") {
+        DF <- scale(log2(ParaHeatmaps+1))
+        color_key_name <- "Z-Score"
+    } else {
+        DF <- log2(ParaHeatmaps+1)
+    }
+
+
     #dist(c,Scale.Method="euclidian")
-    distMatrix.col <- amap::Dist(t(log2(ParaHeatmaps+1)), method = Method)
-    distMatrix.row <- amap::Dist(log2(ParaHeatmaps+1), method = Method)
+    distMatrix.col <- amap::Dist(t(DF), method = Method)
+    distMatrix.row <- amap::Dist(DF, method = Method)
     #complete
     dendro.euc.complete.col <- hclust(d = distMatrix.col, method = "complete")
     #plot(dendro.euc.complete.col)
@@ -902,6 +924,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
         final.heatmap(dist.Method = Method, Scale.Method = ScaleMethod)
     }
 
+    message("\nDone!\n")
     # #color the branches and leaves
     # library('dendextend')
     # myclust=function(c) {color_branches(hclust(c,method="average"))}
