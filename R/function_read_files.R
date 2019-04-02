@@ -40,7 +40,7 @@
 #'   is already concatenate and the function should choose a different
 #'   \code{Name}, without concatenate all the files again. The default is FALSE.
 #' @param Platform
-#' @param use.hg19.mirbase20 Logical value where \code{TRUE} indicates that only
+#' @param use_hg19_mirbase20 Logical value where \code{TRUE} indicates that only
 #'   hg19.mirbase20 should be used. This parameter is needed when using
 #'   \code{dataBase = "legacy"} and one of the available miRNA \code{dataType}
 #'   in "legacy" ("miRNA gene quantification" and "miRNA isoform
@@ -75,7 +75,7 @@ concatenate_files <- function(dataType,
                       cutoffBetasd = 0.005,
                       onlyFilter = FALSE,
                       Platform = "",
-                      use.hg19.mirbase20 = FALSE,
+                      use_hg19_mirbase20 = FALSE,
                       env,
                       saveData = FALSE) {
 
@@ -445,16 +445,16 @@ concatenate_files <- function(dataType,
     }
 
     string_vars <- list(envir_link = get(envir_link))
-    attr(envir_link, "name" ) = "Environment created by GDCRtools package, use its name in 'env' argument"
+    attr(envir_link, "name" ) = "Environment created by GDCtools package, use its name in 'env' argument"
 
-    dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "Analyses"),
+    dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "Analyses"),
                showWarnings = FALSE)
 
     # mutation ####
     if (tolower(dataType) == "mutation"){
         if (tolower(dataBase) == "legacy"){
             #selecting platform file
-            DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "mutation_data")
+            DIR <- file.path(workDir, "GDCtools", toupper(tumor), "mutation_data")
             manifest <- data.table::fread(file.path(DIR, "manifest.sdrf"), select = c("file_name", "platform"))
             # all_maf_files <- dir(path = DIR, pattern = ".maf$")
             if (tolower(Platform) %in% "illumina ga"){
@@ -514,7 +514,7 @@ concatenate_files <- function(dataType,
             }
 
         } else if(tolower(dataBase) == "gdc"){
-            DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gdc_mutation_data")
+            DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gdc_mutation_data")
             manifest <- data.table::fread(file.path(DIR, "manifest.sdrf"), select = c(11,12))
             manifest$submitter_id <- unlist(lapply(strsplit(x = manifest$submitter_id,
                                                             split = "-", perl = TRUE), "[[", 3))
@@ -554,11 +554,11 @@ concatenate_files <- function(dataType,
     if (tolower(dataType) == "methylation"){
         if (!onlyFilter){
             if (tolower(dataBase) == "legacy"){
-                DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "methylation_data")
+                DIR <- file.path(workDir, "GDCtools", toupper(tumor), "methylation_data")
                 Select_ref <- c(3:5)
                 patient_selector <- "submitter_id"
             } else if (tolower(dataBase) == "gdc"){
-                DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gdc_methylation_data")
+                DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gdc_methylation_data")
                 Select_ref <- c(3:11)
                 patient_selector <- "cases"
             }
@@ -818,7 +818,7 @@ concatenate_files <- function(dataType,
         if(!onlyFilter){
             if (tolower(dataType) == "gene"){
                 if (tolower(dataBase) == "legacy"){
-                    DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gene_data")
+                    DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gene_data")
                     #prepare data selectors
                     gene_isoform()
                     message(tumor)
@@ -900,7 +900,7 @@ concatenate_files <- function(dataType,
                         }
                     } else {
                         # #tumor and not tumor data
-                        # DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gene_data")
+                        # DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gene_data")
                         # #prepare data selectors
                         # gene_isoform()
                         # message(tumor)
@@ -1020,7 +1020,7 @@ concatenate_files <- function(dataType,
                     }
 
                 } else if (tolower(dataBase) == "gdc"){
-                    DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gdc_gene_data")
+                    DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gdc_gene_data")
                     #selecting specific HTSeq data
                     if (tolower(HTSeq) == "counts"){
                         to_gunzip <- dir(path = DIR, pattern = "counts.gz$")
@@ -1189,7 +1189,7 @@ concatenate_files <- function(dataType,
             }
 
             if (tolower(dataType) == "isoform"){
-                DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "isoform_data")
+                DIR <- file.path(workDir, "GDCtools", toupper(tumor), "isoform_data")
                 #prepare data selectors
                 gene_isoform()
                 message(tumor)
@@ -1497,7 +1497,7 @@ concatenate_files <- function(dataType,
     if ("clinical" == tolower(dataType)){
         if (tolower(dataBase) == "legacy"){
             #selecting platform file
-            DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "clinical_data")
+            DIR <- file.path(workDir, "GDCtools", toupper(tumor), "clinical_data")
             patient_file <- dir(path = DIR, pattern = "clinical_patient")
 
             clinical_df <- data.table::fread(input = file.path(DIR, patient_file))
@@ -1511,7 +1511,7 @@ concatenate_files <- function(dataType,
             assign("clinical_df", clinical_df, envir = get(envir_link))
 
         } else if(tolower(dataBase) == "gdc"){
-            DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gdc_biospecimen_data")
+            DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gdc_biospecimen_data")
             patient_files <- dir(path = DIR, pattern = "xml$")
 
             pb <- txtProgressBar(min = 0, max = length(patient_files), style = 3)
@@ -1552,9 +1552,9 @@ concatenate_files <- function(dataType,
                 stop(message("\nThrere is no protein expression data in GDC data base!!",
                              "\nPlease use 'legacy' data base"))
             }
-            DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "protein_data")
+            DIR <- file.path(workDir, "GDCtools", toupper(tumor), "protein_data")
 
-            if (!dir.exists(file.path(workDir, "GDCRtools", toupper(tumor), "mage_data"))) {
+            if (!dir.exists(file.path(workDir, "GDCtools", toupper(tumor), "mage_data"))) {
                 message("Downloading magetab data...")
                 suppressWarnings(download_gdc(dataType = "mage",
                                               dataBase = dataBase,
@@ -1562,7 +1562,7 @@ concatenate_files <- function(dataType,
                                               workDir = workDir))
             }
 
-            desing_array_DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "mage_data")
+            desing_array_DIR <- file.path(workDir, "GDCtools", toupper(tumor), "mage_data")
 
             to_gunzip <- file.path(desing_array_DIR,
                                    paste0("mdanderson.org_", toupper(tumor), ".MDA_RPPA_Core.mage-tab.1.1.0.tar.gz"))
@@ -1806,7 +1806,7 @@ concatenate_files <- function(dataType,
     if ("mirna" %in% strsplit(tolower(dataType), split = " ")[[1]][1] || "isoform expression quantification" %in% tolower(dataType)){
         if (!onlyFilter) {
             if (tolower(dataBase) == "legacy"){
-                DIR <- file.path(workDir, "GDCRtools", toupper(tumor), paste0(tolower(dataType), "_data"))
+                DIR <- file.path(workDir, "GDCtools", toupper(tumor), paste0(tolower(dataType), "_data"))
 
                 manifest <- data.table::fread(file.path(DIR, "manifest.sdrf"), select = c("file_name", "cases", "platform"))
 
@@ -1815,7 +1815,7 @@ concatenate_files <- function(dataType,
                               x = dir(path = DIR))
 
                 mirna_files_downloaded <- dir(path = DIR)[tmp]
-                if (use.hg19.mirbase20){
+                if (use_hg19_mirbase20){
                     mirna_files_downloaded <- mirna_files_downloaded[grepl("hg19.mirbase20", mirna_files_downloaded, fixed=TRUE)]
                 } else {
                     mirna_files_downloaded <- mirna_files_downloaded[!grepl("hg19.mirbase20", mirna_files_downloaded, fixed=TRUE)]
@@ -1839,7 +1839,7 @@ concatenate_files <- function(dataType,
                 }
 
             } else if (tolower(dataBase) == "gdc"){
-                DIR <- file.path(workDir, "GDCRtools", toupper(tumor), paste0("gdc_", tolower(dataType), "_data"))
+                DIR <- file.path(workDir, "GDCtools", toupper(tumor), paste0("gdc_", tolower(dataType), "_data"))
 
                 manifest <- data.table::fread(file.path(DIR, "manifest.sdrf"), select = c("file_name", "cases"))
                 tmp <- !grepl(pattern = paste(".sdrf", "Data_access_time.txt",
@@ -2131,10 +2131,10 @@ concatenate_files <- function(dataType,
                 stop(message("\nThrere is no protein expression data in GDC data base!!",
                              "\nPlease use 'Legacy' data base\n"))
             }
-            DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "exon quantification_data")
+            DIR <- file.path(workDir, "GDCtools", toupper(tumor), "exon quantification_data")
 
 
-            if (!dir.exists(file.path(workDir, "GDCRtools", toupper(tumor), "mage_data"))) {
+            if (!dir.exists(file.path(workDir, "GDCtools", toupper(tumor), "mage_data"))) {
                 message("Downloading magetab data...")
                 suppressWarnings(download_gdc(dataType = "mage",
                                               dataBase = dataBase,
@@ -2142,7 +2142,7 @@ concatenate_files <- function(dataType,
                                               workDir = workDir))
             }
 
-            desing_array_DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "mage_data")
+            desing_array_DIR <- file.path(workDir, "GDCtools", toupper(tumor), "mage_data")
 
             if (tolower(Platform) == ""){
                 message("Please, insert 'illumina hiseq' or 'illumina ga' for Exon quantification data.")
@@ -2277,9 +2277,9 @@ concatenate_files <- function(dataType,
     # mage ####
     # if ("mage" == tolower(dataType)){
     #     if (tolower(dataBase) == "legacy"){
-    #         DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "mage_data")
+    #         DIR <- file.path(workDir, "GDCtools", toupper(tumor), "mage_data")
     #     } #else if (tolower(dataBase) == "gdc"){
-    #     #     DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gdc_protein_data")
+    #     #     DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gdc_protein_data")
     #     # }
     #     patient_file <- dir(path = DIR, pattern = "mage-tab")
     #     count <- 0

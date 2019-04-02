@@ -19,7 +19,7 @@
 #' @param Width,Height,Res,Unit Graphical parameters. See \link{par} for more
 #'   details. As default \code{Width = 2000, Height = 1500, Res =
 #'   300 and Unit = "px"}.
-#' @param image.format A character string indicating which image format will be
+#' @param image_format A character string indicating which image_format will be
 #'   used. It could be "png" or "svg". The only unit available in "svg" is
 #'   inches ('in'). The default is "png".
 #' @param saveData
@@ -48,7 +48,7 @@ groups_identification_mclust <- function(dataType,
                      Height = 1500,
                      Res = 300,
                      Unit = "px",
-                     image.format = "png",
+                     image_format = "png",
                      saveData = TRUE, env, tumor, dataBase,
                      workDir = "~/Desktop",
                      Name){
@@ -155,14 +155,14 @@ groups_identification_mclust <- function(dataType,
                new.env(parent=emptyenv()), envir = .GlobalEnv)
         envir_link <- paste(toupper(tumor), toupper(dataBase),
                             gsub(" ", "_", tolower(dataType)), "tumor_data", sep = "_")
-        attr(envir_link, "name" ) = "Environment created by GDCRtools package, use its name in 'env' argument"
+        attr(envir_link, "name" ) = "Environment created by GDCtools package, use its name in 'env' argument"
     } else if (missing(env) && !tumorData && !onlyFilter){
         assign(paste(toupper(tumor), toupper(dataBase),
                      gsub(" ", "_", tolower(dataType)), "both_data", sep = "_"),
                new.env(parent=emptyenv()), envir = .GlobalEnv)
         envir_link <- paste(toupper(tumor), toupper(dataBase),
                             gsub(" ", "_", tolower(dataType)), "both_data", sep = "_")
-        attr(envir_link, "name" ) = "Environment created by GDCRtools package, use its name in 'env' argument"
+        attr(envir_link, "name" ) = "Environment created by GDCtools package, use its name in 'env' argument"
     } else if (missing(env) && onlyFilter){
         message("Please, before using 'onlyFilter' argument, insert the Environment name.")
     } else {
@@ -176,10 +176,10 @@ groups_identification_mclust <- function(dataType,
         workDir <- string_vars[["envir_link"]]$workDir
     }
 
-    dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "Analyses"),
+    dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "Analyses"),
                showWarnings = FALSE)
 
-    PATH <- file.path(workDir, "GDCRtools", toupper(tumor), "Analyses")
+    PATH <- file.path(workDir, "GDCtools", toupper(tumor), "Analyses")
     assign("PATH", PATH, envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){
@@ -263,14 +263,14 @@ groups_identification_mclust <- function(dataType,
         cdensE <- mclust::cdensE
 
         # PLots
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "mixture_log2_expression_%01d.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "mixture_log2_expression_%01d.svg"),
                 width = Width, height = Height, onefile = FALSE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(5, 6, 4, 3.5))
         PLOT(mc = MCLUST.RESULT.FINAL,
@@ -320,14 +320,14 @@ groups_identification_mclust <- function(dataType,
 
         remaning.example.cutoff <- remaining.patients[which(Uncertainty.range == 0.05)]
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "uncertainty_possible_cutoffs1.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "uncertainty_possible_cutoffs1.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         plot(Uncertainty.range, remaining.patients, main = "Uncertainty possible cutoffs",
              xlab="Uncertainty cutoff", ylab="Remaining Patients", lwd=2,
@@ -368,14 +368,14 @@ groups_identification_mclust <- function(dataType,
                               yaxix = sapply(2:length(remaining.patients),
                                              function(n){remaining.patients[n]-remaining.patients[n-1]}))
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "uncertainty_possible_cutoffs2.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "uncertainty_possible_cutoffs2.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         plot(x = to.plot$xaxis,
              y = to.plot$yaxix,
@@ -430,16 +430,16 @@ groups_identification_mclust <- function(dataType,
         # could not find function "cdensE" FIX
         cdensE <- mclust::cdensE
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = paste0(DIR,
                               "/mixture_log2_expression_", uncertaintyCutoff, "_filtered_%01d.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = paste0(DIR,
                               "/mixture_log2_expression_", uncertaintyCutoff, "_filtered_%01d.svg"),
                 width = Width, height = Height, onefile = FALSE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(5, 6, 4, 3.5))
         PLOT(mc = MCLUST.RESULT.FINAL, data = log2(FILTERED_RESULTS.filtered + 1),

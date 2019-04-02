@@ -8,7 +8,7 @@
 #' @param Height
 #' @param Res
 #' @param Unit
-#' @param image.format
+#' @param image_format
 #' @param saveData
 #' @param env
 #' @param tumor
@@ -32,7 +32,7 @@ groups_identification_coxHR <- function(Name,
                                       Height = 2000,
                                       Res = 400,
                                       Unit = "px",
-                                      image.format = "png",
+                                      image_format = "png",
                                       saveData = TRUE, env,
                                       tumor, dataBase,
                                       workDir) {
@@ -45,12 +45,12 @@ groups_identification_coxHR <- function(Name,
     dataType <- gsub(" ", "_", dataType)
     Name <- gsub("-", "_", Name)
 
-    PATH <- file.path(workDir, "GDCRtools", toupper(tumor), "Analyses", tolower(Name))
+    PATH <- file.path(workDir, "GDCtools", toupper(tumor), "Analyses", tolower(Name))
 
-    dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "Analyses"),
+    dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "Analyses"),
                showWarnings = FALSE)
 
-    dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "Analyses", tolower(Name)),
+    dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "Analyses", tolower(Name)),
                showWarnings = FALSE)
 
     dir.create(file.path(PATH,
@@ -79,7 +79,7 @@ groups_identification_coxHR <- function(Name,
     # PART B: CLINICAL EVALUATION
     # Add available files
 
-    MANIFEST <- data.frame(read.table(file=file.path(workDir, "GDCRtools", toupper(tumor),
+    MANIFEST <- data.frame(read.table(file=file.path(workDir, "GDCtools", toupper(tumor),
                                                      folder_name, "manifest.sdrf"),
                                       stringsAsFactors = FALSE, header=TRUE, sep="\t"))
 
@@ -135,7 +135,7 @@ groups_identification_coxHR <- function(Name,
         # fileNow <- match("nationwidechildrens.org_clinical.TCGA-BH-A18L.xml", AvailableFiles)
         #Parse xml_data
         # data <- XML::xmlParse(paste("./", tumor, "/", "clinical_xml", "/Raw/", AvailableFiles[fileNow],sep=""))
-        data <- XML::xmlParse(file.path(workDir, "GDCRtools", toupper(tumor),
+        data <- XML::xmlParse(file.path(workDir, "GDCtools", toupper(tumor),
                                         folder_name, AvailableFiles[fileNow]))
         xml_data <- XML::xmlToList(data)
 
@@ -1042,16 +1042,16 @@ groups_identification_coxHR <- function(Name,
 
     if(nrow(cutoff_optimization[removeRows, ]) > 0){
         # plot
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "coxHR",
                                      paste0("with_confidence_interval_", Name, ".png")),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "coxHR",
                                      paste0("with_confidence_interval_", Name, ".svg")),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(5,5,3,5))
         plot(x=cutoff_optimization$zscorecut,
@@ -1108,16 +1108,16 @@ groups_identification_coxHR <- function(Name,
         dev.off()
 
         # plot HR log2
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "coxHR", paste0("Log2_with_confidence_interval_",
                                                           Name, ".png")),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "coxHR", paste0("Log2_with_confidence_interval_",
                                                           Name, ".svg")),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(5,5,3,5))
         plot(x=cutoff_optimization$zscorecut,
@@ -1173,16 +1173,16 @@ groups_identification_coxHR <- function(Name,
 
     # hide outliers
     # plot
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "coxHR",
                                  paste0("hide_confidence_interval", Name, ".png")),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "coxHR",
                                  paste0("hide_confidence_interval", Name, ".svg")),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     par(mar = c(5,5,3,5))
     plot(x=cutoff_optimization$zscorecut,
@@ -1222,16 +1222,16 @@ groups_identification_coxHR <- function(Name,
     dev.off()
 
     # plot HR log2
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "coxHR",
                                  paste0("Log2_hide_confidence_interval_", Name, ".png")),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "coxHR",
                                  paste0("Log2_hide_confidence_interval_", Name, ".svg")),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     par(mar = c(5,5,3,5))
     plot(x=cutoff_optimization$zscorecut,
@@ -1309,16 +1309,16 @@ groups_identification_coxHR <- function(Name,
     if (nrow(framesList) > 0) {
         # Pirate plotting - Basic
         # plot HR log2
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "kaplan_maier",
                                      paste0(Name, "_PiratePlot_log2RSEM_all_conditions.png")),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "kaplan_maier",
                                      paste0(Name, "_PiratePlot_log2RSEM_all_conditions.svg")),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         #bottom, left, top and right
         par(mar=c(3,4.8,4,2))
@@ -1480,16 +1480,16 @@ groups_identification_coxHR <- function(Name,
 
 
     # Plot data
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "kaplan_maier",
                                  paste0(Name, "Kaplan_overall_survival.png")),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "kaplan_maier",
                                  paste0(Name, "Kaplan_overall_survival.svg")),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     par(mar=c(3,3,3,6))
     print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
@@ -1519,16 +1519,16 @@ groups_identification_coxHR <- function(Name,
 
     if (nrow(framesList) > 0) {
         # Pirate plotting - Basic
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "kaplan_maier",
                                      paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival.png")),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "kaplan_maier",
                                      paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival.svg")),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         #bottom, left, top and right
         par(mar=c(3,4.8,4,2))
@@ -1671,16 +1671,16 @@ groups_identification_coxHR <- function(Name,
                    data = KaplanTableNow)
 
     # Plot data
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "kaplan_maier",
                                  paste0(Name,"Kaplan_rfs_survival", ".png")),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "kaplan_maier",
                                  paste0(Name,"Kaplan_rfs_survival", ".svg")),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     par(mar=c(3,3,3,6))
     print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
@@ -1711,16 +1711,16 @@ groups_identification_coxHR <- function(Name,
 
     if (nrow(framesList) > 0) {
         # Pirate plotting - Basic
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "kaplan_maier",
                                      paste0(Name,"PiratePlot_log2RSEM__5yr_rfs.png")),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "kaplan_maier",
                                      paste0(Name,"PiratePlot_log2RSEM__5yr_rfs.svg")),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         #bottom, left, top and right
         par(mar=c(3,4.8,4,2))
@@ -1867,16 +1867,16 @@ groups_identification_coxHR <- function(Name,
     }
 
     # Plot data
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "kaplan_maier",
                                  paste0(Name,"Kaplan_dmfs_survival", ".png")),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "kaplan_maier",
                                  paste0(Name,"Kaplan_dmfs_survival", ".svg")),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     par(mar=c(3,3,3,6))
     print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
@@ -1905,16 +1905,16 @@ groups_identification_coxHR <- function(Name,
 
     # if (nrow(framesList) > 0) {
     #     # Pirate plotting - Basic
-    #     if (tolower(image.format) == "png") {
+    #     if (tolower(image_format) == "png") {
     #         png(filename = file.path(DIR, "kaplan_maier",
     #                                  paste0(Name,"_PiratePlot_log2RSEM__5yr_dmfs.png")),
     #             width = Width, height = Height, res = Res, units = Unit)
-    #     } else if (tolower(image.format) == "svg") {
+    #     } else if (tolower(image_format) == "svg") {
     #         svg(filename = file.path(DIR, "kaplan_maier",
     #                                  paste0(Name,"_PiratePlot_log2RSEM__5yr_dmfs.svg")),
     #             width = Width, height = Height, onefile = TRUE)
     #     } else {
-    #         stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    #         stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     #     }
     #     #bottom, left, top and right
     #     par(mar=c(3,4.8,4,2))
@@ -2019,16 +2019,16 @@ groups_identification_coxHR <- function(Name,
 
 
     # Pirate plotting - Basic
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "kaplan_maier",
                                  paste0(Name,"_PatientAmount.png")),
             width = Width/2, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "kaplan_maier",
                                  paste0(Name,"_PatientAmount.svg")),
             width = Width/2, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     # Start ggplot2 for patient amount
     p4 <- ggplot2::ggplot() +

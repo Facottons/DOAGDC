@@ -104,8 +104,8 @@ download_gdc <- function(dataType = "gene",
     # sapply(ncol(manifest.df), function(x){class(manifest.df[, x])}); names() <- colnames(manifest.df)
 
 
-    dir.create(path = file.path(workDir, "GDCRtools"), showWarnings = FALSE)
-    dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor)), showWarnings = FALSE)
+    dir.create(path = file.path(workDir, "GDCtools"), showWarnings = FALSE)
+    dir.create(path = file.path(workDir, "GDCtools", toupper(tumor)), showWarnings = FALSE)
 
     # legacy ####
     if(tolower(dataBase) == "legacy"){
@@ -127,9 +127,9 @@ download_gdc <- function(dataType = "gene",
 
             if ("gene" %in% tolower(dataType)) {
 
-                dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "gene_data"),
+                dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "gene_data"),
                            showWarnings = FALSE)
-                DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gene_data")
+                DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gene_data")
 
                 url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                               "portions.analytes.aliquots,cases.project,center,analysis&size=",
@@ -147,9 +147,9 @@ download_gdc <- function(dataType = "gene",
 
             } else if ("isoform" %in% tolower(dataType)) {
 
-                dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "isoform_data"),
+                dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "isoform_data"),
                            showWarnings = FALSE)
-                DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "isoform_data")
+                DIR <- file.path(workDir, "GDCtools", toupper(tumor), "isoform_data")
 
                 url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                               "portions.analytes.aliquots,cases.project,center,analysis&size=",
@@ -210,9 +210,9 @@ download_gdc <- function(dataType = "gene",
         # gene GDC ####
         if ("gene" %in% tolower(dataType)){
 
-            dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), "gdc_gene_data"),
+            dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "gdc_gene_data"),
                        showWarnings = FALSE)
-            DIR <- file.path(workDir, "GDCRtools", toupper(tumor), "gdc_gene_data")
+            DIR <- file.path(workDir, "GDCtools", toupper(tumor), "gdc_gene_data")
 
             size.par <- function(tumor){
                 url <- paste0("https://api.gdc.cancer.gov/projects/TCGA-", toupper(tumor),
@@ -318,9 +318,9 @@ download_gdc <- function(dataType = "gene",
     # mutation ####
     if ("mutation" %in% tolower(dataType)){
 
-        dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), folder.name),
+        dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), folder.name),
                    showWarnings = FALSE)
-        DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
+        DIR <- file.path(workDir, "GDCtools", toupper(tumor), folder.name)
 
         if(tolower(dataBase) == "legacy"){
 
@@ -412,9 +412,9 @@ download_gdc <- function(dataType = "gene",
 
     # methylation ####
     if ("methylation" %in% tolower(dataType)){
-        dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), folder.name),
+        dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), folder.name),
                    showWarnings = FALSE)
-        DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
+        DIR <- file.path(workDir, "GDCtools", toupper(tumor), folder.name)
 
         platform <- "%22value%22:%5B%22Illumina%20Human%20Methylation%20450%22,%22Illumina%20Human%20Methylation%2027%22%5D%7D%7D"
 
@@ -509,9 +509,9 @@ download_gdc <- function(dataType = "gene",
     # clinical and image ####
     if ("clinical" == tolower(dataType) || "biospecimen" == tolower(dataType) || "clinical_supplement" == tolower(dataType) || "image" == tolower(dataType)){
 
-        dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), folder.name),
+        dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), folder.name),
                    showWarnings = FALSE)
-        DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
+        DIR <- file.path(workDir, "GDCtools", toupper(tumor), folder.name)
 
         if(tolower(dataBase) == "legacy"){
             if ("image" == tolower(dataType)){
@@ -626,9 +626,9 @@ download_gdc <- function(dataType = "gene",
             stop(message("\nThrere is no protein expression data in GDC data base!!",
                          "\nPlease use 'legacy' data base"))
         }
-        dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), folder.name),
+        dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), folder.name),
                    showWarnings = FALSE)
-        DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
+        DIR <- file.path(workDir, "GDCtools", toupper(tumor), folder.name)
 
         size <- size.par(tumor = tumor, typeOfData = "Protein expression", DB = "legacy")
 
@@ -671,9 +671,9 @@ download_gdc <- function(dataType = "gene",
 
     # mage ####
     if ("mage" == tolower(dataType)){
-        dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), folder.name),
+        dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), folder.name),
                    showWarnings = FALSE)
-        DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
+        DIR <- file.path(workDir, "GDCtools", toupper(tumor), folder.name)
 
         url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                       "portions.analytes.aliquots,cases.project,center,analysis&size=1000000&filters=%7B%22op%22:",
@@ -714,9 +714,9 @@ download_gdc <- function(dataType = "gene",
 
     # mirna ####
     if ("mirna" %in% strsplit(tolower(dataType), split = " ")[[1]][1] || "isoform expression quantification" %in% tolower(dataType)){
-        dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), folder.name),
+        dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), folder.name),
                    showWarnings = FALSE)
-        DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
+        DIR <- file.path(workDir, "GDCtools", toupper(tumor), folder.name)
 
         platform <- ""
 
@@ -840,9 +840,9 @@ download_gdc <- function(dataType = "gene",
             stop(message("\nThrere is no Exon quantification data in GDC data base!!",
                          "\nPlease use 'legacy' data base"))
         }
-        dir.create(path = file.path(workDir, "GDCRtools", toupper(tumor), folder.name),
+        dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), folder.name),
                    showWarnings = FALSE)
-        DIR <- file.path(workDir, "GDCRtools", toupper(tumor), folder.name)
+        DIR <- file.path(workDir, "GDCtools", toupper(tumor), folder.name)
 
         platform <- "%22value%22:%5B%22Illumina%20GA%22,%22Illumina%20HiSeq%22%5D%7D%7D"
 

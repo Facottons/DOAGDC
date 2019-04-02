@@ -4,11 +4,11 @@
 #' @param Method A character string indicating which method should be used:
 #'   \code{"exacttest"} or \code{"glmlrt"}. The default is \code{"exacttest"}.
 #' @param clinical_pair
-#' @param FC.cutoff
+#' @param FC_cutoff
 #' @param workDir
 #' @param env
-#' @param FDR.cutoff
-#' @param Width,Height,Res,Unit,image.format
+#' @param FDR_cutoff
+#' @param Width,Height,Res,Unit,image_format
 #' @inheritParams download_gdc
 #' @inheritParams concatenate_files
 #' @inheritParams groups_identification_mclust
@@ -28,14 +28,14 @@ dea_edgeR <- function(Name,
                     Method = "exacttest",
                     clinical_pair,
                     groupGen,
-                    FC.cutoff = 2,
+                    FC_cutoff = 2,
                     workDir, env,
-                    FDR.cutoff = 0.05,
+                    FDR_cutoff = 0.05,
                     Width = 2000,
                     Height = 1500,
                     Res = 300,
                     Unit = "px",
-                    image.format = "png"){
+                    image_format = "png"){
 
     #local functions ####
     plotBCV.modified <- function(y, xlab = "Average logCPM", ylab = "Biological coefficient of variation",
@@ -115,9 +115,9 @@ dea_edgeR <- function(Name,
             tableDE <- tableDE[, c(4, 5, 1, 2, 3)]
         }
 
-        Results.Completed_local <- tableDE
-        tableDE <- tableDE[tableDE$FDR < FDR.cutoff, ]
-        tableDE <- tableDE[abs(tableDE$log2FC) > log2(FC.cutoff), ]
+        Results_Completed_local <- tableDE
+        tableDE <- tableDE[tableDE$FDR < FDR_cutoff, ]
+        tableDE <- tableDE[abs(tableDE$log2FC) > log2(FC_cutoff), ]
 
         write.csv(x = tableDE, file = paste0(DIR, "/ResultsDE_exactTest_",
                                              comb_name, ".csv"),
@@ -125,18 +125,18 @@ dea_edgeR <- function(Name,
 
         if (Pairs > 0) {
             string_vars[["envir_link"]]$resultadosDE.edgeR[[Pairs]] <- tableDE
-            string_vars[["envir_link"]]$Results.Completed.edgeR[[Pairs]] <- Results.Completed_local
-            # assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
+            string_vars[["envir_link"]]$Results_Completed.edgeR[[Pairs]] <- Results_Completed_local
+            # assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
             # assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
         } else {
-            Results.Completed <- vector("list", 1)
+            Results_Completed <- vector("list", 1)
             resultadosDE <- vector("list", 1)
-            names(Results.Completed) <- comb_name
+            names(Results_Completed) <- comb_name
             names(resultadosDE) <- comb_name
 
-            Results.Completed[[1]] <- Results.Completed_local
+            Results_Completed[[1]] <- Results_Completed_local
             resultadosDE[[1]] <- tableDE
-            assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
+            assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
             assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
         }
 
@@ -146,22 +146,22 @@ dea_edgeR <- function(Name,
         detags <- rownames(dge)[as.logical(de)]
         assign(paste0("detags_", comb_name), detags, envir = get(envir_link))
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, paste0("exactTest_",
                                      comb_name, ".png")),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, paste0("exactTest_",
                                                  comb_name, ".svg")),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(5.1, 4.1, 2, 2.1))
         edgeR::plotSmear(tested_local, de.tags = detags, las = 1, ylab = "log2FC")
-        abline(h = c(-log2(FC.cutoff), log2(FC.cutoff)), col = "blue", cex = 2)
+        abline(h = c(-log2(FC_cutoff), log2(FC_cutoff)), col = "blue", cex = 2)
         legend("topright", border = FALSE, bty = "n",
-               legend=c("p.adj > FDR.cutoff", "p.adj < FDR.cutoff", "log2FC.cutoff"),
+               legend=c("p.adj > FDR_cutoff", "p.adj < FDR_cutoff", "log2FC_cutoff"),
                lty=c(0,0,1), pch=c(20, 20, -1), cex=0.8, lwd = c(1, 1, 2),
                col=c("Black", "Red", "blue"))
         dev.off()
@@ -196,25 +196,25 @@ dea_edgeR <- function(Name,
             tableDE <- tableDE[, c(4, 5, 1, 2, 3)]
         }
 
-        Results.Completed_local <- tableDE
-        tableDE <- tableDE[tableDE$FDR < FDR.cutoff, ]
-        tableDE <- tableDE[abs(tableDE$log2FC) > log2(FC.cutoff), ]
+        Results_Completed_local <- tableDE
+        tableDE <- tableDE[tableDE$FDR < FDR_cutoff, ]
+        tableDE <- tableDE[abs(tableDE$log2FC) > log2(FC_cutoff), ]
         write.csv(x = tableDE, file = paste0(DIR, "/ResultsDE_glmLRT_",
                                              comb_name, ".csv"),
                   row.names = FALSE)
 
         if (Pairs > 0) {
             string_vars[["envir_link"]]$resultadosDE.edgeR[[Pairs]] <- tableDE
-            string_vars[["envir_link"]]$Results.Completed.edgeR[[Pairs]] <- Results.Completed_local
+            string_vars[["envir_link"]]$Results_Completed.edgeR[[Pairs]] <- Results_Completed_local
         } else {
-            Results.Completed <- vector("list", 1)
+            Results_Completed <- vector("list", 1)
             resultadosDE <- vector("list", 1)
-            names(Results.Completed) <- comb_name
+            names(Results_Completed) <- comb_name
             names(resultadosDE) <- comb_name
 
-            Results.Completed[[1]] <- Results.Completed_local
+            Results_Completed[[1]] <- Results_Completed_local
             resultadosDE[[1]] <- tableDE
-            assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
+            assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
             assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
         }
 
@@ -222,68 +222,68 @@ dea_edgeR <- function(Name,
         message("Plotting...")
         de <- edgeR::decideTestsDGE(tested_local)
         detags <- rownames(dge)[as.logical(de)]
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, paste0("glmLRT_",
                                      comb_name, ".png")),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, paste0("glmLRT_",
                                                  comb_name, ".svg")),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         edgeR::plotSmear(tested_local, de.tags = detags, las = 1, ylab = "log2FC")
-        abline(h = c(-log2(FC.cutoff), log2(FC.cutoff)), col = "blue", cex = 2)
+        abline(h = c(-log2(FC_cutoff), log2(FC_cutoff)), col = "blue", cex = 2)
         legend("topright", border = FALSE, bty = "n",
-               legend=c("p.adj > FDR.cutoff", "p.adj < FDR.cutoff", "logFC.cutoff"),
+               legend=c("p.adj > FDR_cutoff", "p.adj < FDR_cutoff", "logFC_cutoff"),
                lty=c(0,0,1), pch=c(20, 20, -1), cex=0.8, lwd = c(1, 1, 2),
                col=c("Black", "Red", "blue"))
         dev.off()
     }
 
-    volcano <- function(Results.Completed, Pairs){
+    volcano <- function(Results_Completed, Pairs){
 
         if (Pairs > 0) {
-            comb_name <- names(Results.Completed)[Pairs]
-            Results.Completed_local <- Results.Completed[[Pairs]]
+            comb_name <- names(Results_Completed)[Pairs]
+            Results_Completed_local <- Results_Completed[[Pairs]]
         } else {
             comb_name <- "G2_over_G1"
-            Results.Completed_local <- Results.Completed[[1]]
+            Results_Completed_local <- Results_Completed[[1]]
         }
 
         # START VOLCANO PLOT
-        Results.Completed_local$Colour = rgb(100, 100, 100, 50, maxColorValue = 255)
+        Results_Completed_local$Colour = rgb(100, 100, 100, 50, maxColorValue = 255)
 
         # Set new column values to appropriate colours
-        Results.Completed_local$Colour[Results.Completed_local$log2FC >= log2(FC.cutoff) & Results.Completed_local$FDR <= FDR.cutoff] <- rgb(222, 22, 22, 50, maxColorValue = 255)
-        Results.Completed_local$Colour[Results.Completed_local$log2FC < -log2(FC.cutoff) & Results.Completed_local$FDR <= FDR.cutoff] <- rgb(56, 50, 237, 50, maxColorValue = 255)
+        Results_Completed_local$Colour[Results_Completed_local$log2FC >= log2(FC_cutoff) & Results_Completed_local$FDR <= FDR_cutoff] <- rgb(222, 22, 22, 50, maxColorValue = 255)
+        Results_Completed_local$Colour[Results_Completed_local$log2FC < -log2(FC_cutoff) & Results_Completed_local$FDR <= FDR_cutoff] <- rgb(56, 50, 237, 50, maxColorValue = 255)
 
         ####Volcano Plot
-        axislimits_x <- ceiling(max(c(-min(Results.Completed_local$log2FC, na.rm = TRUE) - 1,
-                                      max(Results.Completed_local$log2FC, na.rm = TRUE) + 1)))
+        axislimits_x <- ceiling(max(c(-min(Results_Completed_local$log2FC, na.rm = TRUE) - 1,
+                                      max(Results_Completed_local$log2FC, na.rm = TRUE) + 1)))
 
-        log.10.FDR <- -log10(Results.Completed_local$FDR)
-        new.inf <- log.10.FDR[order(log.10.FDR, decreasing = TRUE)]
-        log.10.FDR[log.10.FDR == "Inf"] <- (new.inf[new.inf != "Inf"][1] + 1)
+        log_10_FDR <- -log10(Results_Completed_local$FDR)
+        new_inf <- log_10_FDR[order(log_10_FDR, decreasing = TRUE)]
+        log_10_FDR[log_10_FDR == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
 
-        axislimits_y <- ceiling(max(log.10.FDR, na.rm = TRUE)) + 1
+        axislimits_y <- ceiling(max(log_10_FDR, na.rm = TRUE)) + 1
 
         message("Start volcano plot...")
         #Volcano Plot
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, paste0("VolcanoPlot_Basic_",
                                      comb_name, ".png")),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, paste0("VolcanoPlot_Basic_",
                                                  comb_name, ".svg")),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(4,6,3,2), mgp = c(2,.7,0), tck = -0.01)
-        plot(Results.Completed_local$log2FC, log.10.FDR, axes = FALSE,
+        plot(Results_Completed_local$log2FC, log_10_FDR, axes = FALSE,
              xlim = c(-axislimits_x, axislimits_x), ylim = c(0, axislimits_y),
              xlab = expression('log'[2]*'(FC)'),
              # xlab = bquote(.("") ~ 'log'[2]*.('(FC)')),
@@ -291,29 +291,29 @@ dea_edgeR <- function(Name,
              # main = "Volcano Plot",
              cex.lab = 1.5, cex.main = 2,
              cex.sub = 2,
-             pch = 16, col = Results.Completed_local$Colour, cex = 2.5, las = 1)
+             pch = 16, col = Results_Completed_local$Colour, cex = 2.5, las = 1)
         title(ylab = "-log(FDR)", line = 4, cex.lab = 1.5, family = "Calibri Light")
         axis(1, cex.axis = 1.5)
         axis(2, cex.axis = 1.5, las = 1)
-        abline(v = log2(FC.cutoff), col = "black", lty = 6, cex = 0.8,
+        abline(v = log2(FC_cutoff), col = "black", lty = 6, cex = 0.8,
                lwd = 4)
-        abline(v = -log2(FC.cutoff), col = "black", lty = 6, cex = 0.8,
+        abline(v = -log2(FC_cutoff), col = "black", lty = 6, cex = 0.8,
                lwd = 4)
-        abline(h = -log10(FDR.cutoff), col = "black", lwd = 4, lty = 3)
+        abline(h = -log10(FDR_cutoff), col = "black", lwd = 4, lty = 3)
         text(x = -axislimits_x + 0.3, y = axislimits_y/10, labels =
-                 length(Results.Completed_local$Colour[Results.Completed_local$log2FC <= -log2(FC.cutoff) & Results.Completed_local$FDR <= FDR.cutoff]),
+                 length(Results_Completed_local$Colour[Results_Completed_local$log2FC <= -log2(FC_cutoff) & Results_Completed_local$FDR <= FDR_cutoff]),
              cex = 1, col = "blue")
         # text(x = -axislimits_x + 0.3, y = ((axislimits_y/10)+1.1), labels = "DOWN",
         #      cex = 0.8, col = "blue")
-        text(x = axislimits_x - 0.4, y = axislimits_y/10, labels = length(Results.Completed_local$Colour[Results.Completed_local$log2FC >= log2(FC.cutoff) & Results.Completed_local$FDR <= FDR.cutoff]),
+        text(x = axislimits_x - 0.4, y = axislimits_y/10, labels = length(Results_Completed_local$Colour[Results_Completed_local$log2FC >= log2(FC_cutoff) & Results_Completed_local$FDR <= FDR_cutoff]),
              cex = 1, col = "red")
         # text(x = axislimits_x - 0.4, y = ((axislimits_y/10)+1.1), labels = "UP",
         #      cex = 0.8, col = "red")
         par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
         plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
         legend("topright", border = FALSE, bty = "n",
-               legend=c(paste0("-log(", FDR.cutoff, ") = ", round(-log10(FDR.cutoff), 2)),
-                        paste0("\u00B1", " log", "\u2082","(", FC.cutoff, ") = ",log2(FC.cutoff)),
+               legend=c(paste0("-log(", FDR_cutoff, ") = ", round(-log10(FDR_cutoff), 2)),
+                        paste0("\u00B1", " log", "\u2082","(", FC_cutoff, ") = ",log2(FC_cutoff)),
                         "UP", "DOWN"), pt.cex = c(0, 0, 1.8, 1.8),
                lty = c(3, 6, 0, 0), pch = c(-1, -1, 16, 16), cex = c(0.8, 0.8, 0.8, 0.8), lwd = c(2, 2, 5, 5),
                col = c("Black", "Black", "red3", "blue3"))
@@ -337,7 +337,7 @@ dea_edgeR <- function(Name,
 
     dataBase <- string_vars[["envir_link"]]$dataBase
 
-    assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
+    assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
            envir = get(envir_link))
 
     assign("groupGen", groupGen, envir = get(envir_link))
@@ -358,51 +358,51 @@ dea_edgeR <- function(Name,
     # for the groups
     if (tolower(groupGen) == "mclust") {
         #groups from mclust
-        Grupos.edgeR <- as.data.frame(string_vars[["envir_link"]]$GROUPS)
-        Grupos.edgeR[, "Selected_classification"] <- factor(Grupos.edgeR[, "Selected_classification"])
-        colnames(Grupos.edgeR) <- c("conditions", "type")
-        Grupos.edgeR[, 2] <- c("paired-end")
+        Grupos_edgeR <- as.data.frame(string_vars[["envir_link"]]$GROUPS)
+        Grupos_edgeR[, "Selected_classification"] <- factor(Grupos_edgeR[, "Selected_classification"])
+        colnames(Grupos_edgeR) <- c("conditions", "type")
+        Grupos_edgeR[, 2] <- c("paired-end")
     } else if (tolower(groupGen) == "clinical") {
         stop()
 
-        Grupos.edgeR <- as.data.frame(string_vars[["envir_link"]]$clinical_groups_clinical[[clinical_pair]])
-        Grupos.edgeR[, "Selected_classification"] <- factor(Grupos.edgeR[, "Selected_classification"])
-        colnames(Grupos.edgeR) <- c("conditions", "type")
-        Grupos.edgeR[, 2] <- c("paired-end")
+        Grupos_edgeR <- as.data.frame(string_vars[["envir_link"]]$clinical_groups_clinical[[clinical_pair]])
+        Grupos_edgeR[, "Selected_classification"] <- factor(Grupos_edgeR[, "Selected_classification"])
+        colnames(Grupos_edgeR) <- c("conditions", "type")
+        Grupos_edgeR[, 2] <- c("paired-end")
     } else if (tolower(groupGen) == "coxhr") {
-        Grupos.edgeR <- as.data.frame(string_vars[["envir_link"]]$clinical_groups)
-        Grupos.edgeR$classification <- gsub("low", "1", Grupos.edgeR$classification)
-        Grupos.edgeR$classification <- gsub("high", "2", Grupos.edgeR$classification)
-        Grupos.edgeR[, "classification"] <- factor(Grupos.edgeR[, "classification"])
-        colnames(Grupos.edgeR) <- c("type", "conditions")
-        Grupos.edgeR[, 1] <- c("paired-end")
-        Grupos.edgeR <- Grupos.edgeR[, c(2,1)]
+        Grupos_edgeR <- as.data.frame(string_vars[["envir_link"]]$clinical_groups)
+        Grupos_edgeR$classification <- gsub("low", "1", Grupos_edgeR$classification)
+        Grupos_edgeR$classification <- gsub("high", "2", Grupos_edgeR$classification)
+        Grupos_edgeR[, "classification"] <- factor(Grupos_edgeR[, "classification"])
+        colnames(Grupos_edgeR) <- c("type", "conditions")
+        Grupos_edgeR[, 1] <- c("paired-end")
+        Grupos_edgeR <- Grupos_edgeR[, c(2,1)]
     } else {
         stop(message("Please insert a valid 'groupGen' value!! ('mlcust', coxHR or 'clinical')"))
     }
 
     # check patient in common
-    tmp <- rownames(Grupos.edgeR) %in% colnames(string_vars[["envir_link"]]$gene_tumor_not_normalized)
+    tmp <- rownames(Grupos_edgeR) %in% colnames(string_vars[["envir_link"]]$gene_tumor_not_normalized)
 
-    Grupos.edgeR <- Grupos.edgeR[tmp, ]
+    Grupos_edgeR <- Grupos_edgeR[tmp, ]
 
-    assign("condHeatmap", Grupos.edgeR[, 1], envir = get(envir_link))
+    assign("condHeatmap", Grupos_edgeR[, 1], envir = get(envir_link))
 
     #selecting specifics patients
-    completed.matrix <- string_vars[["envir_link"]]$gene_tumor_not_normalized[, rownames(Grupos.edgeR)]
+    completed_matrix <- string_vars[["envir_link"]]$gene_tumor_not_normalized[, rownames(Grupos_edgeR)]
 
     message("Filtering data ...")
     #remove residual data exclude rows with less than 10
-    filter_rows <- rowSums(completed.matrix) >= 10
-    completed.matrix <- completed.matrix[filter_rows, ]
+    filter_rows <- rowSums(completed_matrix) >= 10
+    completed_matrix <- completed_matrix[filter_rows, ]
     message("It was filtered = ", as.numeric(table(filter_rows)[1]), " genes!")
 
     # round numbers to whole counts
-    completed.matrix <- round(completed.matrix, 0)
+    completed_matrix <- round(completed_matrix, 0)
 
     # Cria o objeto DGEList
-    dge <- edgeR::DGEList(counts = completed.matrix,
-                      group = Grupos.edgeR[, 1])
+    dge <- edgeR::DGEList(counts = completed_matrix,
+                      group = Grupos_edgeR[, 1])
 
     #Tdge$countso apply TMM normalization, it is convenient to create a DGEList
     #Robinson, M.D. and Oshlack, A. (2010). A scaling normalization method for
@@ -421,8 +421,8 @@ dea_edgeR <- function(Name,
     # procedures for determining differential expression using the exact test.
     # The GLM likelihood ratio test is based on the idea of fitting negative binomial GLMs
     # with the Cox-Reid dispersion estimates.
-    design <- model.matrix(~Grupos.edgeR[, 1])
-    colnames(design) <- paste0("G", seq(1, max(as.numeric(Grupos.edgeR[, 1]))))
+    design <- model.matrix(~Grupos_edgeR[, 1])
+    colnames(design) <- paste0("G", seq(1, max(as.numeric(Grupos_edgeR[, 1]))))
     rownames(design) <- colnames(dge$counts)
 
     #PS: CPM = counts-per-million
@@ -437,7 +437,7 @@ dea_edgeR <- function(Name,
         # To estimate common dispersion, trended dispersions and tagwise dispersions in one run:
         message("Estimating common dispersion...")
         dge <- edgeR::estimateCommonDisp(dge) #edgeR::estimateDisp(dge)
-        group2_number <- max(as.numeric(levels(Grupos.edgeR[, 1])))
+        group2_number <- max(as.numeric(levels(Grupos_edgeR[, 1])))
         # [1]  1  3  6 10 15 21 28 36 45 combinations
         if (group2_number > 2) {
 
@@ -446,15 +446,15 @@ dea_edgeR <- function(Name,
             combinations <- combn(1:group2_number, 2)
             tested <- vector("list", group2_number)
             resultadosDE <- vector("list", group2_number)
-            Results.Completed <- vector("list", group2_number)
+            Results_Completed <- vector("list", group2_number)
             combinations_names <-  apply(combinations, 2, function(x) {
                 paste0("G", x[2], "_over_", "G", x[1])
             })
             names(tested) <- combinations_names
             names(resultadosDE) <- combinations_names
-            names(Results.Completed) <- combinations_names
+            names(Results_Completed) <- combinations_names
 
-            assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
+            assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
             assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
 
             count <- 0
@@ -463,7 +463,7 @@ dea_edgeR <- function(Name,
                 count <- count + 1
                 tested[[Pairs]] <- edgeR::exactTest(dge, pair = combinations[, Pairs])
                 exact_groups_fix(tested, Pairs)
-                suppressWarnings(volcano(string_vars[["envir_link"]]$Results.Completed.edgeR, Pairs))
+                suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.edgeR, Pairs))
 
                 setTxtProgressBar(pb, count)
             }
@@ -473,7 +473,7 @@ dea_edgeR <- function(Name,
         } else {
             tested <- edgeR::exactTest(dge)
             exact_groups_fix(tested, 0)
-            suppressWarnings(volcano(string_vars[["envir_link"]]$Results.Completed.edgeR, 0))
+            suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.edgeR, 0))
         }
     } else if (tolower(Method) == "glmlrt") {
         dge <- edgeR::calcNormFactors(dge)
@@ -489,22 +489,22 @@ dea_edgeR <- function(Name,
         #To perform likelihood ratio tests:
         # fits the negative binomial GLM for each tag and produces an object of class DGEGLM with
         # some new components
-        group2_number <- max(as.numeric(levels(Grupos.edgeR[, 1])))
+        group2_number <- max(as.numeric(levels(Grupos_edgeR[, 1])))
         if (group2_number > 2) {
             message("There are more than two group combinations, this may take a while...\n")
 
             combinations <- combn(1:group2_number, 2)
             tested <- vector("list", group2_number)
             resultadosDE <- vector("list", group2_number)
-            Results.Completed <- vector("list", group2_number)
+            Results_Completed <- vector("list", group2_number)
             combinations_names <-  apply(combinations, 2, function(x) {
                 paste0("G", x[2], "_over_", "G", x[1])
             })
             names(tested) <- combinations_names
             names(resultadosDE) <- combinations_names
-            names(Results.Completed) <- combinations_names
+            names(Results_Completed) <- combinations_names
 
-            assign("Results.Completed.edgeR", Results.Completed, envir = get(envir_link))
+            assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
             assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
 
             count <- 0
@@ -522,7 +522,7 @@ dea_edgeR <- function(Name,
                 }
 
                 glmlrt_groups_fix(tested, Pairs)
-                suppressWarnings(volcano(string_vars[["envir_link"]]$Results.Completed.edgeR, Pairs))
+                suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.edgeR, Pairs))
 
                 setTxtProgressBar(pb, count)
             }
@@ -531,21 +531,21 @@ dea_edgeR <- function(Name,
         } else {
             tested <- edgeR::glmLRT(aGlmFit, coef = 2)
             glmlrt_groups_fix(tested, 0)
-            suppressWarnings(volcano(string_vars[["envir_link"]]$Results.Completed.edgeR, 0))
+            suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.edgeR, 0))
         }
     } else {
         stop("Please insert a valid Method!!! ('exactTest' or 'glmLRT')")
     }
 
     #Data exploration
-    # if (tolower(image.format) == "png") {
+    # if (tolower(image_format) == "png") {
     #     png(filename = file.path(DIR, paste0(tolower(Method), "_MDS_PLOT.png")),
     #         width = Width, height = Height, res = Res, units = Unit)
-    # } else if (tolower(image.format) == "svg") {
+    # } else if (tolower(image_format) == "svg") {
     #     svg(filename = file.path(DIR, paste0(tolower(Method), "_MDS_PLOT.svg")),
     #         width = Width, height = Height, onefile = TRUE)
     # } else {
-    #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    #     stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     # }
     # # png(file = paste0("./edgeR_Results.", tolower(dataType), "_", toupper(Name), "/MDS_PLOT.png"),
     # limma::plotMDS(dge, labels = 1:ncol(dge$samples), pch = 2, method = "logFC", las = 1)
@@ -556,14 +556,14 @@ dea_edgeR <- function(Name,
     # dge <- edgeR::calcNormFactors(dge)
     # dge <- edgeR::estimateDisp(dge, design, robust=TRUE)
     # # dge$common.dispersion
-    # if (tolower(image.format) == "png") {
+    # if (tolower(image_format) == "png") {
     #     png(filename = file.path(DIR, paste0(tolower(Method), "_BCV_dispersion_PLOT.png")),
     #         width = Width, height = Height, res = Res, units = Unit)
-    # } else if (tolower(image.format) == "svg") {
+    # } else if (tolower(image_format) == "svg") {
     #     svg(filename = file.path(DIR, paste0(tolower(Method), "_BCV_dispersion_PLOT.svg")),
     #         width = Width, height = Height, onefile = TRUE)
     # } else {
-    #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    #     stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     # }
     # plotBCV.modified(dge, las = 1)
     # dev.off()

@@ -4,7 +4,7 @@
 #' @param Name
 #' @param workDir
 #' @param pairName
-#' @param Width,Height,Res,Unit,image.format
+#' @param Width,Height,Res,Unit,image_format
 #' @param env
 #' @inheritParams groups_identification_mclust
 #' @inheritParams dea_EBSeq
@@ -24,7 +24,7 @@ PCA_Analysis <- function(Tool,
                          Height = 2,
                          Res = 300,
                          Unit = "in",
-                         image.format = "png",
+                         image_format = "png",
                          env) {
 
     # local function ####
@@ -39,14 +39,14 @@ PCA_Analysis <- function(Tool,
                              center = TRUE,
                              scale. = TRUE)
 
-            if (tolower(image.format) == "png") {
+            if (tolower(image_format) == "png") {
                 png(filename = paste0(DIR, FILE, ".png"),
                     width = Width, height = Height, res = Res, units = Unit)
-            } else if (tolower(image.format) == "svg") {
+            } else if (tolower(image_format) == "svg") {
                 svg(filename = paste0(DIR, FILE, ".svg"),
                     width = Width, height = Height, onefile = TRUE)
             } else {
-                stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+                stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
             }
             a <- ggbiplot::ggbiplot(ir.pca, choices = 1:2,
                                     obs.scale = 1,
@@ -85,14 +85,14 @@ PCA_Analysis <- function(Tool,
                              center = TRUE,
                              scale. = TRUE)
 
-            if (tolower(image.format) == "png") {
+            if (tolower(image_format) == "png") {
                 png(filename = paste0(DIR, FILE, "2.png"),
                     width = Width, height = Height, res = Res, units = Unit)
-            } else if (tolower(image.format) == "svg") {
+            } else if (tolower(image_format) == "svg") {
                 svg(filename = paste0(DIR, FILE, "2.svg"),
                     width = Width, height = Height, onefile = TRUE)
             } else {
-                stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+                stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
             }
             a <- ggbiplot::ggbiplot(ir.pca, choices = 1:2,
                                     obs.scale = 1,
@@ -126,7 +126,7 @@ PCA_Analysis <- function(Tool,
         workDir <- string_vars[["envir_link"]]$workDir
     }
 
-    # assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor),
+    # assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor),
     #                          "Analyses"), envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){
@@ -156,15 +156,15 @@ PCA_Analysis <- function(Tool,
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
     } else if (tolower(Tool) == "crosstable.deseq2") {
         DIR <- paste0(PATH, "/CrossData_deseq2")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.crossed[[pairName]]
+        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
     } else if (tolower(Tool) == "crosstable.edger") {
         DIR <- paste0(PATH, "/CrossData_edger")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.crossed[[pairName]]
+        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.edgeR
     } else if (tolower(Tool) == "crosstable.ebseq") {
         DIR <- paste0(PATH, "/CrossData_ebseq")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.crossed[[pairName]]
+        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.EBSeq
     } else {
         stop(message("Please, insert a valid Tool name! ('EBSeq', 'DESeq2' or 'edgeR')"))

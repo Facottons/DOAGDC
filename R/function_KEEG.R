@@ -1,10 +1,10 @@
 #' Perform KEEG Pathways Enrichment
 #'
 #' @param Tool
-#' @param FDR.cutoff
+#' @param FDR_cutoff
 #' @param ID
 #' @param pairName
-#' @param Width,Height,Res,Unit,image.format
+#' @param Width,Height,Res,Unit,image_format
 #' @param env
 #' @inheritParams groups_identification_mclust
 #' @inheritParams dea_EBSeq
@@ -18,14 +18,14 @@
 #' KEEG_ENRICH(Tool = "edgeR", env = "env name without quotes")
 #' }
 KEEG_ENRICH <- function(Tool = "edgeR",
-                        FDR.cutoff = 0.05,
+                        FDR_cutoff = 0.05,
                         ID = "GeneID",
                         pairName = "G2_over_G1",
                         Width = 8,
                         Height = 4,
                         Res = 300,
                         Unit = "in",
-                        image.format = "png",
+                        image_format = "png",
                         env){
 
     # library(pathview, gage, gageData)
@@ -37,7 +37,7 @@ KEEG_ENRICH <- function(Tool = "edgeR",
     groupGen <- string_vars[["envir_link"]]$groupGen
     Name <- string_vars[["envir_link"]]$Name
 
-    # assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
+    # assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
     #        envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){
@@ -57,7 +57,7 @@ KEEG_ENRICH <- function(Tool = "edgeR",
         dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
         DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
 
-        File <- "resultadosDE.crossed"
+        File <- "resultadosDE_crossed"
 
     } else {
         File <- paste("resultadosDE", Tool, sep = ".")
@@ -91,10 +91,10 @@ KEEG_ENRICH <- function(Tool = "edgeR",
 
     #input DE genes
     resultadosDE <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
-    # Results.Completed <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
+    # Results_Completed <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
 
     # generate annotation table
-    annotation_table <- GDCRtools::annotation_table
+    annotation_table <- GDCtools::annotation_table
 
     dataBase <- string_vars[["envir_link"]]$dataBase
 
@@ -115,10 +115,10 @@ KEEG_ENRICH <- function(Tool = "edgeR",
     keggrespathways <- data.frame(id=rownames(keggres$greater), keggres$greater)
     keggrespathways <- na.exclude(keggrespathways)
     keggrespathways$id<- as.character(keggrespathways$id)
-    keggrespathways <- keggrespathways[keggrespathways$q.val < FDR.cutoff, ]
+    keggrespathways <- keggrespathways[keggrespathways$q.val < FDR_cutoff, ]
 
     if (nrow(keggrespathways) == 0) {
-        stop(message("There is not any kegg pathway with FDR < ", FDR.cutoff, "\n"))
+        stop(message("There is not any kegg pathway with FDR < ", FDR_cutoff, "\n"))
     }
 
     # Get the IDs.
@@ -131,14 +131,6 @@ KEEG_ENRICH <- function(Tool = "edgeR",
 
     DIR2 <- file.path(DIR, "aux_files")
 
-    # import data from pathview
-    # if (!exists("korg", envir = get(envir_link))) {
-    #     data(korg, package = "pathview", envir = get(envir_link))
-    #     data(bods, package = "pathview", envir = get(envir_link))
-    # }
-    #
-    # korg <- string_vars[["envir_link"]]$korg
-    # bods <- string_vars[["envir_link"]]$bods
     data(bods, package = "pathview")
     data(korg, package = "pathview")
 
@@ -156,15 +148,6 @@ KEEG_ENRICH <- function(Tool = "edgeR",
     # return to user wdir
     setwd(wdir)
 
-    #see Plotting fold changes in genomic space in http://www.bioconductor.org/help/workflows/rnaseqGene/
-    # #for ids
-    # File$name <-    AnnotationDbi::mapIds(org.Hs.eg.db,
-    #                     keys=row.names(File),
-    #                     column="GENENAME",
-    #                     column="ENTREZID",
-    #                     column="SYMBOL",
-    #                     keytype="ENSEMBL",
-    #                     multiVals="first")
 
     gc()
     message("Done!\n")

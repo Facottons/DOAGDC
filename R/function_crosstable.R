@@ -13,7 +13,7 @@
 #' @param Width,Height,Res,Unit
 #' @param Colors A character vector indicating the colors to be used in the venn
 #'   diagram. The default is c('green', 'blue', "red").
-#' @param VennDiagram.imagetype A character string indicating the image format
+#' @param VennDiagram.imagetype A character string indicating the image_format
 #'   (e.g. "tiff", "png" or "svg"). The default is "png".
 #' @param workDir
 #' @param env
@@ -63,13 +63,13 @@ CrossThem <- function(FinalData, n.pack = 3,
 
     if (tolower(FinalData) == "ebseq") {
         DEcross <- string_vars[["envir_link"]]$resultadosDE.EBSeq[[pairName]]
-        complete.cross <- string_vars[["envir_link"]]$Results.Completed.EBSeq[[pairName]]
+        complete.cross <- string_vars[["envir_link"]]$Results_Completed.EBSeq[[pairName]]
     } else if (tolower(FinalData) == "edger") {
         DEcross <- string_vars[["envir_link"]]$resultadosDE.edgeR[[pairName]]
-        complete.cross <- string_vars[["envir_link"]]$Results.Completed.edgeR[[pairName]]
+        complete.cross <- string_vars[["envir_link"]]$Results_Completed.edgeR[[pairName]]
     } else if (tolower(FinalData) == "deseq2") {
         DEcross <- string_vars[["envir_link"]]$resultadosDE.DESeq2[[pairName]]
-        complete.cross <- string_vars[["envir_link"]]$Results.Completed.DESeq2[[pairName]]
+        complete.cross <- string_vars[["envir_link"]]$Results_Completed.DESeq2[[pairName]]
     }
 
     if (tolower(packageNames) == "all") {
@@ -87,13 +87,13 @@ CrossThem <- function(FinalData, n.pack = 3,
                      "$resultadosDE.",
                      packageNames[tolower(packageNames) != tolower(FinalData)][2], "[[pairName]]")
         p1completed <- paste0("string_vars[['envir_link']]",
-                              "$Results.Completed.",
+                              "$Results_Completed.",
                               packageNames[tolower(packageNames) == tolower(FinalData)], "[[pairName]]")
         p2completed <- paste0("string_vars[['envir_link']]",
-                              "$Results.Completed.",
+                              "$Results_Completed.",
                               packageNames[tolower(packageNames) != tolower(FinalData)][1], "[[pairName]]")
         p3completed <- paste0("string_vars[['envir_link']]",
-                              "$Results.Completed.",
+                              "$Results_Completed.",
                               packageNames[tolower(packageNames) != tolower(FinalData)][2], "[[pairName]]")
         DEcross <- DEcross[which(rownames(eval(parse(text=p1)))%in%rownames(eval(parse(text=p2)))), ]
         DEcross <- DEcross[which(rownames(DEcross)%in%rownames(eval(parse(text=p3)))), ]
@@ -136,10 +136,10 @@ CrossThem <- function(FinalData, n.pack = 3,
                      "$resultadosDE.",
                      packageNames[tolower(packageNames) != tolower(FinalData)][1], "[[pairName]]")
         p1completed <- paste0("string_vars[['envir_link']]",
-                              "$Results.Completed.",
+                              "$Results_Completed.",
                               packageNames[tolower(packageNames) == tolower(FinalData)], "[[pairName]]")
         p2completed <- paste0("string_vars[['envir_link']]",
-                              "$Results.Completed.",
+                              "$Results_Completed.",
                               packageNames[tolower(packageNames) != tolower(FinalData)], "[[pairName]]")
         DEcross <- DEcross[which(rownames(eval(parse(text=p1)))%in%rownames(eval(parse(text=p2)))), ]
         complete.cross <- complete.cross[which(rownames(eval(parse(text=p1completed)))%in%rownames(eval(parse(text=p2completed)))), ]
@@ -180,8 +180,8 @@ CrossThem <- function(FinalData, n.pack = 3,
     tested2[[pairName]] <- complete.cross
 
     assign("FinalData", FinalData, envir = get(envir_link))
-    assign("Results.Completed.crossed", tested2, envir = get(envir_link))
-    assign("resultadosDE.crossed", tested1, envir = get(envir_link))
+    assign("Results_Completed.crossed", tested2, envir = get(envir_link))
+    assign("resultadosDE_crossed", tested1, envir = get(envir_link))
     if (tolower(FinalData) == "ebseq") {
         string_vars[["envir_link"]]$Tool <- "CrossTable.EBSeq"
     } else if (tolower(FinalData) == "edger") {

@@ -1,7 +1,7 @@
 #' Gene Set Enrichment Analysis
 #'
-#' @param FDR.cutoff
-#' @param Width,Height,Res,Unit,image.format
+#' @param FDR_cutoff
+#' @param Width,Height,Res,Unit,image_format
 #' @param Tool
 #' @param ID
 #' @param pairName
@@ -17,12 +17,12 @@
 #' \dontrun{
 #' GSEA(Tool = "edgeR", env = "env name without quotes")
 #' }
-GSEA <- function(FDR.cutoff = 0.05,
+GSEA <- function(FDR_cutoff = 0.05,
                  Width = 10,
                  Height = 3,
                  Res = 500,
                  Unit = "in",
-                 image.format = "png",
+                 image_format = "png",
                  Tool = "edgeR",
                  ID = "GeneID",
                  pairName = "G2_over_G1",
@@ -54,9 +54,9 @@ GSEA <- function(FDR.cutoff = 0.05,
     groupGen <- string_vars[["envir_link"]]$groupGen
 
     if (grepl("crosstable", tolower(Tool))) {
-        TCGAExpression <- string_vars[["envir_link"]]$Results.Completed.crossed
+        TCGAExpression <- string_vars[["envir_link"]]$Results_Completed.crossed
     } else {
-        TCGAExpression <- eval(parse(text= paste0("string_vars[['envir_link']]$Results.Completed.",
+        TCGAExpression <- eval(parse(text= paste0("string_vars[['envir_link']]$Results_Completed.",
                                                   Tool)))
     }
 
@@ -126,28 +126,28 @@ GSEA <- function(FDR.cutoff = 0.05,
     }
 
     # Perform GSEA
-    GSEA.REACTOME <- ReactomePA::gsePathway(GeneSetVector,
-                                pvalueCutoff = FDR.cutoff, nPerm = 10000,
+    GSEA_REACTOME <- ReactomePA::gsePathway(GeneSetVector,
+                                pvalueCutoff = FDR_cutoff, nPerm = 10000,
                                 pAdjustMethod = "BH", verbose = TRUE)
 
     #Get summary
-    GSEA.REACTOME.summary.fdr <- as.data.frame(GSEA.REACTOME)
+    GSEA_REACTOME_summary_fdr <- as.data.frame(GSEA_REACTOME)
 
     # Write
-    write.csv(GSEA.REACTOME.summary.fdr, file = paste0(DIR,
+    write.csv(GSEA_REACTOME_summary_fdr, file = paste0(DIR,
                                                    "/GSEA_Output/REAC.GSEA.enrichment",
                                                    ID, "_", pairName, ".csv"), row.names = FALSE)
     assign("GeneSetVector", GeneSetVector, envir = get(envir_link))
-    # GSEA.REACTOME.summary.fdr <- GSEA.REACTOME.summary[which(GSEA.REACTOME.summary$p.adjust < FDR.cutoff), ]
+    # GSEA_REACTOME_summary_fdr <- GSEA_REACTOME.summary[which(GSEA_REACTOME.summary$p.adjust < FDR_cutoff), ]
 
 
     # REACTOME-GSEA Plot
-    if (nrow(GSEA.REACTOME.summary.fdr) != 0) {
+    if (nrow(GSEA_REACTOME_summary_fdr) != 0) {
 
-        if (nrow(GSEA.REACTOME.summary.fdr) >= 15){
-            PlotNowREACT <- GSEA.REACTOME.summary.fdr[1:15, ]
+        if (nrow(GSEA_REACTOME_summary_fdr) >= 15){
+            PlotNowREACT <- GSEA_REACTOME_summary_fdr[1:15, ]
         } else{
-            PlotNowREACT <- GSEA.REACTOME.summary.fdr
+            PlotNowREACT <- GSEA_REACTOME_summary_fdr
         }
 
         PlotNowREACT[, 2] <- gsub(" of", "", PlotNowREACT[, 2])
@@ -158,9 +158,9 @@ GSEA <- function(FDR.cutoff = 0.05,
                                                                collapse = " ")}))
 
         # is it better to use the manually adjusted?
-        log.10.GSEA <- -log10(as.numeric(PlotNowREACT[, "p.adjust"]))
-        new.inf <- log.10.GSEA[order(log.10.GSEA, decreasing = TRUE)]
-        log.10.GSEA[log.10.GSEA == "Inf"] <- (new.inf[new.inf != "Inf"][1]+1)
+        log_10_GSEA <- -log10(as.numeric(PlotNowREACT[, "p.adjust"]))
+        new_inf <- log_10_GSEA[order(log_10_GSEA, decreasing = TRUE)]
+        log_10_GSEA[log_10_GSEA == "Inf"] <- (new_inf[new_inf != "Inf"][1]+1)
 
         longest_word <- max(stringr::str_count(PlotNowREACT$Description))
 
@@ -176,25 +176,25 @@ GSEA <- function(FDR.cutoff = 0.05,
             longest_Width <- Width
         }
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = paste0(DIR,
                               "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
                               "_", pairName, ".png"),
                 width = longest_Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = paste0(DIR,
                               "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
                               "_", pairName, ".svg"),
                 width = longest_Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
 
         Count <- ceiling(PlotNowREACT$setSize * Gene_Ratio)
 
 
-        p <- ggplot2::ggplot(PlotNowREACT, ggplot2::aes(x = log.10.GSEA,
-                                                     y = forcats::fct_reorder(Description, log.10.GSEA))) +
+        p <- ggplot2::ggplot(PlotNowREACT, ggplot2::aes(x = log_10_GSEA,
+                                                     y = forcats::fct_reorder(Description, log_10_GSEA))) +
             ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
             ggplot2::scale_colour_gradient(limits=c(0, 1), low="red", high = "blue") +
             ggplot2::labs(y = "", x = "-log(FDR)") +
@@ -209,48 +209,6 @@ GSEA <- function(FDR.cutoff = 0.05,
         print(p)
         dev.off()
 
-        # if (tolower(image.format) == "png") {
-        #     png(filename = paste0(DIR,
-        #                           "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
-        #                           "_", pairName, "_2.png"),
-        #         width = longest_Width, height = Height, res = Res, units = Unit)
-        # } else if (tolower(image.format) == "svg") {
-        #     svg(filename = paste0(DIR,
-        #                           "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
-        #                           "_", pairName, "_2.svg"),
-        #         width = longest_Width, height = Height, onefile = TRUE)
-        # } else {
-        #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
-        # }
-        # par(mar = c(4.5,10,2,2),lwd = 2.5)
-        # barplot(log.10.GSEA, horiz = TRUE,
-        #         xlab = "", main = "REACTOME-GSEA", lwd = 2, cex.lab = 1.2,
-        #         cex.axis = 0.7, cex.main = 1.1, axes = FALSE,
-        #         col = RColorBrewer::brewer.pal(8, "Set1")[5], border = "white",
-        #         cex.names = 0.8, space = 0.001)
-        # title(xlab = "-log(FDR)", line = 2.5, cex.lab = 0.7, family = "Calibri Light")
-        # if (-log10(min(as.numeric(PlotNowREACT[, "p.adjust"]))) == "Inf"){
-        #     abline(v = 1:floor(0), col = "white", lwd = 4)
-        # } else {
-        #     abline(v = 1:floor(-log10(min(as.numeric(PlotNowREACT[, "p.adjust"]), na.rm = TRUE))),
-        #            col = "white", lwd = 4)
-        # }
-        #
-        # axis(side = 1, 0:(max(log.10.GSEA)+2),
-        #      lwd = 1.5, cex.axis = 0.9)
-        #
-        # axis(2, at=c(0.5:9.5), lwd = 0, line = -1, cex.axis = 0.6,
-        #      labels = PlotNowREACT[, "Description"], las = 2)
-        #
-        # abline(v = -log10(FDR.cutoff), lwd = 3)
-        #
-        # par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), mar=c(0, 0, 1, 0), new=TRUE)
-        # plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
-        #
-        # legend("topright", "-log(FDR.cutoff) ", lty = 1, lwd = 2,
-        #        bty = "n", cex = 0.3)
-        #
-        # dev.off()
     } else {
         message(cat("There is nothing to show in Gene Set Enrichment Analysis - over Reactome"))
     }

@@ -5,12 +5,12 @@
 # http://stackoverflow.com/questions/15261619/sample-gives-different-values-with-same-set-seed
 # message(sprintf("On %s I realized %s was...\n%s by the street", Sys.Date(), person, action))
 .onAttach <- function(lib, pkg) {
-    # unlockBinding(".GDCRtools", asNamespace("GDCRtools"))
+    # unlockBinding(".GDCtools", asNamespace("GDCtools"))
     # version <- read.dcf(file.path(lib, pkg, "DESCRIPTION"), "Version")
     #are you human?
     GDCTerms <- "By using this package you accept the terms in 'https://portal.gdc.cancer.gov'"
     if(interactive())
-    { # figlet (-f doom) GDCRtools
+    { # figlet (-f doom) GDCtools
         packageStartupMessage(
 "  ____ ____   ____ ____  _              _
  / ___|  _ \\ / ___|  _ \\| |_ ___   ___ | |___
@@ -21,7 +21,7 @@
 
     }
     else
-    { #packageStartupMessage("Package 'GDCRtools' \n\nversion ", version, "\n", "\n", GDCTerms) }
+    { #packageStartupMessage("Package 'GDCtools' \n\nversion ", version, "\n", "\n", GDCTerms) }
         packageStartupMessage(
             "  ____ ____   ____ ____  _              _
  / ___|  _ \\ / ___|  _ \\| |_ ___   ___ | |___
@@ -31,6 +31,6 @@
             "\n", GDCTerms, "\n")}
 
     packageStartupMessage("For citing this R package in publications, ",
-                          "type 'citation(\"GDCRtools\")'.")
+                          "type 'citation(\"GDCtools\")'.")
     invisible()
 }

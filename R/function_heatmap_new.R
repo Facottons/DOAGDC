@@ -1,7 +1,7 @@
 #' Draw a heatmap
 #'
 #' @param Tool
-#' @param FC.cutoff
+#' @param FC_cutoff
 #' @param Name
 #' @param Method The agglomeration method to be used: \code{"euclidean",
 #'   "maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
@@ -12,7 +12,7 @@
 #'   there are only two groups the default is \code{"G2_over_G1"}
 #' @param RawValues A logical value. If \code{"TRUE"} the expression values are
 #'   going to be converted to Z-Score before draw the heat map.
-#' @param Width,Height,Res,Unit,image.format
+#' @param Width,Height,Res,Unit,image_format
 #' @param env
 #' @param ScaleMethod A character string indicating which method of scale should
 #'   be used: \code{"none"}, \code{"row"}, \code{"column"}. The default is
@@ -41,7 +41,7 @@
 #' \dontrun{
 #' draw_heatmap("EBSeq", Name = "HIF3A", env = "env name without quotes")
 #' }
-draw_heatmap <- function(Tool, FC.cutoff = 2,
+draw_heatmap <- function(Tool, FC_cutoff = 2,
                          Name,
                          Method = "euclidean",
                          pairName = "G2_over_G1",
@@ -50,7 +50,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
                          Height = 6,
                          Res = 300,
                          Unit = "in",
-                         image.format = "svg",
+                         image_format = "svg",
                          env,
                          ScaleMethod = "row",
                          outerMargins = c(0,0,0,0),
@@ -720,22 +720,22 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
             labCol <-  ""
         }
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = paste0(DIR,
                                   "/Heatmaps/", dist.Method, "_",
                                   method, "_", Scale.Method,
-                                  "_FC.cutoff=", FC.cutoff, "_",
+                                  "_FC_cutoff=", FC_cutoff, "_",
                                   pairName, ".png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = paste0(DIR,
                                   "/Heatmaps/", dist.Method, "_",
                                   method, "_", Scale.Method,
-                                  "_FC.cutoff=", FC.cutoff, "_",
+                                  "_FC_cutoff=", FC_cutoff, "_",
                                   pairName, ".svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(oma = outerMargins)
         heatmap.3(DF,
@@ -768,7 +768,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
         write.csv(patient.order, paste0(DIR, "/Heatmaps/Patient_order_",
                                         dist.Method, "_",
                                         method, "_", Scale.Method,
-                                        "_FC.cutoff=", FC.cutoff, "_",
+                                        "_FC_cutoff=", FC_cutoff, "_",
                                         pairName, ".csv"),
                   row.names = FALSE)
 
@@ -778,7 +778,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
         write.csv(row.order, paste0(DIR, "/Heatmaps/Row_order_",
                                     dist.Method, "_",
                                     method, "_", Scale.Method,
-                                    "_FC.cutoff=", FC.cutoff, "_",
+                                    "_FC_cutoff=", FC_cutoff, "_",
                                     pairName, ".csv"),
                   row.names = FALSE)
     }
@@ -794,7 +794,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
     # if (missing("workDir")){
     #     workDir <- string_vars[["envir_link"]]$workDir
     # }
-    # assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor),
+    # assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor),
     #                          "Analyses"), envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){
@@ -823,15 +823,15 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
     } else if (tolower(Tool) == "crosstable.deseq2") {
         DIR <- paste0(PATH, "/CrossData_deseq2")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.crossed[[pairName]]
+        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
     } else if (tolower(Tool) == "crosstable.edger") {
         DIR <- paste0(PATH, "/CrossData_edger")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.crossed[[pairName]]
+        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.edgeR
     } else if (tolower(Tool) == "crosstable.ebseq") {
         DIR <- paste0(PATH, "/CrossData_ebseq")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.crossed[[pairName]]
+        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.EBSeq
     } else {
         stop(message("Please, insert a valid Tool name! ('EBSeq', 'DESeq2' or 'edgeR')"))
@@ -848,9 +848,9 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
 
     condHeatmap <- droplevels(condHeatmap[condHeatmap %in% patients_stay])
 
-    # Create table just with DE and with FC cutoff
-    resultadosDEUP <- resultadosDE[resultadosDE$log2FC > log2(FC.cutoff), ]
-    resultadosDEDOWN <- resultadosDE[resultadosDE$log2FC < log2(FC.cutoff), ]
+    # Create table just with DE and with FC_cutoff
+    resultadosDEUP <- resultadosDE[resultadosDE$log2FC > log2(FC_cutoff), ]
+    resultadosDEDOWN <- resultadosDE[resultadosDE$log2FC < log2(FC_cutoff), ]
     resultadosDE <- rbind(resultadosDEUP, resultadosDEDOWN)
 
     #Select only the DE results to use in heatmaps (next step) removing the EE
@@ -863,7 +863,7 @@ draw_heatmap <- function(Tool, FC.cutoff = 2,
     RampaDeCor <- gplots::colorpanel(512,"blue","white","red")
 
     #ex deseq2
-    # condHeatmap <- Grupos.DESeq2[, 1]
+    # condHeatmap <- Grupos_DESeq2[, 1]
     # condHeatmap <- sapply(condHeatmap, FUN = function(x){ifelse(x == 1, "Low", "High")})
 
     #Naming the heatmap cols

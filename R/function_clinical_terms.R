@@ -16,11 +16,11 @@
 #'   term. Used when the specific term is unknown.
 #' @param tumor_with_term A numerical value indicating the minimum number of
 #'   tumors containing a specific term with the keyword used. The default is 1.
-#' @param p.cutoff
-#' @param FDR.cutoff
+#' @param p_cutoff
+#' @param FDR_cutoff
 #' @param confidence.level A numerical value containing the confidence interval
 #'   to be used. The default is 0.95.
-#' @param Width,Height,Res,Unit,image.format
+#' @param Width,Height,Res,Unit,image_format
 #' @param env
 #' @param cexAxixX,cexAxixY A numerical value giving the amount by which labels
 #'   in X and Y axis respectively should be modified relative to the default
@@ -52,14 +52,14 @@ clinical_terms <- function(Name,
                                  dataBase = "legacy",
                                  term_keyword = NULL,
                                  tumor_with_term = 1,
-                                 p.cutoff = 0.05,
-                                 FDR.cutoff = 0.05,
+                                 p_cutoff = 0.05,
+                                 FDR_cutoff = 0.05,
                                  confidence.level = 0.95,
                                  Width = 7,
                                  Height = 7,
                                  Res = 300,
                                  Unit = "in",
-                                 image.format = "svg",
+                                 image_format = "svg",
                                  env,
                                  cexAxixX = 16,
                                  cexAxixY = 16){
@@ -74,7 +74,7 @@ clinical_terms <- function(Name,
             folder <- "clinical"
         }
 
-        DIR <- file.path(workDir, "GDCRtools", toupper(tumor),
+        DIR <- file.path(workDir, "GDCtools", toupper(tumor),
                          folder)
 
         for (tumors in names(lista)){
@@ -113,11 +113,11 @@ clinical_terms <- function(Name,
                           paste0(terms_with_keyword[order(terms_with_keyword)],
                                  collapse = "\n-"), sep = "\n-"))
             message(paste0("\nAll of them were saved in ",
-                           workDir, " as '", "GDCRtools_possible_terms_for_",
+                           workDir, " as '", "GDCtools_possible_terms_for_",
                            toupper(tumor), "_",
                            tolower(dataBase), ".txt"))
             write.csv(terms_polished,
-                        file.path(workDir, paste0("GDCRtools_possible_terms_for_",
+                        file.path(workDir, paste0("GDCtools_possible_terms_for_",
                                                              toupper(tumor), "_",
                                                              tolower(dataBase), ".csv")),
                         row.names = FALSE, quote = FALSE)
@@ -137,11 +137,11 @@ clinical_terms <- function(Name,
                 message(paste("These are the possible terms:",
                               paste0(names(terms_with_keyword), collapse = "\n-"), sep = "\n-"))
                 message(paste0("\nAll of them were saved in ",
-                               workDir, " as '", "GDCRtools_possible_terms_for_",
+                               workDir, " as '", "GDCtools_possible_terms_for_",
                                tolower(term_keyword), "_",
                                tolower(dataBase), ".txt"))
                 write.table(terms_with_keyword, file.path(workDir,
-                                                          paste0("GDCRtools_possible_terms_for_",
+                                                          paste0("GDCtools_possible_terms_for_",
                                                                  tolower(term_keyword), "_",
                                                                  tolower(dataBase), ".txt")),
                             row.names = FALSE)
@@ -150,11 +150,11 @@ clinical_terms <- function(Name,
                 message(paste("These are the possible terms:",
                               paste0(terms_with_keyword, collapse = "\n-"), sep = "\n-"))
                 message(paste0("\nAll of them were saved in ",
-                               workDir, " as '", "GDCRtools_possible_terms_for_",
+                               workDir, " as '", "GDCtools_possible_terms_for_",
                                tolower(term_keyword), toupper(tumor),
                                tolower(dataBase), ".txt"))
                 write.table(terms_with_keyword, file.path(workDir,
-                                                          paste0("GDCRtools_possible_terms_for_",
+                                                          paste0("GDCtools_possible_terms_for_",
                                                                  tolower(term_keyword),
                                                                  toupper(tumor),
                                                                  tolower(dataBase), ".txt")),
@@ -171,8 +171,8 @@ clinical_terms <- function(Name,
     Name <- gsub("-", "_", Name)
 
     if ("all" %in% tolower(tumor)) {
-        lista <- vector("list", length(dir(path = file.path(workDir, "GDCRtools"))))
-        names(lista) <- dir(path = file.path(workDir, "GDCRtools"))
+        lista <- vector("list", length(dir(path = file.path(workDir, "GDCtools"))))
+        names(lista) <- dir(path = file.path(workDir, "GDCtools"))
         for_couple_tumors(only_one_tumor = FALSE)
     } else if (length(tumor) > 1) {
         lista <- vector("list", length(tumor))
@@ -196,9 +196,9 @@ clinical_terms <- function(Name,
         }
         string_vars <- list(envir_link = get(envir_link))
 
-        dir.create(file.path(workDir, "GDCRtools", toupper(tumor), "Analyses"), showWarnings = FALSE)
+        dir.create(file.path(workDir, "GDCtools", toupper(tumor), "Analyses"), showWarnings = FALSE)
 
-        PATH <- file.path(workDir, "GDCRtools", toupper(tumor), "Analyses")
+        PATH <- file.path(workDir, "GDCtools", toupper(tumor), "Analyses")
 
         if (exists("Name.e", envir = get(envir_link))){
             PATH <- file.path(PATH, string_vars[["envir_link"]]$Name.e)
@@ -319,14 +319,14 @@ clinical_terms <- function(Name,
 
             # boxplot(~, xlab = "Category", ylab = "log2(RSEM+1)", main = term, las = 1)
 
-            if (tolower(image.format) == "png") {
+            if (tolower(image_format) == "png") {
                 png(filename = file.path(DIR, paste0(term, "boxplot_Clinical_category_by_expression_values.png")),
                     width = Width, height = Height, res = Res, units = Unit)
-            } else if (tolower(image.format) == "svg") {
+            } else if (tolower(image_format) == "svg") {
                 svg(filename = file.path(DIR, paste0(term, "boxplot_Clinical_category_by_expression_values.svg")),
                     width = Width, height = Height, onefile = TRUE)
             } else {
-                stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+                stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
             }
             final_df_plot <- cbind(final_df, rownames(final_df))
             colnames(final_df_plot) <- c("expression", "category", "patient")
@@ -390,9 +390,9 @@ clinical_terms <- function(Name,
                 stop(message("\nThis category '", term, "' does not have enough patients in each subcategory!"))
             }
 
-            if (ANOVA[["Pr(>F)"]][1] <= p.cutoff){
+            if (ANOVA[["Pr(>F)"]][1] <= p_cutoff){
                 cat("\n\n\n")
-                cat(paste0("The p-value of ", ANOVA[["Pr(>F)"]][1], " is not greater than ", p.cutoff, "."))
+                cat(paste0("The p-value of ", ANOVA[["Pr(>F)"]][1], " is not greater than ", p_cutoff, "."))
                 cat("\n")
                 cat("Hence pairwise t-tests will be performed.")
                 cat("\n")
@@ -411,10 +411,10 @@ clinical_terms <- function(Name,
                 # Stage_IV-Stage_II   0.4588870 0.2994362
                 # Stage_IV-Stage_III -0.1500173 0.0176548*
 
-                groups_export <- strsplit(names(which(tukey$Categories[, "p adj"] < FDR.cutoff)), "-")
+                groups_export <- strsplit(names(which(tukey$Categories[, "p adj"] < FDR_cutoff)), "-")
 
                 clinical_groups <- vector('list', length(groups_export))
-                names(clinical_groups) <- names(which(tukey$Categories[, "p adj"] < FDR.cutoff))
+                names(clinical_groups) <- names(which(tukey$Categories[, "p adj"] < FDR_cutoff))
 
                 for (index in seq(1, length(groups_export))) {
                     selector <- final_df$clinical_stage%in%groups_export[[index]]
@@ -431,12 +431,12 @@ clinical_terms <- function(Name,
             } else {
                 cat("\n\n\n")
                 #to file
-                cat(paste0("\nThe p-value of ", ANOVA[["Pr(>F)"]][1], " is greater than ", p.cutoff, "."))
+                cat(paste0("\nThe p-value of ", ANOVA[["Pr(>F)"]][1], " is greater than ", p_cutoff, "."))
                 cat("\nHence, pairwise t-tests will not be performed.")
                 cat("\n\n\n")
                 sink()
                 #to CLI
-                message("The p-value of ", ANOVA[["Pr(>F)"]][1], " is greater than ", p.cutoff, ".")
+                message("The p-value of ", ANOVA[["Pr(>F)"]][1], " is greater than ", p_cutoff, ".")
                 message("\nHence pairwise t-tests will not be performed.")
             }
         }

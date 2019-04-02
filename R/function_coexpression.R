@@ -13,7 +13,7 @@
 #' @param traitData A character string where "default" indicates that the trait
 #'   data to be used is provide by the output of \code{check_clinical_terms}
 #'   function. Use "custom" for data inserted by the user after the
-#'   \code{table2GDCRtools} function and with the table object named as
+#'   \code{table2GDCtools} function and with the table object named as
 #'   \code{trait_data}. This object must have patients/sample code as
 #'   \code{rownames} and the trait categories as \code{colnames}. By default
 #'   trait data is not used.
@@ -31,7 +31,7 @@
 #' @param MEDissThres Numerical value specifying the maximum dendrogram cut
 #'   height for module merging qualified by dissimilarity (i.e., 1-correlation).
 #'   The default is 0.25.
-#' @param Width,Height,Res,Unit,image.format
+#' @param Width,Height,Res,Unit,image_format
 #' @param env
 #' @param saveCheckpoints Logical value where TRUE indicates that an external
 #'   representation of analysis' objects will be saved to file in disk. The
@@ -68,7 +68,7 @@ co_expression <- function(Data = NULL,
                           Height = 1500,
                           Res = 300,
                           Unit = "px",
-                          image.format = "png",
+                          image_format = "png",
                           env,
                           saveCheckpoints = FALSE,
                           loadCheckpoint = NULL,
@@ -87,7 +87,7 @@ co_expression <- function(Data = NULL,
         workDir <- string_vars[["envir_link"]]$workDir
     }
 
-    assign("PATH", file.path(workDir, "GDCRtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"), envir = get(envir_link))
+    assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"), envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){
         PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
@@ -141,14 +141,14 @@ co_expression <- function(Data = NULL,
         }
         sampleTree <- hclust(dist(datExpr0), method = "average")
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "sampleClustering.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "sampleClustering.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(0,4,2,0), cex = 0.6)
         plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
@@ -156,18 +156,18 @@ co_expression <- function(Data = NULL,
         dev.off()
 
         message("Your plot was saved in ",
-                file.path(DIR, "sampleClustering."), image.format,
+                file.path(DIR, "sampleClustering."), image_format,
                 ". Please, check this plot in order to insert the cutHeight value.")
         cutHeight <- as.numeric(readline(prompt = "Please, insert the cutHeight value: "))
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "sampleClustering2.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "sampleClustering2.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(0,4,2,0), cex = 0.6)
         plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
@@ -191,14 +191,14 @@ co_expression <- function(Data = NULL,
         remove(datExpr0)
         gc(verbose = FALSE)
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "sampleClustering_after_cut.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "sampleClustering_after_cut.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(0,4,2,0), cex = 0.6)
         plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
@@ -248,14 +248,14 @@ co_expression <- function(Data = NULL,
         sft = WGCNA::pickSoftThreshold(datExpr, powerVector = powers, networkType=networkType, verbose = 5)
 
         # Plot the results:
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "connectivity.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "connectivity.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mfrow = c(1,2))
         cex1 = 0.9
@@ -289,14 +289,14 @@ co_expression <- function(Data = NULL,
         adjacency <- WGCNA::adjacency(datExpr, power = softPower, type = networkType)
         k <- WGCNA::softConnectivity(datExpr, power = softPower, type = networkType)
 
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "softConnectivity.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "softConnectivity.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mfrow=c(1,2))
         hist(k)
@@ -322,14 +322,14 @@ co_expression <- function(Data = NULL,
 
     # Call the hierarchical clustering function TO SEE THE TOM
     geneTree <- hclust(as.dist(dissTOM), method = "average")
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "gene_treee1.png"),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "gene_treee1.svg"),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     # Plot the resulting clustering tree (dendrogram)
     #(12,9)
@@ -354,14 +354,14 @@ co_expression <- function(Data = NULL,
     #table(dynamicColors)
     gc(verbose = FALSE)
     # Plot the dendrogram and colors underneath
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "dendroandcolors.png"),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "dendroandcolors.svg"),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     WGCNA::plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
                         dendroLabels = FALSE, hang = 0.03,
@@ -384,14 +384,14 @@ co_expression <- function(Data = NULL,
     # METree <- hclust(as.dist(MEDiss), method = "average")
 
     # Plot the result
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, "MEtree.png"),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, "MEtree.svg"),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     plot(METree, main = "Clustering of module eigengenes",
          xlab = "", sub = "")
@@ -406,14 +406,14 @@ co_expression <- function(Data = NULL,
     mergedMEs <- merge$newMEs
     dev.off()
 
-    if (tolower(image.format) == "png") {
+    if (tolower(image_format) == "png") {
         png(filename = file.path(DIR, paste0("genedendro_", MEDissThres, ".png")),
             width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image.format) == "svg") {
+    } else if (tolower(image_format) == "svg") {
         svg(filename = file.path(DIR, paste0("genedendro_", MEDissThres, ".svg")),
             width = Width, height = Height, onefile = TRUE)
     } else {
-        stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     }
     WGCNA::plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
                         c("Dynamic Tree Cut", "Merged dynamic"),
@@ -443,14 +443,14 @@ co_expression <- function(Data = NULL,
     # bwModuleColors <- WGCNA::labels2colors(bwLabels)
     #
     # # Plot dendogram and module1's colors for 1 block
-    # if (tolower(image.format) == "png") {
+    # if (tolower(image_format) == "png") {
     #     png(filename = file.path(DIR, "Gene_dendrogram_and_module_colors.png"),
     #         width = Width, height = Height, res = Res, units = Unit)
-    # } else if (tolower(image.format) == "svg") {
+    # } else if (tolower(image_format) == "svg") {
     #     svg(filename = file.path(DIR, "Gene_dendrogram_and_module_colors.svg"),
     #         width = Width, height = Height, onefile = TRUE)
     # } else {
-    #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    #     stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     # }
     # WGCNA::plotDendroAndColors(bwnet$dendrograms[[1]], bwModuleColors[bwnet$blockGenes[[1]]],
     #                     "Module colors", main = "Gene dendrogram and module colors in block 1",
@@ -458,14 +458,14 @@ co_expression <- function(Data = NULL,
     #                     addGuide = TRUE, guideHang = 0.05)
     # dev.off()
     #
-    # if (tolower(image.format) == "png") {
+    # if (tolower(image_format) == "png") {
     #     png(filename = file.path(DIR, "Single_block_gene_dendrogram.png"),
     #         width = Width, height = Height, res = Res, units = Unit)
-    # } else if (tolower(image.format) == "svg") {
+    # } else if (tolower(image_format) == "svg") {
     #     svg(filename = file.path(DIR, "Single_block_gene_dendrogram.svg"),
     #         width = Width, height = Height, onefile = TRUE)
     # } else {
-    #     stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+    #     stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
     # }
     # WGCNA::plotDendroAndColors(geneTree,
     #                     cbind(moduleColors, bwModuleColors),
@@ -495,14 +495,14 @@ co_expression <- function(Data = NULL,
         textMatrix <-  paste(signif(moduleTraitCor, 2), "\n(",
                             signif(moduleTraitPvalue, 1), ")", sep = "")
         dim(textMatrix) <- dim(moduleTraitCor)
-        if (tolower(image.format) == "png") {
+        if (tolower(image_format) == "png") {
             png(filename = file.path(DIR, "Module_trait_relationships.png"),
                 width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image.format) == "svg") {
+        } else if (tolower(image_format) == "svg") {
             svg(filename = file.path(DIR, "Module_trait_relationships.svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image.format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         # par(mar = c(8, 4.5, 1, 1))
         # Show cor in heatmap plot

@@ -1,4 +1,4 @@
-Package: GDCRtools
+Package: GDCtools
 Title: A Package to Download, Organize and Analyze Genomic Data Commons (GDC) Data
 Version: 0.0.1
 Date: 2018-09-07
@@ -7,12 +7,12 @@ Authors@R: c(
     person("Douglas", "Adamoski", , role = "ctb"),
     person("Marcelo", "Carazzole", , role = "ctb"),
     person("Sandra Martha Gomes", "Dias", , role = "ctb"))
-Description: In order to download, organize and analyze GDC data we have developed GDCRtools. 
+Description: In order to download, organize and analyze GDC data we have developed GDCtools. 
     It implements and uses many well-known R packages, as DESeq2, edgeR, WGCNA, and mclust. 
     This is a free open-source software that implements academic research
     by the authors and co-workers. If you use it, please support
     the project by citing the appropriate journal article listed in
-    citation("GDCRtools").
+    citation("GDCtools").
 Depends: R (>= 3.4)
 Imports: 
     stats,
@@ -80,8 +80,8 @@ Suggests:
     gageData,
     testthat
 License: GPL-3 | file LICENSE
-URL: https://github.com/Facottons/GDCRtools
-BugReports: https://github.com/Facottons/GDCRtools/issues
+URL: https://github.com/Facottons/GDCtools
+BugReports: https://github.com/Facottons/GDCtools/issues
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
