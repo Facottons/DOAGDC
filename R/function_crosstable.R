@@ -180,7 +180,7 @@ CrossThem <- function(FinalData, n.pack = 3,
     tested2[[pairName]] <- complete.cross
 
     assign("FinalData", FinalData, envir = get(envir_link))
-    assign("Results_Completed.crossed", tested2, envir = get(envir_link))
+    assign("Results_Completed_crossed", tested2, envir = get(envir_link))
     assign("resultadosDE_crossed", tested1, envir = get(envir_link))
     if (tolower(FinalData) == "ebseq") {
         string_vars[["envir_link"]]$Tool <- "CrossTable.EBSeq"

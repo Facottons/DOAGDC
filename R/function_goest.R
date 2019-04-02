@@ -53,21 +53,21 @@ GOnto <- function(condition,
         #   the given \code{env}. Use the function \code{table2GDCtools} to allocate
         #   your table inside the given \code{env}.
 
-        if(missing(env)){
+        if (missing(env)) {
             stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))
         }
 
         envir_link <- deparse(substitute(env))
         string_vars <- list(envir_link = get(envir_link))
 
-        if (exists("Name.e", envir = get(envir_link))){
+        if (exists("Name.e", envir = get(envir_link))) {
             PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
         } else {
             PATH <- string_vars[["envir_link"]]$PATH
         }
 
         #Most recent Tool used
-        if (missing(Tool)){Tool <- string_vars[["envir_link"]]$Tool}
+        if (missing(Tool)) {Tool <- string_vars[["envir_link"]]$Tool}
 
         Name <- string_vars[["envir_link"]]$Name
         dataBase <- string_vars[["envir_link"]]$dataBase
@@ -84,7 +84,7 @@ GOnto <- function(condition,
             DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
 
             File <- "resultadosDE_crossed"
-            File2 <- "Results_Completed.crossed"
+            File2 <- "Results_Completed_crossed"
 
         } else {
             File <- paste("resultadosDE", Tool, sep = ".")
@@ -108,10 +108,6 @@ GOnto <- function(condition,
         if (tolower(ID) == "geneid") {
 
             if (tolower(dataBase) == "gdc") {
-                rownames(annotation_table) <- annotation_table$ensembl
-                resultadosDE$GeneID <- annotation_table[resultadosDE$ensembl, "GeneID"]
-                Results_Completed$GeneID <- annotation_table[Results_Completed$ensembl, "GeneID"]
-
 
                 # If you haven't already installed devtools...
                 # install.packages("devtools")
@@ -121,19 +117,21 @@ GOnto <- function(condition,
                 # library(annotables)
                 # head(grch38)
 
+
+                # resultadosDE
                 resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
-                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
                 annotation_table <- GDCtools::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 geneID <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "GeneID")])
                 # Outer_join
                 resultadosDE <- merge(x = resultadosDE, y = geneID, by = "ensembl", all = TRUE)
+
+                # Results_Completed
+                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
                 selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
                 geneID <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "GeneID")])
                 # Outer_join
                 Results_Completed <- merge(x = Results_Completed, y = geneID, by = "ensembl", all = TRUE)
-
-
 
             }
 
@@ -158,23 +156,36 @@ GOnto <- function(condition,
             assign("DEGenes_all", DEGenes_all, envir = get(envir_link))
 
 
-            gene_vector_up <- as.integer(Results_Completed$GeneID%in%DEGenes_up$GeneID)
+            gene_vector_up <- as.integer(Results_Completed$GeneID %in% DEGenes_up$GeneID)
             names(gene_vector_up) <- Results_Completed$GeneID
             assign("gene_vector_up", gene_vector_up, envir = get(envir_link))
 
-            gene_vector_down <- as.integer(Results_Completed$GeneID%in%DEGenes_down$GeneID)
+            gene_vector_down <- as.integer(Results_Completed$GeneID %in% DEGenes_down$GeneID)
             names(gene_vector_down) <- Results_Completed$GeneID
             assign("gene_vector_down", gene_vector_down, envir = get(envir_link))
 
-            gene_vector_all <- as.integer(Results_Completed$GeneID%in%DEGenes_all$GeneID)
+            gene_vector_all <- as.integer(Results_Completed$GeneID %in% DEGenes_all$GeneID)
             names(gene_vector_all) <- Results_Completed$GeneID
             assign("gene_vector_all", gene_vector_all, envir = get(envir_link))
-        } else if (tolower(ID) == "genesymbol"){
+        } else if (tolower(ID) == "genesymbol") {
 
             if (tolower(dataBase) == "gdc") {
-                rownames(annotation_table) <- annotation_table$ensembl
-                resultadosDE$GeneSymbol <- annotation_table[resultadosDE$ensembl, "UCSC_GeneSymbol"]
-                Results_Completed$GeneSymbol <- annotation_table[Results_Completed$ensembl, "UCSC_GeneSymbol"]
+
+                # resultadosDE
+                resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                annotation_table <- GDCtools::annotation_table
+                selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
+                GeneSymbol <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "UCSC_GeneSymbol")])
+                # Outer_join
+                resultadosDE <- merge(x = resultadosDE, y = GeneSymbol, by = "ensembl", all = TRUE)
+
+                # Results_Completed
+                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
+                selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
+                GeneSymbol <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "UCSC_GeneSymbol")])
+                # Outer_join
+                Results_Completed <- merge(x = Results_Completed, y = GeneSymbol, by = "ensembl", all = TRUE)
+
             }
 
             #remove any duplicates and NA
@@ -205,38 +216,51 @@ GOnto <- function(condition,
 
 
 
-            gene_vector_up <- as.integer(Results_Completed$GeneSymbol%in%DEGenes_up$GeneSymbol)
+            gene_vector_up <- as.integer(Results_Completed$GeneSymbol %in% DEGenes_up$GeneSymbol)
             names(gene_vector_up) <- Results_Completed$GeneSymbol
             assign("gene_vector_up", gene_vector_up, envir = get(envir_link))
 
-            gene_vector_down <- as.integer(Results_Completed$GeneSymbol%in%DEGenes_down$GeneSymbol)
+            gene_vector_down <- as.integer(Results_Completed$GeneSymbol %in% DEGenes_down$GeneSymbol)
             names(gene_vector_down) <- Results_Completed$GeneSymbol
             assign("gene_vector_down", gene_vector_down, envir = get(envir_link))
 
-            gene_vector_all <- as.integer(Results_Completed$GeneSymbol%in%DEGenes_all$GeneSymbol)
+            gene_vector_all <- as.integer(Results_Completed$GeneSymbol %in% DEGenes_all$GeneSymbol)
             names(gene_vector_all) <- Results_Completed$GeneSymbol
             assign("gene_vector_all", gene_vector_all, envir = get(envir_link))
-        } else if(toupper(ID) == "HUGO"){
+
+        } else if (toupper(ID) == "HUGO") {
 
             if (tolower(dataBase) == "gdc") {
-                rownames(annotation_table) <- annotation_table$ensembl
-                resultadosDE$HUGO <- annotation_table[resultadosDE$ensembl, "HUGO"]
-                Results_Completed$HUGO <- annotation_table[Results_Completed$ensembl, "HUGO"]
-            } else {
-                #remove any duplicates and NA
-                resultadosDE <- resultadosDE[!is.na(resultadosDE$GeneID), ]
-                resultadosDE <- resultadosDE[!duplicated(resultadosDE$GeneID), ]
 
-                resultadosDE$HUGO <- as.character(annotation_table[match(resultadosDE$GeneID,
-                                                                         annotation_table$GeneID), "HUGO"])
+                # resultadosDE
+                resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                annotation_table <- GDCtools::annotation_table
+                selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
+                HUGO <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "HUGO")])
+                # Outer_join
+                resultadosDE <- merge(x = resultadosDE, y = HUGO, by = "ensembl", all = TRUE)
 
-                Results_Completed <- Results_Completed[!is.na(Results_Completed$GeneID), ]
-                Results_Completed <- Results_Completed[!duplicated(Results_Completed$GeneID), ]
-
-
-                Results_Completed$HUGO <- as.character(annotation_table[match(Results_Completed$GeneID,
-                                                                         annotation_table$GeneID), "HUGO"])
+                # Results_Completed
+                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
+                selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
+                HUGO <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "HUGO")])
+                # Outer_join
+                Results_Completed <- merge(x = Results_Completed, y = HUGO, by = "ensembl", all = TRUE)
             }
+
+            #remove any duplicates and NA
+            resultadosDE <- resultadosDE[!is.na(resultadosDE$GeneID), ]
+            resultadosDE <- resultadosDE[!duplicated(resultadosDE$GeneID), ]
+
+            resultadosDE$HUGO <- as.character(annotation_table[match(resultadosDE$GeneID,
+                                                                     annotation_table$GeneID), "HUGO"])
+
+            Results_Completed <- Results_Completed[!is.na(Results_Completed$GeneID), ]
+            Results_Completed <- Results_Completed[!duplicated(Results_Completed$GeneID), ]
+
+
+            Results_Completed$HUGO <- as.character(annotation_table[match(Results_Completed$GeneID,
+                                                                     annotation_table$GeneID), "HUGO"])
 
             #remove any NA
             resultadosDE <- resultadosDE[!is.na(resultadosDE$HUGO), ]
@@ -258,25 +282,37 @@ GOnto <- function(condition,
             assign("DEGenes_all", DEGenes_all, envir = get(envir_link))
 
 
-
-            gene_vector_up <- as.integer(Results_Completed$HUGO%in%DEGenes_up$HUGO)
+            gene_vector_up <- as.integer(Results_Completed$HUGO %in% DEGenes_up$HUGO)
             names(gene_vector_up) <- resultadosDE$GeneID
             assign("gene_vector_up", gene_vector_up, envir = get(envir_link))
 
-            gene_vector_down <- as.integer(Results_Completed$HUGO%in%DEGenes_down$HUGO)
+            gene_vector_down <- as.integer(Results_Completed$HUGO %in% DEGenes_down$HUGO)
             names(gene_vector_down) <- resultadosDE$GeneID
             assign("gene_vector_down", gene_vector_down, envir = get(envir_link))
 
-            gene_vector_all <- as.integer(Results_Completed$HUGO%in%DEGenes_all$HUGO)
+            gene_vector_all <- as.integer(Results_Completed$HUGO %in% DEGenes_all$HUGO)
             names(gene_vector_all) <- resultadosDE$GeneID
             assign("gene_vector_all", gene_vector_all, envir = get(envir_link))
+
         } else if (tolower(ID) == "ensembl") {
 
             if (tolower(dataBase) == "legacy") {
-                rownames(annotation_table) <- annotation_table$GeneID
-                resultadosDE$ensembl <- annotation_table[resultadosDE$GeneID, "ensembl"]
 
-                Results_Completed$ensembl <- annotation_table[Results_Completed$GeneID, "ensembl"]
+                # resultadosDE
+                resultadosDE$GeneID <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                annotation_table <- GDCtools::annotation_table
+                selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
+                ensembl <- unique(annotation_table[annotation_table$ensembl %in% selected, c("GeneID", "ensembl")])
+                # Outer_join
+                resultadosDE <- merge(x = resultadosDE, y = ensembl, by = "GeneID", all = TRUE)
+
+                # Results_Completed
+                Results_Completed$GeneID <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
+                selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
+                ensembl <- unique(annotation_table[annotation_table$ensembl %in% selected, c("GeneID", "ensembl")])
+                # Outer_join
+                Results_Completed <- merge(x = Results_Completed, y = ensembl, by = "GeneID", all = TRUE)
+
 
                 #remove any duplicates and NA
                 resultadosDE <- resultadosDE[!is.na(resultadosDE$ensembl), ]
@@ -299,14 +335,15 @@ GOnto <- function(condition,
 
 
 
-                gene_vector_up <- as.integer(Results_Completed$ensembl%in%DEGenes_up$ensembl)
+                gene_vector_up <- as.integer(Results_Completed$ensembl %in% DEGenes_up$ensembl)
                 names(gene_vector_up) <- resultadosDE$ensembl
 
-                gene_vector_down <- as.integer(Results_Completed$ensembl%in%DEGenes_down$ensembl)
+                gene_vector_down <- as.integer(Results_Completed$ensembl %in% DEGenes_down$ensembl)
                 names(gene_vector_down) <- resultadosDE$ensembl
 
-                gene_vector_all <- as.integer(Results_Completed$ensembl%in%DEGenes_all$ensembl)
+                gene_vector_all <- as.integer(Results_Completed$ensembl %in% DEGenes_all$ensembl)
                 names(gene_vector_all) <- Results_Completed$ensembl
+
             } else {
 
                 #upregulated DE
@@ -323,13 +360,13 @@ GOnto <- function(condition,
 
 
                 #remove any duplicates and NA
-                gene_vector_up <- as.integer(rownames(Results_Completed)%in%rownames(DEGenes_up))
+                gene_vector_up <- as.integer(rownames(Results_Completed) %in% rownames(DEGenes_up))
                 names(gene_vector_up) <- rownames(resultadosDE)
 
-                gene_vector_down <- as.integer(rownames(Results_Completed)%in%rownames(DEGenes_down))
+                gene_vector_down <- as.integer(rownames(Results_Completed) %in% rownames(DEGenes_down))
                 names(gene_vector_down) <- rownames(resultadosDE)
 
-                gene_vector_all <- as.integer(rownames(Results_Completed)%in%rownames(DEGenes_all))
+                gene_vector_all <- as.integer(rownames(Results_Completed) %in% rownames(DEGenes_all))
                 names(gene_vector_all) <- rownames(resultadosDE)
             }
 
@@ -339,28 +376,41 @@ GOnto <- function(condition,
             assign("gene_vector_down", gene_vector_down, envir = get(envir_link))
 
             assign("gene_vector_all", gene_vector_all, envir = get(envir_link))
+
         } else if (tolower(ID) == "refgene") {
 
             if (tolower(dataBase) == "gdc") {
-                rownames(annotation_table) <- annotation_table$ensembl
-                resultadosDE$refGene <- annotation_table[resultadosDE$ensembl, "RefSeq"]
 
-                Results_Completed$refGene <- annotation_table[Results_Completed$ensembl, "RefSeq"]
+                # resultadosDE
+                resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                annotation_table <- GDCtools::annotation_table
+                selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
+                refGene <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "RefSeq")])
+                # Outer_join
+                resultadosDE <- merge(x = resultadosDE, y = refGene, by = "ensembl", all = TRUE)
 
-            } else {
-                #remove any duplicates and NA
-                resultadosDE <- resultadosDE[!is.na(resultadosDE$GeneID), ]
-                resultadosDE <- resultadosDE[!duplicated(resultadosDE$GeneID), ]
+                # Results_Completed
+                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
+                selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
+                refGene <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "RefSeq")])
+                # Outer_join
+                Results_Completed <- merge(x = Results_Completed, y = refGene, by = "ensembl", all = TRUE)
 
-                Results_Completed <- Results_Completed[!is.na(Results_Completed$GeneID), ]
-                Results_Completed <- Results_Completed[!duplicated(Results_Completed$GeneID), ]
-
-                resultadosDE$refGene <- as.character(annotation_table[match(resultadosDE$GeneID,
-                                                                            annotation_table$GeneID), "RefSeq"])
-
-                Results_Completed$refGene <- as.character(annotation_table[match(Results_Completed$GeneID,
-                                                                            annotation_table$GeneID), "RefSeq"])
             }
+
+            #remove any duplicates and NA
+            resultadosDE <- resultadosDE[!is.na(resultadosDE$GeneID), ]
+            resultadosDE <- resultadosDE[!duplicated(resultadosDE$GeneID), ]
+
+            Results_Completed <- Results_Completed[!is.na(Results_Completed$GeneID), ]
+            Results_Completed <- Results_Completed[!duplicated(Results_Completed$GeneID), ]
+
+            resultadosDE$refGene <- as.character(annotation_table[match(resultadosDE$GeneID,
+                                                                        annotation_table$GeneID), "RefSeq"])
+
+            Results_Completed$refGene <- as.character(annotation_table[match(Results_Completed$GeneID,
+                                                                        annotation_table$GeneID), "RefSeq"])
+
 
             #remove any duplicates and NA
             resultadosDE <- resultadosDE[!is.na(resultadosDE$refGene), ]
@@ -386,15 +436,15 @@ GOnto <- function(condition,
 
 
 
-            gene_vector_up <- as.integer(Results_Completed$refGene%in%DEGenes_up$refGene)
+            gene_vector_up <- as.integer(Results_Completed$refGene %in% DEGenes_up$refGene)
             names(gene_vector_up) <- Results_Completed$refGene
             assign("gene_vector_up", gene_vector_up, envir = get(envir_link))
 
-            gene_vector_down <- as.integer(Results_Completed$refGene%in%DEGenes_down$refGene)
+            gene_vector_down <- as.integer(Results_Completed$refGene %in% DEGenes_down$refGene)
             names(gene_vector_down) <- Results_Completed$refGene
             assign("gene_vector_down", gene_vector_down, envir = get(envir_link))
 
-            gene_vector_all <- as.integer(Results_Completed$refGene%in%DEGenes_all$refGene)
+            gene_vector_all <- as.integer(Results_Completed$refGene %in% DEGenes_all$refGene)
             names(gene_vector_all) <- Results_Completed$refGene
             assign("gene_vector_all", gene_vector_all, envir = get(envir_link))
         }
@@ -408,7 +458,7 @@ GOnto <- function(condition,
 
         if (nrow(x) != 0) {
 
-            if (nrow(x) >= 15){
+            if (nrow(x) >= 15) {
                 PlotNowGO <- x[1:15, ]
             } else{
                 PlotNowGO <- x
@@ -423,7 +473,7 @@ GOnto <- function(condition,
 
             log.10.GO <- -log10(as.numeric(PlotNowGO[, "over_represented_BH"]))
             new_inf <- log.10.GO[order(log.10.GO, decreasing = TRUE)]
-            log.10.GO[log.10.GO == "Inf"] <- (new_inf[new_inf != "Inf"][1]+1)
+            log.10.GO[log.10.GO == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
 
             longest_word <- max(stringr::str_count(PlotNowGO$term))
 
@@ -433,7 +483,7 @@ GOnto <- function(condition,
                 longest_Width <- Width
             }
 
-            if (KEGG){
+            if (KEGG) {
                 PlotNowGO$term <- PlotNowGO$Pathway
 
                 if (!is.numeric(PlotNowGO$GeneRatio)) {
@@ -468,8 +518,8 @@ GOnto <- function(condition,
                 p <- ggplot2::ggplot(PlotNowGO, ggplot2::aes(x = log.10.GO,
                                                              y = forcats::fct_reorder(term, log.10.GO))) +
                     ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
-                    ggplot2::scale_colour_gradient(limits=c(0, 1),
-                                                   low="red", high = "blue") +
+                    ggplot2::scale_colour_gradient(limits = c(0, 1),
+                                                   low = "red", high = "blue") +
                     ggplot2::labs(y = "", x = "-log(FDR)", title = MainNames[n]) +
                     ggplot2::theme_bw(base_size = 10) +
                     ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
@@ -491,18 +541,18 @@ GOnto <- function(condition,
 
     # code GO ####
 
-    if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+    if (missing(env)) {stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
 
-    if (exists("Name.e", envir = get(envir_link))){
+    if (exists("Name.e", envir = get(envir_link))) {
         PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
     } else {
         PATH <- string_vars[["envir_link"]]$PATH
     }
 
-    if (missing(Tool)){Tool <- string_vars[["envir_link"]]$Tool}
+    if (missing(Tool)) {Tool <- string_vars[["envir_link"]]$Tool}
 
     Name <- string_vars[["envir_link"]]$Name
     dataBase <- string_vars[["envir_link"]]$dataBase
@@ -538,7 +588,7 @@ GOnto <- function(condition,
     dir.create(file.path(DIR, "GO_Output", "TextOutput"),
                showWarnings = FALSE)
 
-    if (tolower(ID) == "geneid"){
+    if (tolower(ID) == "geneid") {
         formatted_ID <- "knownGene"
     } else if (tolower(ID) == "genesymbol") {
         formatted_ID <- "geneSymbol"
@@ -592,7 +642,7 @@ GOnto <- function(condition,
     #GO Analysis Wallenius
     message("Running GO analysis Wallenius\n")
     suppressPackageStartupMessages(GO_wall <- goseq::goseq(pwf, genome_version, formatted_ID,
-                            test.cats=c("GO:CC", "GO:BP", "GO:MF"),
+                            test.cats = c("GO:CC", "GO:BP", "GO:MF"),
                             method = "Wallenius",
                             use_genes_without_cat = use_genes_without_cat))
     # assign("GO_wall", GO_wall, envir = get(envir_link))
@@ -631,7 +681,7 @@ GOnto <- function(condition,
     GO_wall_FUN(x = GO_wall_BH_MF, n = 3)
 
     suppressPackageStartupMessages(GO_wall <- goseq::goseq(pwf, genome_version, formatted_ID,
-                                                           test.cats=c("KEGG"),
+                                                           test.cats = c("KEGG"),
                                                            method = "Wallenius",
                                                            use_genes_without_cat = use_genes_without_cat))
 
@@ -693,7 +743,7 @@ GOnto <- function(condition,
     dir.create(file.path(DIR, "enrichGO_Output", "TextOutput"),
                showWarnings = FALSE)
 
-    if (tolower(ID) == "geneid"){
+    if (tolower(ID) == "geneid") {
         formatted_ID2 <- "ENTREZID"
     } else if (tolower(ID) == "genesymbol") {
         formatted_ID2 <- "SYMBOL"
@@ -735,7 +785,7 @@ GOnto <- function(condition,
             enrichGO_resuts$GeneRatioNum <- num_ratios
 
 
-            if (nrow(enrichGO_resuts) >= 15){
+            if (nrow(enrichGO_resuts) >= 15) {
                 PlotNowGO <- enrichGO_resuts[1:15, ]
             } else{
                 PlotNowGO <- enrichGO_resuts
@@ -751,7 +801,7 @@ GOnto <- function(condition,
 
             log.10.GO <- -log10(as.numeric(PlotNowGO[, "p.adjust"]))
             new_inf <- log.10.GO[order(log.10.GO, decreasing = TRUE)]
-            log.10.GO[log.10.GO == "Inf"] <- (new_inf[new_inf != "Inf"][1]+1)
+            log.10.GO[log.10.GO == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
 
             longest_word <- max(stringr::str_count(PlotNowGO$Description))
 
@@ -785,8 +835,8 @@ GOnto <- function(condition,
                 p <- ggplot2::ggplot(PlotNowGO, ggplot2::aes(x = log.10.GO,
                                                              y = forcats::fct_reorder(Description, log.10.GO))) +
                     ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
-                    ggplot2::scale_colour_gradient(limits=c(0, 1),
-                                                   low="red", high = "blue") +
+                    ggplot2::scale_colour_gradient(limits = c(0, 1),
+                                                   low = "red", high = "blue") +
                     ggplot2::labs(y = "", x = "-log(FDR)", title = MainNames[n]) +
                     ggplot2::theme_bw(base_size = 10) +
                     ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
@@ -825,40 +875,6 @@ GOnto <- function(condition,
                                            tolower(condition), "_", ID,
                                            "_FDR_", FDR_cutoff,
                                            "_", pairName,".csv"))
-
-    # ggo <- clusterProfiler::groupGO(gene = names(gene_vector_up),
-    #                                 OrgDb = org.Hs.eg.db,
-    #                                 keytype = formatted_ID2,
-    #                                 ont = "CC",
-    #                                 readable = TRUE) #Gene ID will be mapped to gene Symbol
-    # cnetplot
-    # DOSE::cnetplot(GO2, categorySize="pvalue",
-    #                foldChange=resultadosDE$FC[gene_vector_up == 1],
-    #                showCategory = 1,
-    #                fixed = TRUE)
-
-    # ego3 <- clusterProfiler::gseGO(geneList = names(gene_vector_up)[sort(names(gene_vector_up), decreasing = TRUE)],
-    #               OrgDb = org.Hs.eg.db,
-    #               ont = "CC",
-    #               nPerm = 1000,
-    #               minGSSize = 100,
-    #               maxGSSize = 500,
-    #               pvalueCutoff = 0.05,
-    #               keytype = formatted_ID2,
-    #               verbose = FALSE)
-#
-    # kk2 <- clusterProfiler::gseKEGG(geneList = names(gene_vector_up)[sort(names(gene_vector_up), decreasing = TRUE)],
-    #                organism = 'hsa',
-    #                nPerm = 1000,
-    #                minGSSize = 120,
-    #                pvalueCutoff = 0.05,
-    #                verbose = FALSE)
-#
-    # clusterProfiler::enrichDAVID(gene = names(gene_vector_up),
-    #                      idType = "ENTREZ_GENE_ID",
-    #                      listType = "Gene",
-    #                      annotation = "KEGG_PATHWAY",
-    #                      david.user = "clusterProfiler@hku.hk")
 
     message("Done!\n")
  }

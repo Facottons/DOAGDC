@@ -47,7 +47,7 @@ DO_REAC_ENRICH <- function(p_cutoff = 0.05,
     groupGen <- string_vars[["envir_link"]]$groupGen
 
     if (grepl("crosstable", tolower(Tool))) {
-        TCGAExpression <- string_vars[["envir_link"]]$Results_Completed.crossed
+        TCGAExpression <- string_vars[["envir_link"]]$Results_Completed_crossed
     } else {
         TCGAExpression <- eval(parse(text= paste0("string_vars[['envir_link']]$Results_Completed.",
                                                   Tool)))
@@ -84,24 +84,24 @@ DO_REAC_ENRICH <- function(p_cutoff = 0.05,
 
     # "GeneID" equal to "entrez gene id"
     if (tolower(dataBase) == "gdc"){
-        geneIDList.DE <- clusterProfiler::bitr(DEGenes_all$ensembl, fromType = "ENSEMBL",
+        geneIDList_DE <- clusterProfiler::bitr(DEGenes_all$ensembl, fromType = "ENSEMBL",
                                                toType = "ENTREZID", OrgDb = "org.Hs.eg.db")$ENTREZID
-        geneIDList.Universe <- clusterProfiler::bitr(TCGAExpression$ensembl, fromType="ENSEMBL",
+        geneIDList_Universe <- clusterProfiler::bitr(TCGAExpression$ensembl, fromType="ENSEMBL",
                                                      toType = "ENTREZID", OrgDb = "org.Hs.eg.db")$ENTREZID
     } else {
-        geneIDList.DE <- DEGenes_all$GeneID
-        geneIDList.Universe <- TCGAExpression$GeneID
+        geneIDList_DE <- DEGenes_all$GeneID
+        geneIDList_Universe <- TCGAExpression$GeneID
     }
 
     # DO ####
 
     # Perform DO Enrichment analysis
     message("\nPerforming DO enrichment...\n")
-    DO_Enrichment <- DOSE::enrichDO(gene = geneIDList.DE,
+    DO_Enrichment <- DOSE::enrichDO(gene = geneIDList_DE,
                               ont = "DO",
                               pvalueCutoff  = FDR_cutoff,
                               pAdjustMethod = "BH",
-                              universe = geneIDList.Universe,
+                              universe = geneIDList_Universe,
                               minGSSize = 2, #at least a pair
                               qvalueCutoff = 1,
                               readable = TRUE)
@@ -191,11 +191,11 @@ DO_REAC_ENRICH <- function(p_cutoff = 0.05,
     # REACTOME ####
     # perform enrichment in REACTOME
     message("Performing reactome enrichment...\n")
-    REACTOME_Enriched <- ReactomePA::enrichPathway(geneIDList.DE,
+    REACTOME_Enriched <- ReactomePA::enrichPathway(geneIDList_DE,
                                        pvalueCutoff = 1,
                                        pAdjustMethod = "BH",
                                        qvalueCutoff = 1,
-                                       universe = geneIDList.Universe,
+                                       universe = geneIDList_Universe,
                                        minGSSize = 2,
                                        readable = TRUE)
     # Makes summary

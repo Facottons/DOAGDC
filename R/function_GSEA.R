@@ -54,7 +54,7 @@ GSEA <- function(FDR_cutoff = 0.05,
     groupGen <- string_vars[["envir_link"]]$groupGen
 
     if (grepl("crosstable", tolower(Tool))) {
-        TCGAExpression <- string_vars[["envir_link"]]$Results_Completed.crossed
+        TCGAExpression <- string_vars[["envir_link"]]$Results_Completed_crossed
     } else {
         TCGAExpression <- eval(parse(text= paste0("string_vars[['envir_link']]$Results_Completed.",
                                                   Tool)))
