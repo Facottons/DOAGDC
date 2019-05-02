@@ -12,14 +12,13 @@ output:
     fig_width: 5
     # css: css_file2.css
 abstract: >
-  A large collection of clinical information and multi-omics data of different cancer types has been created through the project The Cancer Genome Atlas (TCGA). The efficient use of this information has the potential to unveil new observations and mechanisms that can impact on cancer treatment. Although the amount of data rises every year, data mining tools are not following at the same pace. We developed a platform for the analysis of TCGA data using the R programming language. The package called GDCtools allows analyses based on the separation of tumor groups according to continuous characteristics (e. g. genetic expression) or discrete (clinical characteristics), followed by differential gene expression analysis and pathway enrichment analysis. In addition, it is possible to use co-expression analysis. We searched for differentially expressed isoforms of HIF3A gene between normal and tumor related tissues, followed by the evaluation of patient prognosis. Our studies pointed for the first time the association of HIF-3α2 in colon adenocarcinoma and HIF-3α3 in prostatic adenocarcinoma with relapse-free survival and tumor progression. The approach utilized here can be applied to other TCGA analysis and help the user to achieve new insights in targets of clinical interest. 
+  A large collection of clinical information and multi-omics data of different cancer types has been created through the project The Cancer Genome Atlas (TCGA). The efficient use of this information has the potential to unveil new observations and mechanisms that can impact on cancer treatment. Although the amount of data rises every year, data mining tools are not following at the same pace. We developed a platform for the analysis of TCGA data using the R programming language. The package called GDCtools allows analyses based on the separation of tumor groups according to continuous characteristics (e. g. genetic expression) or discrete (clinical characteristics), followed by differential gene expression analysis and pathway enrichment analysis. In addition, it is possible to use co-expression analysis. We searched for differentially expressed isoforms of HIF3A gene between normal and tumor related tissues, followed by the evaluation of patient prognosis. Our studies pointed for the first time the association of HIF-3α2 in colon adenocarcinoma and HIF-3α3 in prostatic adenocarcinoma with relapse-free survival and tumor progression. The approach utilized here can be applied to other TCGA analysis and help the user to achieve new insights in targets of clinical interest.
 vignette: >
   %\VignetteIndexEntry{DOAGDC Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-<br>
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
@@ -41,6 +40,7 @@ knitr::opts_chunk$set(
 
 <img src="/home/fabio/DOAGDC/GitHubfig/DOAGDC_logo.png" align="center" width="346" height="50"/>
 
+<br>
 <br>
 
 # Package Description
