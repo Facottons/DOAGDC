@@ -5,4 +5,5 @@
 .Rbuildignore
 README.Rmd
 DOAGDC.Rproj
+.gitignore
 /revdep/.cache.rds
