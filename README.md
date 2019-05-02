@@ -1,5 +1,5 @@
 
-# <img src="vignettes/DOAGDC_logo.png" align="center" width="346" height="50"/>
+# <img src="/home/fabio/Dropbox/GitHubfig/DOAGDC_logo.png" align="center" width="346" height="50"/>
 
 <!-- [![Build Status](https://travis-ci.org/tidyverse/ggplot2.svg?branch=master)](https://travis-ci.org/tidyverse/ggplot2) [![Coverage Status](https://img.shields.io/codecov/c/github/tidyverse/ggplot2/master.svg)](https://codecov.io/github/tidyverse/ggplot2?branch=master) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ggplot2)](https://cran.r-project.org/package=ggplot2) -->
 
@@ -25,9 +25,9 @@ devtools::install_github("Facottons/DOAGDC")
 There are some possible paths in DOAGDC analysis
 workflow:
 
-<!-- ![](vignettes/VIGNETTE-package_flow.png) -->
+<!-- ![](/home/fabio/Dropbox/GitHubfig/VIGNETTE-package_flow.png) -->
 
-<img src="vignettes/VIGNETTE-package_flow.png" align="center" width="595" height="842"/>
+<img src="/home/fabio/Dropbox/GitHubfig/VIGNETTE-package_flow.png" align="center" width="595" height="842"/>
 
 The start point for all possible analyses is the `download_gdc()`
 function. As the name suggests, this function automatically download all
@@ -114,7 +114,7 @@ groups_identification_mclust(dataType = Data,
   env = UCS_LEGACY_protein_tumor_data)
 ```
 
-<img src="vignettes/VIGNETTE-mixture_log2_expression_1.png" align="center" width="667" height="500"/>
+<img src="/home/fabio/Dropbox/GitHubfig/VIGNETTE-mixture_log2_expression_1.png" align="center" width="667" height="500"/>
 
 ``` r
 ## step 4: dea
@@ -127,7 +127,7 @@ dea_edgeR(dataType = Data,
   
 ```
 
-<img src="vignettes/VIGNETTE-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/>
+<img src="/home/fabio/Dropbox/GitHubfig/VIGNETTE-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/>
 
 ``` r
 ## step 5: visualization 
@@ -140,7 +140,7 @@ PCA_Analysis(Tool = "edgeR",
   
 ```
 
-<img src="vignettes/VIGNETTE-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/>
+<img src="/home/fabio/Dropbox/GitHubfig/VIGNETTE-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/>
 
 ``` r
 # Heat Map of 'G2_over_G1'  
@@ -153,7 +153,7 @@ draw_heatmap(Tool = "edgeR",
   
 ```
 
-<img src="vignettes/VIGNETTE-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/>
+<img src="/home/fabio/Dropbox/GitHubfig/VIGNETTE-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/>
 
 ``` r
 ## step 6: Pathway enrichment analysis
@@ -165,7 +165,7 @@ GOnto(condition = "Upregulated",
 }
 ```
 
-<img src="vignettes/VIGNETTE-enrichGO_smallest_FDR_Ont_BP_upregulated_GeneID_G2_over_G1.png" align="center" width="600" height="600"/>
+<img src="/home/fabio/Dropbox/GitHubfig/VIGNETTE-enrichGO_smallest_FDR_Ont_BP_upregulated_GeneID_G2_over_G1.png" align="center" width="600" height="600"/>
 
 ## More information
 
@@ -189,8 +189,8 @@ There are three main places to get help with DOAGDC:
 2.  The
     <a href="https://groups.google.com/forum/?fromgroups#!forum/ggplot2" target="_blank">DOAGDC
     mailing list</a> is another great alternative to ask any questions
-    about DOAGDC. Although anybody can read the archived discussions,
-    to post messages you must be a member.
+    about DOAGDC. Although anybody can read the archived discussions, to
+    post messages you must be a member.
 
 3.  The <a href="https://community.rstudio.com/" target="_blank">RStudio
     community</a> is another good place to ask any questions about
