@@ -16,7 +16,7 @@ article listed running the following command `citation("DOAGDC")`.
 
 ``` r
 # Get DOAGDC from GitHub:
-# install.packages("devtools")
+install.packages("devtools") # if not already done 
 devtools::install_github("Facottons/DOAGDC")
 ```
 
@@ -177,21 +177,13 @@ to learn even more.
 
 ## Getting help
 
-There are three main places to get help with DOAGDC:
+There are two main places to get help with DOAGDC:
 
-1.  <a href="https://stackoverflow.com/" target="_blank">Stack
-    Overflow</a> is a great source of programming questions and their
-    answers. It is also an amazing place to get help with a helpful
-    community. Before asking any questions, please read the
+1.  The GitHub itself.
+
+2.  The <a href="https://stackoverflow.com/" target="_blank">Stack
+    Overflow</a>: It is a great source of programming questions and
+    their answers. It is also an amazing place to get help with a
+    helpful community. Before asking any questions, please read the
     <a href="https://stackoverflow.com/help/how-to-ask" target="_blank">how
-    to ask</a> guide.
-
-2.  The
-    <a href="https://groups.google.com/forum/?fromgroups#!forum/ggplot2" target="_blank">DOAGDC
-    mailing list</a> is another great alternative to ask any questions
-    about DOAGDC. Although anybody can read the archived discussions, to
-    post messages you must be a member.
-
-3.  The <a href="https://community.rstudio.com/" target="_blank">RStudio
-    community</a> is another good place to ask any questions about
-    DOAGDC.
+    to ask</a> guide..

@@ -1,5 +1,5 @@
 ---
-title: "Vignette for DOAGDC package"
+title: "Vignette for the DOAGDC package"
 author: "Fábio Malta de Sá Patroni"
 date: "`r Sys.Date()`"
 output:
@@ -12,18 +12,19 @@ output:
     fig_width: 5
     # css: css_file2.css
 abstract: >
-  Do_artigo
+  A large collection of clinical information and multi-omics data of different cancer types has been created through the project The Cancer Genome Atlas (TCGA). The efficient use of this information has the potential to unveil new observations and mechanisms that can impact on cancer treatment. Although the amount of data rises every year, data mining tools are not following at the same pace. We developed a platform for the analysis of TCGA data using the R programming language. The package called GDCtools allows analyses based on the separation of tumor groups according to continuous characteristics (e. g. genetic expression) or discrete (clinical characteristics), followed by differential gene expression analysis and pathway enrichment analysis. In addition, it is possible to use co-expression analysis. We searched for differentially expressed isoforms of HIF3A gene between normal and tumor related tissues, followed by the evaluation of patient prognosis. Our studies pointed for the first time the association of HIF-3α2 in colon adenocarcinoma and HIF-3α3 in prostatic adenocarcinoma with relapse-free survival and tumor progression. The approach utilized here can be applied to other TCGA analysis and help the user to achieve new insights in targets of clinical interest. 
 vignette: >
   %\VignetteIndexEntry{DOAGDC Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
+<br>
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   tidy = FALSE, 
-  # dev = "png", 
+  dev = "png",
   cache = TRUE,
   collapse = TRUE,
   comment = "#>",
@@ -38,9 +39,8 @@ knitr::opts_chunk$set(
 
 ---
 
-<img src="DOAGDC_logo.jpg" align="center" width="346" height="50"/>
+<img src="/home/fabio/DOAGDC/GitHubfig/DOAGDC_logo.png" align="center" width="346" height="50"/>
 
-<br>
 <br>
 
 # Package Description
@@ -60,7 +60,7 @@ citation("DOAGDC")
 
 The following image summarize the DOAGDC package workflow:
 
-<img src="VIGNETTE-package_flow.jpg" align="center" width="595" height="842"/>
+<img src="/home/fabio/DOAGDC/GitHubfig/VIGNETTE-package_flow.png" align="center" width="595" height="842"/>
 
 
 ## Downloading GDC Data Portal or GDC Legacy Archive data
@@ -521,7 +521,7 @@ groups_identification_mclust(dataType = Data,
   env = UCS_LEGACY_protein_tumor_data)
 
 ``` 
-<!-- <img src="VIGNETTE-mixture_log2_expression_1.png" align="center" width="667" height="500"/> -->
+<img src="/home/fabio/DOAGDC/GitHubfig/VIGNETTE-mixture_log2_expression_1.png" align="center" width="667" height="500"/>
 
 ``` r
 ## step 4: DEA
@@ -533,7 +533,7 @@ dea_edgeR(dataType = Data,
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<!-- <img src="VIGNETTE-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/> -->
+<img src="/home/fabio/DOAGDC/GitHubfig/VIGNETTE-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/>
 
 ``` r  
 ## step 5: visualization 
@@ -545,7 +545,7 @@ PCA_Analysis(Tool = "edgeR",
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<!-- <img src="VIGNETTE-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/> -->
+<img src="/home/fabio/DOAGDC/GitHubfig/VIGNETTE-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/>
 
 ``` r
 # Heat Map of 'G2_over_G1'  
@@ -557,7 +557,7 @@ draw_heatmap(Tool = "edgeR",
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<!-- <img src="VIGNETTE-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/> -->
+<img src="/home/fabio/DOAGDC/GitHubfig/VIGNETTE-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/>
 
 ``` r
 ## step 6: Pathway enrichment analysis
@@ -569,7 +569,7 @@ GOnto(condition = "Upregulated",
 
 ```
 
-<!-- <img src="VIGNETTE-enrichGO_smallest_FDR_Ont_BP_upregulated_GeneID_G2_over_G1.png" align="center" width="600" height="600"/> -->
+<img src="/home/fabio/DOAGDC/GitHubfig/VIGNETTE-enrichGO_smallest_FDR_Ont_BP_upregulated_GeneID_G2_over_G1.png" align="center" width="600" height="600"/>
 
 <br>
 

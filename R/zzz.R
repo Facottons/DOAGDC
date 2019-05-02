@@ -20,15 +20,8 @@
         "\n", GDCTerms, "\n")
 
     } else {
-        #packageStartupMessage("Package 'DOAGDC' \n\nversion ", version, "\n", "\n", GDCTerms) }
-        packageStartupMessage(
-            "d8888b.  .d88b.   .d8b.   d888b  d8888b.  .o88b.
-88  `8D .8P  Y8. d8' `8b 88' Y8b 88  `8D d8P  Y8
-88   88 88    88 88ooo88 88      88   88 8P
-88   88 88    88 88~~~88 88  ooo 88   88 8b
-88  .8D `8b  d8' 88   88 88. ~8~ 88  .8D Y8b  d8
-Y8888D'  `Y88P'  YP   YP  Y888P  Y8888D'  `Y88P'    \n\nVersion: ", version, "\n",
-            "\n", GDCTerms, "\n")}
+        packageStartupMessage("Package 'DOAGDC' \n\nversion ", version, "\n", "\n", GDCTerms)
+    }
 
     packageStartupMessage("For citing this R package in publications, ",
                           "type 'citation(\"DOAGDC\")'.")

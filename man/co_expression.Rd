@@ -44,7 +44,7 @@ The default is \code{TRUE}.}
 \item{traitData}{A character string where "default" indicates that the trait
 data to be used is provide by the output of \code{check_clinical_terms}
 function. Use "custom" for data inserted by the user after the
-\code{table2GDCtools} function and with the table object named as
+\code{table2DOAGDC} function and with the table object named as
 \code{trait_data}. This object must have patients/sample code as
 \code{rownames} and the trait categories as \code{colnames}. By default
 trait data is not used.}
