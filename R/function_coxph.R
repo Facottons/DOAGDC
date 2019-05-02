@@ -45,12 +45,12 @@ groups_identification_coxHR <- function(Name,
     dataType <- gsub(" ", "_", dataType)
     Name <- gsub("-", "_", Name)
 
-    PATH <- file.path(workDir, "GDCtools", toupper(tumor), "Analyses", tolower(Name))
+    PATH <- file.path(workDir, "DOAGDC", toupper(tumor), "Analyses", tolower(Name))
 
-    dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "Analyses"),
+    dir.create(path = file.path(workDir, "DOAGDC", toupper(tumor), "Analyses"),
                showWarnings = FALSE)
 
-    dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "Analyses", tolower(Name)),
+    dir.create(path = file.path(workDir, "DOAGDC", toupper(tumor), "Analyses", tolower(Name)),
                showWarnings = FALSE)
 
     dir.create(file.path(PATH,
@@ -79,7 +79,7 @@ groups_identification_coxHR <- function(Name,
     # PART B: CLINICAL EVALUATION
     # Add available files
 
-    MANIFEST <- data.frame(read.table(file=file.path(workDir, "GDCtools", toupper(tumor),
+    MANIFEST <- data.frame(read.table(file=file.path(workDir, "DOAGDC", toupper(tumor),
                                                      folder_name, "manifest.sdrf"),
                                       stringsAsFactors = FALSE, header=TRUE, sep="\t"))
 
@@ -135,7 +135,7 @@ groups_identification_coxHR <- function(Name,
         # fileNow <- match("nationwidechildrens.org_clinical.TCGA-BH-A18L.xml", AvailableFiles)
         #Parse xml_data
         # data <- XML::xmlParse(paste("./", tumor, "/", "clinical_xml", "/Raw/", AvailableFiles[fileNow],sep=""))
-        data <- XML::xmlParse(file.path(workDir, "GDCtools", toupper(tumor),
+        data <- XML::xmlParse(file.path(workDir, "DOAGDC", toupper(tumor),
                                         folder_name, AvailableFiles[fileNow]))
         xml_data <- XML::xmlToList(data)
 

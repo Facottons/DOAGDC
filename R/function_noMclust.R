@@ -155,14 +155,14 @@ groups_identification_mclust <- function(dataType,
                new.env(parent=emptyenv()), envir = .GlobalEnv)
         envir_link <- paste(toupper(tumor), toupper(dataBase),
                             gsub(" ", "_", tolower(dataType)), "tumor_data", sep = "_")
-        attr(envir_link, "name" ) = "Environment created by GDCtools package, use its name in 'env' argument"
+        attr(envir_link, "name" ) = "Environment created by DOAGDC package, use its name in 'env' argument"
     } else if (missing(env) && !tumorData && !onlyFilter){
         assign(paste(toupper(tumor), toupper(dataBase),
                      gsub(" ", "_", tolower(dataType)), "both_data", sep = "_"),
                new.env(parent=emptyenv()), envir = .GlobalEnv)
         envir_link <- paste(toupper(tumor), toupper(dataBase),
                             gsub(" ", "_", tolower(dataType)), "both_data", sep = "_")
-        attr(envir_link, "name" ) = "Environment created by GDCtools package, use its name in 'env' argument"
+        attr(envir_link, "name" ) = "Environment created by DOAGDC package, use its name in 'env' argument"
     } else if (missing(env) && onlyFilter){
         message("Please, before using 'onlyFilter' argument, insert the Environment name.")
     } else {
@@ -176,10 +176,10 @@ groups_identification_mclust <- function(dataType,
         workDir <- string_vars[["envir_link"]]$workDir
     }
 
-    dir.create(path = file.path(workDir, "GDCtools", toupper(tumor), "Analyses"),
+    dir.create(path = file.path(workDir, "DOAGDC", toupper(tumor), "Analyses"),
                showWarnings = FALSE)
 
-    PATH <- file.path(workDir, "GDCtools", toupper(tumor), "Analyses")
+    PATH <- file.path(workDir, "DOAGDC", toupper(tumor), "Analyses")
     assign("PATH", PATH, envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){

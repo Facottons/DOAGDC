@@ -5,13 +5,15 @@
 \title{Run DESeq2 gene Differential Expression Analysis (DEA).}
 \usage{
 dea_DESeq2(Name, coreNumber = 2, test = "Default Test", groupGen,
-  clinical_pair, FC.cutoff = 2, workDir, tumor, FDR.cutoff = 0.05,
+  clinical_pair, FC_cutoff = 2, workDir, tumor, FDR_cutoff = 0.05,
   Width = 2000, Height = 1500, Res = 300, Unit = "px",
-  image.format = "png", env, cooksCutoff = FALSE)
+  image_format = "png", env, cooksCutoff = FALSE)
 }
 \arguments{
-\item{Name}{A character string indicating which row name will be used in
-mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+\item{Name}{A character string indicating the desired values to be used in
+next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
+"mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
+quantification matrix.}
 
 \item{coreNumber}{A numeric value indicating how many CPU cores should be
 used in the analysis. The default value is 2.}
@@ -29,7 +31,7 @@ used in the analysis. The default value is 2.}
 selected after statistical analysis runned in \code{clinical_terms()}
 function.}
 
-\item{FC.cutoff}{Numerical value indicating the maximum value for Fold Change
+\item{FC_cutoff}{Numerical value indicating the maximum value for Fold Change
 (FC). The default is \code{2}.}
 
 \item{workDir}{A character string specifying the path to work directory.}
@@ -37,7 +39,7 @@ function.}
 \item{tumor}{A character string contaning one of the 33 tumors available in
 the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
 
-\item{FDR.cutoff}{Numerical value indicating the maximum value for FDR
+\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
@@ -56,7 +58,7 @@ details. As default \code{Width = 2000, Height = 1500, Res =
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 

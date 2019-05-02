@@ -1,5 +1,5 @@
 ---
-title: "Vignette for GDCRtools package"
+title: "Vignette for DOAGDC package"
 author: "Fábio Malta de Sá Patroni"
 date: "`r Sys.Date()`"
 output:
@@ -10,11 +10,11 @@ output:
     theme: flatly 
     number_sections: true 
     fig_width: 5
-    # css: css_file.css
+    # css: css_file2.css
 abstract: >
   Do_artigo
 vignette: >
-  %\VignetteIndexEntry{GDCRtools Vignette}
+  %\VignetteIndexEntry{DOAGDC Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -23,7 +23,7 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   tidy = FALSE, 
-  dev = "png", 
+  # dev = "png", 
   cache = TRUE,
   collapse = TRUE,
   comment = "#>",
@@ -38,7 +38,7 @@ knitr::opts_chunk$set(
 
 ---
 
-<img src="GDCRtools_logo.png" align="center" width="346" height="50"/>
+<img src="DOAGDC_logo.jpg" align="center" width="346" height="50"/>
 
 <br>
 <br>
@@ -46,10 +46,10 @@ knitr::opts_chunk$set(
 # Package Description
 
 
-The **GDCRtools** package was developed to download, organize and analyze Genomic Data Commons (GDC) data. It uses several well-known R packages, as _DESeq2_^[Anders, Simon, and Wolfgang Huber. 2010. “Differential Expression Analysis for Sequence Count Data.” Genome Biology 11 (10): R106. https://doi.org/10.1186/gb-2010-11-10-r106], _edgeR_^[Robinson, M. D., D. J. McCarthy, and G. K. Smyth. 2010. “EdgeR: A Bioconductor Package for Differential Expression Analysis of Digital Gene Expression Data.” Bioinformatics 26 (1): 139–40. https://doi.org/10.1093/bioinformatics/btp616], _mclust_^[Scrucca, Luca, Michael Fop, T Brendan Murphy, and Adrian E Raftery. 2016. “Mclust 5: Clustering, Classification and Density Estimation Using Gaussian Finite Mixture Models.” https://journal.r-project.org/archive/2016/RJ-2016-021/RJ-2016-021.pdf], and _WGCNA_^[Langfelder, Peter, and Steve Horvath. 2008. “WGCNA: An R Package for Weighted Correlation Network Analysis.” BMC Bioinformatics 9 (1): 559. https://doi.org/10.1186/1471-2105-9-559]. This is a free open-source software that implements academic research by the authors and co-workers. If you use it, please support the project by citing the appropriate journal article listed running the following command `citation("GDCRtools")`:
+The **DOAGDC** package was developed to download, organize and analyze Genomic Data Commons (GDC) data. It uses several well-known R packages, as _DESeq2_^[Anders, Simon, and Wolfgang Huber. 2010. “Differential Expression Analysis for Sequence Count Data.” Genome Biology 11 (10): R106. https://doi.org/10.1186/gb-2010-11-10-r106], _edgeR_^[Robinson, M. D., D. J. McCarthy, and G. K. Smyth. 2010. “EdgeR: A Bioconductor Package for Differential Expression Analysis of Digital Gene Expression Data.” Bioinformatics 26 (1): 139–40. https://doi.org/10.1093/bioinformatics/btp616], _mclust_^[Scrucca, Luca, Michael Fop, T Brendan Murphy, and Adrian E Raftery. 2016. “Mclust 5: Clustering, Classification and Density Estimation Using Gaussian Finite Mixture Models.” https://journal.r-project.org/archive/2016/RJ-2016-021/RJ-2016-021.pdf], and _WGCNA_^[Langfelder, Peter, and Steve Horvath. 2008. “WGCNA: An R Package for Weighted Correlation Network Analysis.” BMC Bioinformatics 9 (1): 559. https://doi.org/10.1186/1471-2105-9-559]. This is a free open-source software that implements academic research by the authors and co-workers. If you use it, please support the project by citing the appropriate journal article listed running the following command `citation("DOAGDC")`:
 
 ```{r citation, echo=FALSE}
-citation("GDCRtools")
+citation("DOAGDC")
 ```
 
 <br>
@@ -58,9 +58,9 @@ citation("GDCRtools")
 
 # Starting workflow - Functions explanation 
 
-The following image summarize the GDCRtools package workflow:
+The following image summarize the DOAGDC package workflow:
 
-<img src="VIGNETTE-package_flow.png" align="center" width="595" height="842"/>
+<img src="VIGNETTE-package_flow.jpg" align="center" width="595" height="842"/>
 
 
 ## Downloading GDC Data Portal or GDC Legacy Archive data
@@ -119,7 +119,7 @@ page](https://tcga-data.nci.nih.gov/docs/publications/tcga/?) for more details.
 
 ## Concatenate patients in one table
 
-The downloaded files are individualized by patients. All next analysis In the example below:d by **GDCRtools** require the values organized in a single table (object). This requirement can be achieved by running the `concatenate_files()` function. See `help("concatenate_files")` for more information.
+The downloaded files are individualized by patients. All next analysis In the example below:d by **DOAGDC** require the values organized in a single table (object). This requirement can be achieved by running the `concatenate_files()` function. See `help("concatenate_files")` for more information.
 
 ### Concatenate data from Uterine carcinosarcoma (UCS) examples:
 * **Isoform expression normalized data from GDC Legacy Archive:**
@@ -188,15 +188,15 @@ beta2mValues(probeName = "cg16672562",
 <br>
 
 > **Important Note** - If your data is already concatenate into a single matrix,
-please use the `table2GDCRtools()` function to import your data into the GDCRtools
-environment (`table2GDCRtools(data_table, dataType = "gene", dataBase =
+please use the `table2DOAGDC()` function to import your data into the DOAGDC
+environment (`table2DOAGDC(data_table, dataType = "gene", dataBase =
 "legacy", tumor = "UCS")`).
 
 <br>
 
 ## Groups formation
 
-The Differential Expression Analysis requires group identification of samples/patients. The **GDCRtools** package offers three possible ways of group formation: _mclust_ package, _cox HR_^[Cox, D. R. 1972. “Regression Models and Life-Tables.” Journal of the Royal Statistical Society. Series B (Methodological). WileyRoyal Statistical Society. https://doi.org/10.2307/2985181] and clinical data. 
+The Differential Expression Analysis requires group identification of samples/patients. The **DOAGDC** package offers three possible ways of group formation: _mclust_ package, _cox HR_^[Cox, D. R. 1972. “Regression Models and Life-Tables.” Journal of the Royal Statistical Society. Series B (Methodological). WileyRoyal Statistical Society. https://doi.org/10.2307/2985181] and clinical data. 
 
 The n groups formed are named: `{'G1', 'G2', ..., 'Gn'}`. It is advised the formation of up to five groups. This avoid a huge complexity, loss of statistical power (few samples by groups), and a long run time in the next step.
 
@@ -286,7 +286,7 @@ groups_identification_coxHR(Name = "HIF3A",
  
 ## Differential Expression Analysis (DEA)
 
-The **GDCRtools** is powered by three different packages for this step of the analysis: _EBSeq_^[Leng, Ning, John a. Dawson, James a. Thomson, Victor Ruotti, Anna I. Rissman, Bart M G Smits, Jill D. Haag, Michael N. Gould, Ron M. Stewart, and Christina Kendziorski. 2013. “EBSeq: An Empirical Bayes Hierarchical Model for Inference in RNA-Seq Experiments.” Bioinformatics 29 (8): 1035–43. https://doi.org/10.1093/bioinformatics/btt087], _DESeq2_, and _edgeR_.
+The **DOAGDC** is powered by three different packages for this step of the analysis: _EBSeq_^[Leng, Ning, John a. Dawson, James a. Thomson, Victor Ruotti, Anna I. Rissman, Bart M G Smits, Jill D. Haag, Michael N. Gould, Ron M. Stewart, and Christina Kendziorski. 2013. “EBSeq: An Empirical Bayes Hierarchical Model for Inference in RNA-Seq Experiments.” Bioinformatics 29 (8): 1035–43. https://doi.org/10.1093/bioinformatics/btt087], _DESeq2_, and _edgeR_.
 
 ### EBSeq DEA example
 * Using the "BRCA2" gene expression (inside the environment object, i.e. `UCS_LEGACY_gene_tumor_data`) to compare the "G2_over_G1", two of the groups identified by the `groups_identification_mclust()` function. In the example below: seven rounds, and the "LRT" test provided by the _EBSeq_, FDR values maximum of .05, and Fold Change cutoff of ±2. See `help("dea_EBSeq")` for more information about the applicable parameters.
@@ -334,7 +334,7 @@ dea_edgeR(Name = "ENSG00000242268.2",
 
 ## Venn diagram of differential expression genes list
 
-Alternatively, it is possible to use more than one DEA package. When the case, **GDCRtools** In the example below:s `CrossThem()`. This function executes a Venn diagram, returning only one consensus list of genes between the DEA packages. This consensus genes list can be used in Pathway Enrichment Analysis workflow step. See `help("CrossThem")` for more information about the applicable parameters.
+Alternatively, it is possible to use more than one DEA package. When the case, **DOAGDC** In the example below:s `CrossThem()`. This function executes a Venn diagram, returning only one consensus list of genes between the DEA packages. This consensus genes list can be used in Pathway Enrichment Analysis workflow step. See `help("CrossThem")` for more information about the applicable parameters.
 
 ### Venn diagram example
 
@@ -356,7 +356,7 @@ CrossThem(FinalData = "edgeR",
 
 ## Visualization
 
-_PCA_ and _Heat map_ are two important visualization tools in **GDCRtools**. It is possible to use either the differential expressed genes from a single DEA package (i.e. _DESeq2_,  _edgeR_ or _EBSeq_), or the result list from `CrossThem()` function.
+_PCA_ and _Heat map_ are two important visualization tools in **DOAGDC**. It is possible to use either the differential expressed genes from a single DEA package (i.e. _DESeq2_,  _edgeR_ or _EBSeq_), or the result list from `CrossThem()` function.
 
 ### PCA example
 
@@ -386,7 +386,7 @@ draw_heatmap(Tool = "CrossThem.edgeR",
 
 ## Pathway Enrichment Analysis
 
-The **GDCRtools** offers five different PEA: Gene Ontology, Gene Set Enrichment
+The **DOAGDC** offers five different PEA: Gene Ontology, Gene Set Enrichment
 Analysis, Disease Ontology, Reactome Enrichment, and KEEG.
 
 ### Gene Ontology example
@@ -460,7 +460,7 @@ co_expression(Data = NULL,
 This is an entire example that shows how to run a DEA analysis, with groups generated by 'Caspase-8-M-E' protein expression:
 
 ``` {r starting}
-library(GDCRtools)
+library(DOAGDC)
 ```
 
 <br>
@@ -521,7 +521,7 @@ groups_identification_mclust(dataType = Data,
   env = UCS_LEGACY_protein_tumor_data)
 
 ``` 
-<img src="VIGNETTE-mixture_log2_expression_1.png" align="center" width="667" height="500"/>
+<!-- <img src="VIGNETTE-mixture_log2_expression_1.png" align="center" width="667" height="500"/> -->
 
 ``` r
 ## step 4: DEA
@@ -533,7 +533,7 @@ dea_edgeR(dataType = Data,
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<img src="VIGNETTE-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/>
+<!-- <img src="VIGNETTE-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/> -->
 
 ``` r  
 ## step 5: visualization 
@@ -545,7 +545,7 @@ PCA_Analysis(Tool = "edgeR",
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<img src="VIGNETTE-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/>
+<!-- <img src="VIGNETTE-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/> -->
 
 ``` r
 # Heat Map of 'G2_over_G1'  
@@ -557,7 +557,7 @@ draw_heatmap(Tool = "edgeR",
   env = UCS_LEGACY_protein_tumor_data)
   
 ``` 
-<img src="VIGNETTE-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/>
+<!-- <img src="VIGNETTE-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/> -->
 
 ``` r
 ## step 6: Pathway enrichment analysis
@@ -569,7 +569,7 @@ GOnto(condition = "Upregulated",
 
 ```
 
-<img src="VIGNETTE-enrichGO_smallest_FDR_Ont_BP_upregulated_GeneID_G2_over_G1.png" align="center" width="600" height="600"/>
+<!-- <img src="VIGNETTE-enrichGO_smallest_FDR_Ont_BP_upregulated_GeneID_G2_over_G1.png" align="center" width="600" height="600"/> -->
 
 <br>
 

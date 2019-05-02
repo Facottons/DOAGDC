@@ -4,9 +4,9 @@
 \alias{draw_heatmap}
 \title{Draw a heatmap}
 \usage{
-draw_heatmap(Tool, FC.cutoff = 2, Name, Method = "euclidean",
+draw_heatmap(Tool, FC_cutoff = 2, Name, Method = "euclidean",
   pairName = "G2_over_G1", RawValues = FALSE, Width = 6,
-  Height = 6, Res = 300, Unit = "in", image.format = "svg", env,
+  Height = 6, Res = 300, Unit = "in", image_format = "svg", env,
   ScaleMethod = "row", outerMargins = c(0, 0, 0, 0), cexCol = 0,
   cexRow = 0, degree = 45, labRow = NULL, labCol = NULL)
 }
@@ -14,11 +14,13 @@ draw_heatmap(Tool, FC.cutoff = 2, Name, Method = "euclidean",
 \item{Tool}{A character string indicating which differential expression
 analysis tool was last used.}
 
-\item{FC.cutoff}{Numerical value indicating the maximum value for Fold Change
+\item{FC_cutoff}{Numerical value indicating the maximum value for Fold Change
 (FC). The default is \code{2}.}
 
-\item{Name}{A character string indicating which row name will be used in
-mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+\item{Name}{A character string indicating the desired values to be used in
+next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
+"mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
+quantification matrix.}
 
 \item{Method}{The agglomeration method to be used: \code{"euclidean",
   "maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
@@ -48,7 +50,7 @@ details. As default \code{Width = 2000, Height = 1500, Res =
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 

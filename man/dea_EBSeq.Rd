@@ -6,14 +6,16 @@
 \usage{
 dea_EBSeq(Name, workDir, env, tumor, groupGen, clinical_pair,
   pairName = "G2_over_G1", rounds = 7, normType = "QuantileNorm",
-  EBTest.Qtrm = 0.75, EBTest.QtrmCut = 10, p.cutoff = 0.05,
-  FDR.cutoff = 0.05, FC.cutoff = 2, Width = 2000, Height = 1500,
-  Res = 300, Unit = "px", image.format = "png",
-  Bullard.quantile = 0.75)
+  EBTest_Qtrm = 0.75, EBTest_QtrmCut = 10, p_cutoff = 0.05,
+  FDR_cutoff = 0.05, FC_cutoff = 2, Width = 2000, Height = 1500,
+  Res = 300, Unit = "px", image_format = "png",
+  Bullard_quantile = 0.75)
 }
 \arguments{
-\item{Name}{A character string indicating which row name will be used in
-mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+\item{Name}{A character string indicating the desired values to be used in
+next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
+"mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
+quantification matrix.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
@@ -48,18 +50,18 @@ default is \code{7}.}
 factors type should be used in the analysis "QuantileNorm" or "MedianNorm".
 The default is \code{"all"}.}
 
-\item{EBTest.Qtrm, EBTest.QtrmCut}{Numerical value. It is removed from the
-analysis genes with EBTest.Qtrm th quantile < = EBTest.QtrmCut. More
-details in EBSeq \link{EBTest} page. The default is \code{EBTest.Qtrm =
-  0.75} and \code{EBTest.QtrmCut = 10}.}
+\item{EBTest_Qtrm, EBTest_QtrmCut}{Numerical value. It is removed from the
+analysis genes with EBTest_Qtrm th quantile < = EBTest_QtrmCut. More
+details in EBSeq \link{EBTest} page. The default is \code{EBTest_Qtrm =
+  0.75} and \code{EBTest_QtrmCut = 10}.}
 
-\item{p.cutoff}{Numerical value indicating the maximum value for p-values.
+\item{p_cutoff}{Numerical value indicating the maximum value for p-values.
 The default is \code{0.05}.}
 
-\item{FDR.cutoff}{Numerical value indicating the maximum value for FDR
+\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
-\item{FC.cutoff}{Numerical value indicating the maximum value for Fold Change
+\item{FC_cutoff}{Numerical value indicating the maximum value for Fold Change
 (FC). The default is \code{2}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
@@ -78,11 +80,11 @@ details. As default \code{Width = 2000, Height = 1500, Res =
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 
-\item{Bullard.quantile}{Numerical value indicating the quantile for the
+\item{Bullard_quantile}{Numerical value indicating the quantile for the
 Bullard's normalization. The default is \code{0.75}.}
 }
 \value{

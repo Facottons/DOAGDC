@@ -4,9 +4,9 @@
 \alias{GOnto}
 \title{Perform Gene-Ontology Pathways Enrichment}
 \usage{
-GOnto(condition, use_genes_without_cat = TRUE, FDR.cutoff = 0.05,
+GOnto(condition, use_genes_without_cat = TRUE, FDR_cutoff = 0.05,
   Width = 2000, Height = 2000, Res = 300, Unit = "px",
-  image.format = "png", Tool, ID = "GeneID", pairName = "G2_over_G1",
+  image_format = "png", Tool, ID = "GeneID", pairName = "G2_over_G1",
   env)
 }
 \arguments{
@@ -17,7 +17,7 @@ used: "Upregulated", "Downregulated" or "all".}
 genes outside the category being tested will be ignored in the calculation
 of p-values. The default is "FALSE".}
 
-\item{FDR.cutoff}{Numerical value indicating the maximum value for FDR
+\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
@@ -36,7 +36,7 @@ details. As default \code{Width = 2000, Height = 1500, Res =
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 

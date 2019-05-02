@@ -1,18 +1,18 @@
-Package: GDCtools
+Package: DOAGDC
 Title: A Package to Download, Organize and Analyze Genomic Data Commons (GDC) Data
-Version: 0.0.1
-Date: 2018-09-07
+Version: 0.99.0
+Date: 2019-05-01
 Authors@R: c(
     person("Fábio Malta de Sá", "Patroni", role = c("aut", "cre", "cph"), email = "fabio_patroni@yahoo.com.br"),
     person("Douglas", "Adamoski", , role = "ctb"),
     person("Marcelo", "Carazzole", , role = "ctb"),
     person("Sandra Martha Gomes", "Dias", , role = "ctb"))
-Description: In order to download, organize and analyze GDC data we have developed GDCtools. 
-    It implements and uses many well-known R packages, as DESeq2, edgeR, WGCNA, and mclust. 
+Description: In order to download, organize and analyze GDC data we have developed DOAGDC. 
+    It implements and uses many well-known R packages like DESeq2, edgeR, WGCNA, and mclust. 
     This is a free open-source software that implements academic research
     by the authors and co-workers. If you use it, please support
     the project by citing the appropriate journal article listed in
-    citation("GDCtools").
+    citation("DOAGDC").
 Depends: R (>= 3.4)
 Imports: 
     stats,
@@ -69,7 +69,8 @@ Imports:
     AnnotationDbi, 
     dynamicTreeCut,
     forcats,
-    reshape2
+    reshape2,
+    dplyr
 Suggests: 
     rmarkdown (>= 0.9),
     knitr (>= 1.12),
@@ -80,8 +81,8 @@ Suggests:
     gageData,
     testthat
 License: GPL-3 | file LICENSE
-URL: https://github.com/Facottons/GDCtools
-BugReports: https://github.com/Facottons/GDCtools/issues
+URL: https://github.com/Facottons/DOAGDC
+BugReports: https://github.com/Facottons/DOAGDC/issues
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr

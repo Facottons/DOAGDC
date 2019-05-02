@@ -74,7 +74,7 @@ clinical_terms <- function(Name,
             folder <- "clinical"
         }
 
-        DIR <- file.path(workDir, "GDCtools", toupper(tumor),
+        DIR <- file.path(workDir, "DOAGDC", toupper(tumor),
                          folder)
 
         for (tumors in names(lista)){
@@ -113,11 +113,11 @@ clinical_terms <- function(Name,
                           paste0(terms_with_keyword[order(terms_with_keyword)],
                                  collapse = "\n-"), sep = "\n-"))
             message(paste0("\nAll of them were saved in ",
-                           workDir, " as '", "GDCtools_possible_terms_for_",
+                           workDir, " as '", "DOAGDC_possible_terms_for_",
                            toupper(tumor), "_",
                            tolower(dataBase), ".txt"))
             write.csv(terms_polished,
-                        file.path(workDir, paste0("GDCtools_possible_terms_for_",
+                        file.path(workDir, paste0("DOAGDC_possible_terms_for_",
                                                              toupper(tumor), "_",
                                                              tolower(dataBase), ".csv")),
                         row.names = FALSE, quote = FALSE)
@@ -137,11 +137,11 @@ clinical_terms <- function(Name,
                 message(paste("These are the possible terms:",
                               paste0(names(terms_with_keyword), collapse = "\n-"), sep = "\n-"))
                 message(paste0("\nAll of them were saved in ",
-                               workDir, " as '", "GDCtools_possible_terms_for_",
+                               workDir, " as '", "DOAGDC_possible_terms_for_",
                                tolower(term_keyword), "_",
                                tolower(dataBase), ".txt"))
                 write.table(terms_with_keyword, file.path(workDir,
-                                                          paste0("GDCtools_possible_terms_for_",
+                                                          paste0("DOAGDC_possible_terms_for_",
                                                                  tolower(term_keyword), "_",
                                                                  tolower(dataBase), ".txt")),
                             row.names = FALSE)
@@ -150,11 +150,11 @@ clinical_terms <- function(Name,
                 message(paste("These are the possible terms:",
                               paste0(terms_with_keyword, collapse = "\n-"), sep = "\n-"))
                 message(paste0("\nAll of them were saved in ",
-                               workDir, " as '", "GDCtools_possible_terms_for_",
+                               workDir, " as '", "DOAGDC_possible_terms_for_",
                                tolower(term_keyword), toupper(tumor),
                                tolower(dataBase), ".txt"))
                 write.table(terms_with_keyword, file.path(workDir,
-                                                          paste0("GDCtools_possible_terms_for_",
+                                                          paste0("DOAGDC_possible_terms_for_",
                                                                  tolower(term_keyword),
                                                                  toupper(tumor),
                                                                  tolower(dataBase), ".txt")),
@@ -171,8 +171,8 @@ clinical_terms <- function(Name,
     Name <- gsub("-", "_", Name)
 
     if ("all" %in% tolower(tumor)) {
-        lista <- vector("list", length(dir(path = file.path(workDir, "GDCtools"))))
-        names(lista) <- dir(path = file.path(workDir, "GDCtools"))
+        lista <- vector("list", length(dir(path = file.path(workDir, "DOAGDC"))))
+        names(lista) <- dir(path = file.path(workDir, "DOAGDC"))
         for_couple_tumors(only_one_tumor = FALSE)
     } else if (length(tumor) > 1) {
         lista <- vector("list", length(tumor))
@@ -196,9 +196,9 @@ clinical_terms <- function(Name,
         }
         string_vars <- list(envir_link = get(envir_link))
 
-        dir.create(file.path(workDir, "GDCtools", toupper(tumor), "Analyses"), showWarnings = FALSE)
+        dir.create(file.path(workDir, "DOAGDC", toupper(tumor), "Analyses"), showWarnings = FALSE)
 
-        PATH <- file.path(workDir, "GDCtools", toupper(tumor), "Analyses")
+        PATH <- file.path(workDir, "DOAGDC", toupper(tumor), "Analyses")
 
         if (exists("Name.e", envir = get(envir_link))){
             PATH <- file.path(PATH, string_vars[["envir_link"]]$Name.e)

@@ -50,7 +50,7 @@ GOnto <- function(condition,
 
         # @param File A character string indicating the object name containg the DE
         #   matrix. It must be named \code{Results_Completed.} and it must be inside
-        #   the given \code{env}. Use the function \code{table2GDCtools} to allocate
+        #   the given \code{env}. Use the function \code{table2DOAGDC} to allocate
         #   your table inside the given \code{env}.
 
         if (missing(env)) {
@@ -73,18 +73,25 @@ GOnto <- function(condition,
         dataBase <- string_vars[["envir_link"]]$dataBase
 
         if (grepl("crosstable", tolower(Tool))) {
-            if (tolower(Tool) == "crosstable.deseq2") {
+            if (tolower(Tool) == "crosstable_deseq2") {
                 DIR <- paste0(PATH, "/CrossData_deseq2")
-            } else if (tolower(Tool) == "crosstable.edger") {
+            } else if (tolower(Tool) == "crosstable_edger") {
                 DIR <- paste0(PATH, "/CrossData_edger")
-            } else if (tolower(Tool) == "crosstable.ebseq") {
+            } else if (tolower(Tool) == "crosstable_ebseq") {
                 DIR <- paste0(PATH, "/CrossData_ebseq")
             }
+
+            if (grepl("co_exp", tolower(Tool))) {
+                File <- "resultadosDE_crossed_Co"
+                DIR <- file.path(DIR, "co_expression")
+            } else {
+                File <- "resultadosDE_crossed"
+            }
+
+            File2 <- "Results_Completed_crossed"
+
             dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
             DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
-
-            File <- "resultadosDE_crossed"
-            File2 <- "Results_Completed_crossed"
 
         } else {
             File <- paste("resultadosDE", Tool, sep = ".")
@@ -97,8 +104,8 @@ GOnto <- function(condition,
         }
 
         # generate annotation table
-        annotation_table <- GDCtools::annotation_table
-        # GO_annotations <- GDCtools::GO_annotations
+        annotation_table <- DOAGDC::annotation_table
+        # GO_annotations <- DOAGDC::GO_annotations
 
         #input DE genes
         resultadosDE <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
@@ -120,7 +127,7 @@ GOnto <- function(condition,
 
                 # resultadosDE
                 resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
-                annotation_table <- GDCtools::annotation_table
+                annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 geneID <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "GeneID")])
                 # Outer_join
@@ -173,7 +180,7 @@ GOnto <- function(condition,
 
                 # resultadosDE
                 resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
-                annotation_table <- GDCtools::annotation_table
+                annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 GeneSymbol <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "UCSC_GeneSymbol")])
                 # Outer_join
@@ -234,7 +241,7 @@ GOnto <- function(condition,
 
                 # resultadosDE
                 resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
-                annotation_table <- GDCtools::annotation_table
+                annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 HUGO <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "HUGO")])
                 # Outer_join
@@ -300,7 +307,7 @@ GOnto <- function(condition,
 
                 # resultadosDE
                 resultadosDE$GeneID <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
-                annotation_table <- GDCtools::annotation_table
+                annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 ensembl <- unique(annotation_table[annotation_table$ensembl %in% selected, c("GeneID", "ensembl")])
                 # Outer_join
@@ -383,7 +390,7 @@ GOnto <- function(condition,
 
                 # resultadosDE
                 resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
-                annotation_table <- GDCtools::annotation_table
+                annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 refGene <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "RefSeq")])
                 # Outer_join
@@ -567,13 +574,18 @@ GOnto <- function(condition,
 
     message("Starting GO estimation...")
     if (grepl("crosstable", tolower(Tool))) {
-        if (tolower(Tool) == "crosstable.deseq2") {
+        if (tolower(Tool) == "crosstable_deseq2") {
             DIR <- paste0(PATH, "/CrossData_deseq2")
-        } else if (tolower(Tool) == "crosstable.edger") {
+        } else if (tolower(Tool) == "crosstable_edger") {
             DIR <- paste0(PATH, "/CrossData_edger")
-        } else if (tolower(Tool) == "crosstable.ebseq") {
+        } else if (tolower(Tool) == "crosstable_ebseq") {
             DIR <- paste0(PATH, "/CrossData_ebseq")
         }
+
+        if (grepl("co_exp", tolower(Tool))) {
+            DIR <- file.path(DIR, "co_expression")
+        }
+
         dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
         DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
     } else {

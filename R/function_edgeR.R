@@ -125,8 +125,8 @@ dea_edgeR <- function(Name,
 
         if (Pairs > 0) {
             string_vars[["envir_link"]]$resultadosDE.edgeR[[Pairs]] <- tableDE
-            string_vars[["envir_link"]]$Results_Completed.edgeR[[Pairs]] <- Results_Completed_local
-            # assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
+            string_vars[["envir_link"]]$Results_Completed_edgeR[[Pairs]] <- Results_Completed_local
+            # assign("Results_Completed_edgeR", Results_Completed, envir = get(envir_link))
             # assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
         } else {
             Results_Completed <- vector("list", 1)
@@ -136,7 +136,7 @@ dea_edgeR <- function(Name,
 
             Results_Completed[[1]] <- Results_Completed_local
             resultadosDE[[1]] <- tableDE
-            assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
+            assign("Results_Completed_edgeR", Results_Completed, envir = get(envir_link))
             assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
         }
 
@@ -205,7 +205,7 @@ dea_edgeR <- function(Name,
 
         if (Pairs > 0) {
             string_vars[["envir_link"]]$resultadosDE.edgeR[[Pairs]] <- tableDE
-            string_vars[["envir_link"]]$Results_Completed.edgeR[[Pairs]] <- Results_Completed_local
+            string_vars[["envir_link"]]$Results_Completed_edgeR[[Pairs]] <- Results_Completed_local
         } else {
             Results_Completed <- vector("list", 1)
             resultadosDE <- vector("list", 1)
@@ -214,7 +214,7 @@ dea_edgeR <- function(Name,
 
             Results_Completed[[1]] <- Results_Completed_local
             resultadosDE[[1]] <- tableDE
-            assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
+            assign("Results_Completed_edgeR", Results_Completed, envir = get(envir_link))
             assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
         }
 
@@ -337,7 +337,7 @@ dea_edgeR <- function(Name,
 
     dataBase <- string_vars[["envir_link"]]$dataBase
 
-    assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
+    assign("PATH", file.path(workDir, "DOAGDC", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
            envir = get(envir_link))
 
     assign("groupGen", groupGen, envir = get(envir_link))
@@ -454,7 +454,7 @@ dea_edgeR <- function(Name,
             names(resultadosDE) <- combinations_names
             names(Results_Completed) <- combinations_names
 
-            assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
+            assign("Results_Completed_edgeR", Results_Completed, envir = get(envir_link))
             assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
 
             count <- 0
@@ -463,7 +463,7 @@ dea_edgeR <- function(Name,
                 count <- count + 1
                 tested[[Pairs]] <- edgeR::exactTest(dge, pair = combinations[, Pairs])
                 exact_groups_fix(tested, Pairs)
-                suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.edgeR, Pairs))
+                suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed_edgeR, Pairs))
 
                 setTxtProgressBar(pb, count)
             }
@@ -473,7 +473,7 @@ dea_edgeR <- function(Name,
         } else {
             tested <- edgeR::exactTest(dge)
             exact_groups_fix(tested, 0)
-            suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.edgeR, 0))
+            suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed_edgeR, 0))
         }
     } else if (tolower(Method) == "glmlrt") {
         dge <- edgeR::calcNormFactors(dge)
@@ -504,7 +504,7 @@ dea_edgeR <- function(Name,
             names(resultadosDE) <- combinations_names
             names(Results_Completed) <- combinations_names
 
-            assign("Results_Completed.edgeR", Results_Completed, envir = get(envir_link))
+            assign("Results_Completed_edgeR", Results_Completed, envir = get(envir_link))
             assign("resultadosDE.edgeR", resultadosDE, envir = get(envir_link))
 
             count <- 0
@@ -522,7 +522,7 @@ dea_edgeR <- function(Name,
                 }
 
                 glmlrt_groups_fix(tested, Pairs)
-                suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.edgeR, Pairs))
+                suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed_edgeR, Pairs))
 
                 setTxtProgressBar(pb, count)
             }
@@ -531,7 +531,7 @@ dea_edgeR <- function(Name,
         } else {
             tested <- edgeR::glmLRT(aGlmFit, coef = 2)
             glmlrt_groups_fix(tested, 0)
-            suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.edgeR, 0))
+            suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed_edgeR, 0))
         }
     } else {
         stop("Please insert a valid Method!!! ('exactTest' or 'glmLRT')")

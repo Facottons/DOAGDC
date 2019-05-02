@@ -214,7 +214,7 @@ dea_DESeq2 <- function(Name,
 
     dataBase <- string_vars[["envir_link"]]$dataBase
 
-    assign("PATH", file.path(workDir, "GDCtools",
+    assign("PATH", file.path(workDir, "DOAGDC",
                              toupper(string_vars[["envir_link"]]$tumor), "Analyses"), envir = get(envir_link))
 
     assign("groupGen", groupGen, envir = get(envir_link))
@@ -487,7 +487,7 @@ dea_DESeq2 <- function(Name,
     # resultadosDE <<- resultadosDE
     #
     assign("NormalizedExpression.DESeq2", NormalizedExpression, envir = get(envir_link))
-    assign("Results_Completed.DESeq2", Results_Completed, envir = get(envir_link))
+    assign("Results_Completed_DESeq2", Results_Completed, envir = get(envir_link))
     assign("resultadosDE.DESeq2", resultadosDE, envir = get(envir_link))
     # assign("tested", tested, envir = get(envir_link))
     #colnames(tested)[1:2] <- c("log2FC", "log2CPM")

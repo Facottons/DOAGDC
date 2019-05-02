@@ -704,7 +704,7 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         #heatmap.3(mat, RowSideColors=row_annotation, ColSideColors=column_annotation)
     }
 
-    final.heatmap <- function(dist.Method, Scale.Method){
+    final.heatmap <- function(dist_Method, Scale_Method){
 
         # is the labRow desired?
         if (!is.null(labRow) && tolower(labRow) == "rownames") {
@@ -722,15 +722,15 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
 
         if (tolower(image_format) == "png") {
             png(filename = paste0(DIR,
-                                  "/Heatmaps/", dist.Method, "_",
-                                  method, "_", Scale.Method,
+                                  "/Heatmaps/", dist_Method, "_",
+                                  method, "_", Scale_Method,
                                   "_FC_cutoff=", FC_cutoff, "_",
                                   pairName, ".png"),
                 width = Width, height = Height, res = Res, units = Unit)
         } else if (tolower(image_format) == "svg") {
             svg(filename = paste0(DIR,
-                                  "/Heatmaps/", dist.Method, "_",
-                                  method, "_", Scale.Method,
+                                  "/Heatmaps/", dist_Method, "_",
+                                  method, "_", Scale_Method,
                                   "_FC_cutoff=", FC_cutoff, "_",
                                   pairName, ".svg"),
                 width = Width, height = Height, onefile = TRUE)
@@ -739,7 +739,7 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         }
         par(oma = outerMargins)
         heatmap.3(DF,
-                  scale=Scale.Method,
+                  scale=Scale_Method,
                   dendrogram="both",
                   margins=c(3, 9),
                   Rowv=row.dendro,
@@ -766,8 +766,8 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         patient.order <- cbind(1:nrow(patient.order), patient.order)
         colnames(patient.order) <- c("Dendrogram Order", "Patient")
         write.csv(patient.order, paste0(DIR, "/Heatmaps/Patient_order_",
-                                        dist.Method, "_",
-                                        method, "_", Scale.Method,
+                                        dist_Method, "_",
+                                        method, "_", Scale_Method,
                                         "_FC_cutoff=", FC_cutoff, "_",
                                         pairName, ".csv"),
                   row.names = FALSE)
@@ -776,8 +776,8 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         row.order <- cbind(1:nrow(resultadosDE), row.order)
         colnames(row.order) <- c("Dendrogram Order", "Row")
         write.csv(row.order, paste0(DIR, "/Heatmaps/Row_order_",
-                                    dist.Method, "_",
-                                    method, "_", Scale.Method,
+                                    dist_Method, "_",
+                                    method, "_", Scale_Method,
                                     "_FC_cutoff=", FC_cutoff, "_",
                                     pairName, ".csv"),
                   row.names = FALSE)
@@ -786,7 +786,7 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
     #code ####
     Name <- gsub("-", "_", Name)
 
-    if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+    if (missing(env)) {stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
@@ -794,10 +794,10 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
     # if (missing("workDir")){
     #     workDir <- string_vars[["envir_link"]]$workDir
     # }
-    # assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor),
+    # assign("PATH", file.path(workDir, "DOAGDC", toupper(string_vars[["envir_link"]]$tumor),
     #                          "Analyses"), envir = get(envir_link))
 
-    if (exists("Name.e", envir = get(envir_link))){
+    if (exists("Name.e", envir = get(envir_link))) {
         PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
     } else {
         PATH <- string_vars[["envir_link"]]$PATH
@@ -875,17 +875,17 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
 
 
     if (tolower(ScaleMethod) == "none" && RawValues) {
-        DF <- log2(ParaHeatmaps+1)
+        DF <- log2(ParaHeatmaps + 1)
         color_key_name <- "Log2(Expression Values + 1)"
     } else if (tolower(ScaleMethod) == "none") {
-        DF <- scale(log2(ParaHeatmaps+1))
+        DF <- scale(log2(ParaHeatmaps + 1))
         color_key_name <- "Z-Score"
     } else {
-        DF <- log2(ParaHeatmaps+1)
+        DF <- log2(ParaHeatmaps + 1)
     }
 
 
-    #dist(c,Scale.Method="euclidian")
+    #dist(c,Scale_Method="euclidian")
     distMatrix.col <- amap::Dist(t(DF), method = Method)
     distMatrix.row <- amap::Dist(DF, method = Method)
     #complete
@@ -900,10 +900,10 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
     method <- "complete"
     if (length(Method) > 1){
         for (Methods in Method){
-            final.heatmap(dist.Method = Methods, Scale.Method = ScaleMethod)
+            final.heatmap(dist_Method = Methods, Scale_Method = ScaleMethod)
         }
     } else {
-        final.heatmap(dist.Method = Method, Scale.Method = ScaleMethod)
+        final.heatmap(dist_Method = Method, Scale_Method = ScaleMethod)
     }
 
     #average
@@ -918,10 +918,10 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
     method <- "average"
     if (length(Method) > 1){
         for (Methods in Method){
-            final.heatmap(dist.Method = Methods, Scale.Method = ScaleMethod)
+            final.heatmap(dist_Method = Methods, Scale_Method = ScaleMethod)
         }
     } else {
-        final.heatmap(dist.Method = Method, Scale.Method = ScaleMethod)
+        final.heatmap(dist_Method = Method, Scale_Method = ScaleMethod)
     }
 
     message("\nDone!\n")

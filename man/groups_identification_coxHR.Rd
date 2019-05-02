@@ -5,12 +5,14 @@
 \title{Separate patients in groups}
 \usage{
 groups_identification_coxHR(Name, dataType, Width = 3000,
-  Height = 2000, Res = 400, Unit = "px", image.format = "png",
+  Height = 2000, Res = 400, Unit = "px", image_format = "png",
   saveData = TRUE, env, tumor, dataBase, workDir)
 }
 \arguments{
-\item{Name}{A character string indicating which row name will be used in
-mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+\item{Name}{A character string indicating the desired values to be used in
+next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
+"mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
+quantification matrix.}
 
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
   "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
@@ -35,7 +37,7 @@ details. As default \code{Width = 2000, Height = 1500, Res =
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 

@@ -6,14 +6,16 @@
 \usage{
 clinical_terms(Name, workDir = "~/Desktop", tumor = "all", dataType,
   group.number = 2, term, dataBase = "legacy", term_keyword = NULL,
-  tumor_with_term = 1, p.cutoff = 0.05, FDR.cutoff = 0.05,
+  tumor_with_term = 1, p_cutoff = 0.05, FDR_cutoff = 0.05,
   confidence.level = 0.95, Width = 7, Height = 7, Res = 300,
-  Unit = "in", image.format = "svg", env, cexAxixX = 16,
+  Unit = "in", image_format = "svg", env, cexAxixX = 16,
   cexAxixY = 16)
 }
 \arguments{
-\item{Name}{A character string indicating which row name will be used in
-mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+\item{Name}{A character string indicating the desired values to be used in
+next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
+"mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
+quantification matrix.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
@@ -39,10 +41,10 @@ term. Used when the specific term is unknown.}
 \item{tumor_with_term}{A numerical value indicating the minimum number of
 tumors containing a specific term with the keyword used. The default is 1.}
 
-\item{p.cutoff}{Numerical value indicating the maximum value for p-values.
+\item{p_cutoff}{Numerical value indicating the maximum value for p-values.
 The default is \code{0.05}.}
 
-\item{FDR.cutoff}{Numerical value indicating the maximum value for FDR
+\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
 \item{confidence.level}{A numerical value containing the confidence interval
@@ -64,7 +66,7 @@ details. As default \code{Width = 2000, Height = 1500, Res =
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 

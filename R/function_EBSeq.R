@@ -180,13 +180,13 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
             EBSeq_RESULTS <- EBSeq_RESULTS[, c(1, 4, 3)]
         }
 
-        if (exists("Results_Completed.EBSeq", envir = get(envir_link))){
-            Results_Completed <- string_vars[["envir_link"]]$Results_Completed.EBSeq
+        if (exists("Results_Completed_EBSeq", envir = get(envir_link))){
+            Results_Completed <- string_vars[["envir_link"]]$Results_Completed_EBSeq
             resultadosDE <- string_vars[["envir_link"]]$resultadosDE.EBSeq
         }
 
         Results_Completed[[comb_name]] <- EBSeq_RESULTS
-        assign("Results_Completed.EBSeq", Results_Completed, envir = get(envir_link))
+        assign("Results_Completed_EBSeq", Results_Completed, envir = get(envir_link))
 
         #for DE
         ResultadosDE <- EBSeq_RESULTS[abs(EBSeq_RESULTS$FC) > FC_cutoff, ]
@@ -288,7 +288,7 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
 
     dataBase <- string_vars[["envir_link"]]$dataBase
 
-    assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
+    assign("PATH", file.path(workDir, "DOAGDC", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
            envir = get(envir_link))
 
     assign("groupGen", groupGen, envir = get(envir_link))
@@ -356,7 +356,7 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
         stop(message("Please insert a valid 'normType' argument!!"))
     }
 
-    if (!exists("Results_Completed.EBSeq", envir = get(envir_link))) {
+    if (!exists("Results_Completed_EBSeq", envir = get(envir_link))) {
         combinations <- combn(1:group2_number, 2)
         tested <- vector("list", group2_number)
         resultadosDE <- vector("list", group2_number)
@@ -383,7 +383,7 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
         # str(GeneFC)$Direction
 
         ebseq_plots(EBOut, 0)
-        suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed.EBSeq, pairName))
+        suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed_EBSeq, pairName))
     #} else if (group2_number > 2){
 
     #     PosParti <- EBSeq::GetPatterns(Grupos_EBSeq[, "condition"])

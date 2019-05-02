@@ -15,9 +15,9 @@
 #'
 #' @examples
 #' \dontrun{
-#' DO_REAC_ENRICH (Tool = "edgeR", env = "env name without quotes")
+#' DO_React_enrich(Tool = "edgeR", env = "env name without quotes")
 #' }
-DO_REAC_ENRICH <- function(p_cutoff = 0.05,
+DO_React_enrich <- function(p_cutoff = 0.05,
                            FDR_cutoff = 0.05,
                            Width = 8,
                            Height = 4,

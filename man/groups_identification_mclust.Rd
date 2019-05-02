@@ -7,7 +7,7 @@
 groups_identification_mclust(dataType, group.number = "",
   modelName = NULL, uncertaintyCutoff = 0.05, reRunPlots = FALSE,
   nBreaks = 55, Width = 2000, Height = 1500, Res = 300,
-  Unit = "px", image.format = "png", saveData = TRUE, env, tumor,
+  Unit = "px", image_format = "png", saveData = TRUE, env, tumor,
   dataBase, workDir = "~/Desktop", Name)
 }
 \arguments{
@@ -39,7 +39,7 @@ bars. As default \code{nBreaks = 55}.}
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 
@@ -62,8 +62,10 @@ Portal or \code{"legacy"} for GDC Legacy Archive.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
-\item{Name}{A character string indicating which row name will be used in
-mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+\item{Name}{A character string indicating the desired values to be used in
+next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
+"mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
+quantification matrix.}
 }
 \description{
 \code{groups_identification_mclust} is a function designed to separate patients in

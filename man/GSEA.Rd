@@ -4,12 +4,12 @@
 \alias{GSEA}
 \title{Gene Set Enrichment Analysis}
 \usage{
-GSEA(FDR.cutoff = 0.05, Width = 10, Height = 3, Res = 500,
-  Unit = "in", image.format = "png", Tool = "edgeR", ID = "GeneID",
+GSEA(FDR_cutoff = 0.05, Width = 10, Height = 3, Res = 500,
+  Unit = "in", image_format = "png", Tool = "edgeR", ID = "GeneID",
   pairName = "G2_over_G1", env)
 }
 \arguments{
-\item{FDR.cutoff}{Numerical value indicating the maximum value for FDR
+\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
@@ -28,7 +28,7 @@ details. As default \code{Width = 2000, Height = 1500, Res =
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 

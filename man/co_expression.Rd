@@ -4,20 +4,26 @@
 \alias{co_expression}
 \title{Co-Expression Analyses}
 \usage{
-co_expression(Data = NULL, Name, workDir, tumor, normalization = TRUE,
-  tumorData = TRUE, traitData = NULL, networkType = "unsigned",
-  minModuleSize = 15, max_softpower = 20, nthreads = 1,
-  MEDissThres = 0.25, Width = 2000, Height = 1500, Res = 300,
-  Unit = "px", image.format = "png", env, saveCheckpoints = FALSE,
-  loadCheckpoint = FALSE, pearsonCutoff = 0.5)
+co_expression(Data = NULL, Name, dataBase, workDir, tumor,
+  normalization = TRUE, tumorData = TRUE, traitData = NULL,
+  networkType = "unsigned", minModuleSize = 15, max_softpower = 20,
+  nthreads = 1, MEDissThres = 0.25, Width = 2000, Height = 1500,
+  Res = 300, Unit = "px", image_format = "png", env,
+  saveCheckpoints = FALSE, loadCheckpoint = NULL,
+  pearsonCutoff = 0.5)
 }
 \arguments{
 \item{Data}{Used for external non-log expression data. Matrix or data frame.
 This \code{Data} must have patients/sample code as \code{colnames} and
 genes as \code{rownames}.}
 
-\item{Name}{A character string indicating which row name will be used in
-mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+\item{Name}{A character string indicating the desired values to be used in
+next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
+"mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
+quantification matrix.}
+
+\item{dataBase}{A character string specifying \code{"GDC"} for GDC Data
+Portal or \code{"legacy"} for GDC Legacy Archive.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
@@ -38,7 +44,7 @@ The default is \code{TRUE}.}
 \item{traitData}{A character string where "default" indicates that the trait
 data to be used is provide by the output of \code{check_clinical_terms}
 function. Use "custom" for data inserted by the user after the
-\code{table2GDCRtools} function and with the table object named as
+\code{table2GDCtools} function and with the table object named as
 \code{trait_data}. This object must have patients/sample code as
 \code{rownames} and the trait categories as \code{colnames}. By default
 trait data is not used.}
@@ -78,7 +84,7 @@ details. As default \code{Width = 2000, Height = 1500, Res =
 details. As default \code{Width = 2000, Height = 1500, Res =
   300 and Unit = "px"}.}
 
-\item{image.format}{A character string indicating which image format will be
+\item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 

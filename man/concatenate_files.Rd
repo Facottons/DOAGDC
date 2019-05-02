@@ -7,7 +7,7 @@
 concatenate_files(dataType, normalization = TRUE, Name, dataBase,
   HTSeq = NULL, workDir = "~/Desktop", tumor, workflowType,
   tumorData = TRUE, cutoffBetaNA = 0.25, cutoffBetasd = 0.005,
-  onlyFilter = FALSE, Platform = "", use.hg19.mirbase20 = FALSE, env,
+  onlyFilter = FALSE, Platform = "", use_hg19_mirbase20 = FALSE, env,
   saveData = FALSE)
 }
 \arguments{
@@ -24,8 +24,10 @@ forget to set env argument. This argument is only applyable to gene and
 isoform expression data from GDC Legacy Archive. The default is
 \code{TRUE}.}
 
-\item{Name}{A character string indicating which row name will be used in
-mclust separation, e.g. "HIF3A" in the gene expression concatenated matrix.}
+\item{Name}{A character string indicating the desired values to be used in
+next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
+"mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
+quantification matrix.}
 
 \item{dataBase}{A character string specifying \code{"GDC"} for GDC Data
 Portal or \code{"legacy"} for GDC Legacy Archive.}
@@ -75,7 +77,7 @@ methylation, exon quantificaton, miRNA, and mutation data. \itemize{
   "all"}.} }The default for all dataType cited is \code{"all"} (when
 downloading data).}
 
-\item{use.hg19.mirbase20}{Logical value where \code{TRUE} indicates that only
+\item{use_hg19_mirbase20}{Logical value where \code{TRUE} indicates that only
 hg19.mirbase20 should be used. This parameter is needed when using
 \code{dataBase = "legacy"} and one of the available miRNA \code{dataType}
 in "legacy" ("miRNA gene quantification" and "miRNA isoform

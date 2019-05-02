@@ -126,7 +126,7 @@ PCA_Analysis <- function(Tool,
         workDir <- string_vars[["envir_link"]]$workDir
     }
 
-    # assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor),
+    # assign("PATH", file.path(workDir, "DOAGDC", toupper(string_vars[["envir_link"]]$tumor),
     #                          "Analyses"), envir = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))){

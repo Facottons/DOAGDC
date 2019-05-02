@@ -15,9 +15,9 @@
 #'
 #' @examples
 #' \dontrun{
-#' KEEG_ENRICH(Tool = "edgeR", env = "env name without quotes")
+#' KEEG_enrich(Tool = "edgeR", env = "env name without quotes")
 #' }
-KEEG_ENRICH <- function(Tool = "edgeR",
+KEEG_enrich <- function(Tool = "edgeR",
                         FDR_cutoff = 0.05,
                         ID = "GeneID",
                         pairName = "G2_over_G1",
@@ -26,21 +26,21 @@ KEEG_ENRICH <- function(Tool = "edgeR",
                         Res = 300,
                         Unit = "in",
                         image_format = "png",
-                        env){
+                        env) {
 
     # library(pathview, gage, gageData)
 
-    if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+    if (missing(env)) {stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
     groupGen <- string_vars[["envir_link"]]$groupGen
     Name <- string_vars[["envir_link"]]$Name
 
-    # assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
+    # assign("PATH", file.path(workDir, "DOAGDC", toupper(string_vars[["envir_link"]]$tumor), "Analyses"),
     #        envir = get(envir_link))
 
-    if (exists("Name.e", envir = get(envir_link))){
+    if (exists("Name.e", envir = get(envir_link))) {
         PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
     } else {
         PATH <- string_vars[["envir_link"]]$PATH
@@ -94,7 +94,7 @@ KEEG_ENRICH <- function(Tool = "edgeR",
     # Results_Completed <- get(File, envir = string_vars[["envir_link"]])[[pairName]]
 
     # generate annotation table
-    annotation_table <- GDCtools::annotation_table
+    annotation_table <- DOAGDC::annotation_table
 
     dataBase <- string_vars[["envir_link"]]$dataBase
 
@@ -122,7 +122,7 @@ KEEG_ENRICH <- function(Tool = "edgeR",
     }
 
     # Get the IDs.
-    keggresids <- unname(sapply(keggrespathways, function(w){
+    keggresids <- unname(sapply(keggrespathways, function(w) {
         paste0(unlist(strsplit(w, " "))[1])}))
 
     # get user wdir

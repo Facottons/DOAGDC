@@ -6,6 +6,7 @@
 #'   This \code{Data} must have patients/sample code as \code{colnames} and
 #'   genes as \code{rownames}.
 #' @param Name
+#' @param dataBase
 #' @param workDir
 #' @param tumor
 #' @param normalization
@@ -13,7 +14,7 @@
 #' @param traitData A character string where "default" indicates that the trait
 #'   data to be used is provide by the output of \code{check_clinical_terms}
 #'   function. Use "custom" for data inserted by the user after the
-#'   \code{table2GDCtools} function and with the table object named as
+#'   \code{table2DOAGDC} function and with the table object named as
 #'   \code{trait_data}. This object must have patients/sample code as
 #'   \code{rownames} and the trait categories as \code{colnames}. By default
 #'   trait data is not used.
@@ -55,6 +56,7 @@
 #' }
 co_expression <- function(Data = NULL,
                           Name,
+                          dataBase,
                           workDir, tumor,
                           normalization = TRUE,
                           tumorData = TRUE,
@@ -78,35 +80,35 @@ co_expression <- function(Data = NULL,
 
     WGCNA::enableWGCNAThreads(nThreads = nthreads)
 
-    if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+    if (missing(env)) {stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
 
     string_vars <- list(envir_link = get(envir_link))
-    if (missing("workDir")){
+    if (missing("workDir")) {
         workDir <- string_vars[["envir_link"]]$workDir
     }
 
-    assign("PATH", file.path(workDir, "GDCtools", toupper(string_vars[["envir_link"]]$tumor), "Analyses"), envir = get(envir_link))
+    assign("PATH", file.path(workDir, "DOAGDC", toupper(string_vars[["envir_link"]]$tumor), "Analyses"), envir = get(envir_link))
 
-    if (exists("Name.e", envir = get(envir_link))){
+    if (exists("Name.e", envir = get(envir_link))) {
         PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
     } else {
         PATH <- string_vars[["envir_link"]]$PATH
     }
 
     #creating the dir to outputs
-    dir.create(paste0(PATH, "/co_expression",
+    dir.create(paste0(PATH, "/co_expression_",
                       tolower(networkType), "_", toupper(tumor)), showWarnings = FALSE)
-    DIR <- paste0(PATH, "/co_expression",
+    DIR <- paste0(PATH, "/co_expression_",
                   tolower(networkType), "_", toupper(tumor))
 
     message("Filtering and data normalization...")
 
     # checkpoint 1 ####
     if (is.null(loadCheckpoint)) {
-        if (is.null(Data)){
-            if (normalization){
+        if (is.null(Data)) {
+            if (normalization) {
                 if (tumorData) {
                     datExpr <- string_vars[["envir_link"]]$gene_tumor_normalized
                 } else {
@@ -132,9 +134,9 @@ co_expression <- function(Data = NULL,
 
         if (!gsg$allOK)
         {
-            if (sum(!gsg$goodGenes)>0)
+            if (sum(!gsg$goodGenes) > 0)
                 dynamicTreeCut::printFlush(paste("Removing genes:", paste(names(datExpr0)[!gsg$goodGenes], collapse = ", ")))
-            if (sum(!gsg$goodSamples)>0)
+            if (sum(!gsg$goodSamples) > 0)
                 dynamicTreeCut::printFlush(paste("Removing samples:", paste(rownames(datExpr0)[!gsg$goodSamples], collapse = ", ")))
             # Remove the offending genes and samples from the data:
             datExpr0 <- datExpr0[gsg$goodSamples, gsg$goodGenes]
@@ -151,7 +153,7 @@ co_expression <- function(Data = NULL,
             stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(0,4,2,0), cex = 0.6)
-        plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
+        plot(sampleTree, main = "Sample clustering to detect outliers", sub = "", xlab = "", cex.lab = 1.5,
              cex.axis = 1.5, cex.main = 2, las = 1)
         dev.off()
 
@@ -170,7 +172,7 @@ co_expression <- function(Data = NULL,
             stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(0,4,2,0), cex = 0.6)
-        plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
+        plot(sampleTree, main = "Sample clustering to detect outliers", sub = "", xlab = "", cex.lab = 1.5,
              cex.axis = 1.5, cex.main = 2, las = 1)
         abline(h = cutHeight, col = "red")
         dev.off()
@@ -179,7 +181,7 @@ co_expression <- function(Data = NULL,
             # Determine cluster under the line
             clust <- WGCNA::cutreeStatic(sampleTree, cutHeight = cutHeight, minSize = 10)
             # clust 1 contains the samples we want to keep.
-            keepSamples <- (clust==1)
+            keepSamples <- (clust == 1)
             datExpr <- datExpr0[keepSamples, ]
 
             # clustering to detect outliers
@@ -201,7 +203,7 @@ co_expression <- function(Data = NULL,
             stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mar = c(0,4,2,0), cex = 0.6)
-        plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
+        plot(sampleTree, main = "Sample clustering to detect outliers", sub = "", xlab = "", cex.lab = 1.5,
              cex.axis = 1.5, cex.main = 2, las = 1)
         dev.off()
 
@@ -209,7 +211,7 @@ co_expression <- function(Data = NULL,
         if (!is.null(traitData)) {
             if (tolower(traitData) == "default") {
                 traitData <- string_vars[["envir_link"]]$trait_data
-            } else if (tolower(traitData) == "custom"){
+            } else if (tolower(traitData) == "custom") {
                 traitData <- string_vars[["envir_link"]]$trait_data
             }
 
@@ -243,9 +245,9 @@ co_expression <- function(Data = NULL,
         }
 
         # Step 2: Network construction and module detection ####
-        powers = c(c(1:10), seq(from = 12, to=max_softpower, by=2))
+        powers = c(c(1:10), seq(from = 12, to = max_softpower, by = 2))
 
-        sft = WGCNA::pickSoftThreshold(datExpr, powerVector = powers, networkType=networkType, verbose = 5)
+        sft = WGCNA::pickSoftThreshold(datExpr, powerVector = powers, networkType = networkType, verbose = 5)
 
         # Plot the results:
         if (tolower(image_format) == "png") {
@@ -261,25 +263,25 @@ co_expression <- function(Data = NULL,
         cex1 = 0.9
         # Scale-free topology fit index as a function of the soft-thresholding power
         plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-             xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+             xlab = "Soft Threshold (power)", ylab = "Scale Free Topology Model Fit,signed R^2", type = "n",
              main = paste("Scale independence"))
         text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-             labels=powers,cex=cex1,col="red")
+             labels = powers, cex = cex1, col = "red")
 
         # this line corresponds to using an R^2 cut-off of h
-        abline(h=0.9,col="red")
+        abline(h = 0.9, col = "red")
 
         # Mean connectivity as a function of the soft-thresholding power
 
         plot(sft$fitIndices[,1], sft$fitIndices[,5],
-             xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+             xlab = "Soft Threshold (power)",ylab = "Mean Connectivity", type = "n",
              main = paste("Mean connectivity"))
-        text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+        text(sft$fitIndices[,1], sft$fitIndices[,5], labels = powers, cex = cex1,col = "red")
 
         dev.off()
 
         # We choose the power XX, which is the lowest power for which the scale-free topology fit index reaches 0.90.
-        nGenes <- ncol(datExpr)
+        # nGenes <- ncol(datExpr)
         nSamples <- nrow(datExpr)
 
         softPower <- as.numeric(readline(prompt = "Please, insert the soft threshold value: "))
@@ -298,9 +300,9 @@ co_expression <- function(Data = NULL,
         } else {
             stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
         }
-        par(mfrow=c(1,2))
+        par(mfrow = c(1,2))
         hist(k)
-        WGCNA::scaleFreePlot(k, main="Check scale free topology\n")
+        WGCNA::scaleFreePlot(k, main = "Check scale free topology\n")
         dev.off()
 
         # Step 3 - TOPOLOGICAL OVERLAP MATRIX ####
@@ -333,7 +335,7 @@ co_expression <- function(Data = NULL,
     }
     # Plot the resulting clustering tree (dendrogram)
     #(12,9)
-    plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
+    plot(geneTree, xlab = "", sub = "", main = "Gene clustering on TOM-based dissimilarity",
          labels = FALSE, hang = 0.04)
     dev.off()
 
@@ -374,7 +376,7 @@ co_expression <- function(Data = NULL,
     MEs <- MEList$eigengenes
 
     # Calculate dissimilarity of module eigengenes
-    MEDiss = 1-cor(MEs, use = 'pairwise.complete.obs')
+    MEDiss = 1 - cor(MEs, use = 'pairwise.complete.obs')
     MEDiss["MEgrey" == rownames(MEDiss), ] <- 0
     METree = hclust(dist(MEDiss), method = "average")
 
@@ -397,7 +399,7 @@ co_expression <- function(Data = NULL,
          xlab = "", sub = "")
 
     # Plot the cut line into the dendrogram
-    abline(h=MEDissThres, col = "red")
+    abline(h = MEDissThres, col = "red")
     # Call an automatic merging function
     merge <- WGCNA::mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
     # The merged module colors
@@ -425,7 +427,7 @@ co_expression <- function(Data = NULL,
     moduleColors <- mergedColors
     # numerical labels matching color and module
     colorOrder <- c("grey", WGCNA::standardColors(50))
-    moduleLabels <- match(moduleColors, colorOrder)-1
+
     MEs <- mergedMEs
 
     # Step 5 - blockwise ####
@@ -436,6 +438,8 @@ co_expression <- function(Data = NULL,
     #                          saveTOMs = FALSE, #or TRUE
     #                          saveTOMFileBase = file.path(DIR,"TOM-blockwise"),
     #                          verbose = 3)
+    #
+    # moduleLabels <- match(moduleColors, colorOrder)-1
     #
     # # blockwise label again module
     # bwLabels <- WGCNA::matchLabels(bwnet$colors, moduleLabels)
@@ -524,7 +528,7 @@ co_expression <- function(Data = NULL,
         dev.off()
     }
 
-    genes <- colnames(datExpr)
+    # genes <- colnames(datExpr)
 
     # Step 6 - exporting network ####
     # Select module probes
@@ -533,12 +537,25 @@ co_expression <- function(Data = NULL,
     write.table(all_module, file = file.path(DIR, 'gene_modules.tsv'), col.names = c("gene_id", "module"),
                 row.names = FALSE, sep = "\t", quote = FALSE)
 
-    fileNameAll <- paste("LocusIDs-Allcolors",".txt", sep="")
+    fileNameAll <- paste("LocusIDs_Allcolors",".txt", sep = "")
     write.table(all_module, file = paste(DIR, fileNameAll, sep = "/"),
-                row.names = TRUE, col.names = FALSE)
+                col.names = FALSE, quote = FALSE, row.names = FALSE)
 
-    module <- all_module$mergedColors[grep(toupper(Name), all_module$probes)]
-    inModule <- (moduleColors==module)
+
+    if (tolower(dataBase) == "gdc") {
+        module <- all_module$mergedColors[grep(toupper(Name), all_module$probes)]
+    } else if (tolower(dataBase) == "legacy") {
+        if (suppressWarnings(is.na(as.numeric(Name)))) {
+            # Symbol before |
+            module <- all_module$mergedColors[grep(paste0(toupper(Name), "\\|"), all_module$probes)]
+        } else {
+            # Entrez
+            module <- all_module$mergedColors[grep(paste0("\\|", toupper(Name)), all_module$probes)]
+        }
+    }
+
+
+    inModule <- is.finite(match(moduleColors, module)) #(moduleColors == module)
     modProbes <- probes[inModule]
     # Select the corresponding Topological Overlap
     modTOM <- TOM[inModule, inModule]
@@ -546,19 +563,19 @@ co_expression <- function(Data = NULL,
     gc(verbose = FALSE)
     dimnames(modTOM) <- list(modProbes, modProbes)
 
-    if (tolower(networkType) == "unsigned"){
+    if (tolower(networkType) == "unsigned") {
         Threshold <- abs((0.5*pearsonCutoff))
     } else {
-        Threshold <- abs(0.5+(0.5*pearsonCutoff))
+        Threshold <- abs(0.5 + (0.5*pearsonCutoff))
     }
 
     # export to cytoscape
-    cyt <- WGCNA::exportNetworkToCytoscape(modTOM,
-                                   edgeFile = paste0(DIR, "/CytoscapeInput-edges-",
-                                                     paste(module, collapse="-"), "with_threshold_",
+    WGCNA::exportNetworkToCytoscape(modTOM,
+                                   edgeFile = paste0(DIR, "/CytoscapeInput_edges_",
+                                                     paste(module, collapse = "_"), "_with_threshold_",
                                                      Threshold**softPower, ".txt"),
-                                   nodeFile = paste0(DIR, "/CytoscapeInput-nodes-",
-                                                     paste(module, collapse="-"), "with_threshold_",
+                                   nodeFile = paste0(DIR, "/CytoscapeInput_nodes_",
+                                                     paste(module, collapse = "_"), "_with_threshold_",
                                                      Threshold**softPower, ".txt"),
                                    weighted = TRUE,
                                    threshold = Threshold**softPower,
@@ -566,123 +583,89 @@ co_expression <- function(Data = NULL,
                                    nodeAttr = moduleColors[inModule])
 
 
-
-    filenodes <- read.table(paste0(DIR, "/CytoscapeInput-nodes-",
-                                   paste(module, collapse="-"), "with_threshold_",
+    # Nodes
+    fileNodes <- read.table(paste0(DIR, "/CytoscapeInput_nodes_",
+                                   paste(module, collapse = "_"), "_with_threshold_",
                                    Threshold**softPower, ".txt"),
                             header = TRUE, stringsAsFactors = FALSE)
 
-    filenodes <- filenodes[, -2]
 
-    write.table(fileedges, paste0(DIR, "/CytoscapeInput-nodes-",
-                                  paste(module, collapse="-"), "with_threshold_",
-                                  Threshold**softPower, ".txt"))
+    if (suppressWarnings(is.na(as.numeric(Name)))) {
+        # Symbol before |
+        selected_from <- grep(paste0(toupper(Name), "\\|"), fileNodes$fromNode)
+        selected_to <- grep(paste0(toupper(Name), "\\|"), fileNodes$toNode)
+    } else {
+        # Entrez
+        selected_from <- grep(paste0("\\|", toupper(Name)), fileNodes$fromNode)
+        selected_to <- grep(paste0("\\|", toupper(Name)), fileNodes$toNode)
+    }
+
+    fileNodes <- fileNodes[c(selected_from, selected_to), ]
 
 
-    fileedges <- read.table(paste0(DIR, "/CytoscapeInput-edges-",
-                                   paste(module, collapse="-"), "with_threshold_",
+    write.table(fileNodes, paste0(DIR, "/", toupper(Name), "_nodes_",
+                                  paste(module, collapse = "_"), "_with_threshold_",
+                                  Threshold**softPower, ".txt"),
+                quote = FALSE, row.names = FALSE)
+
+
+
+    # Edges
+    fileEdges <- read.table(paste0(DIR, "/CytoscapeInput_edges_",
+                                   paste(module, collapse = "_"), "_with_threshold_",
                                    Threshold**softPower, ".txt"),
                             header = TRUE, stringsAsFactors = FALSE)
 
-    fileedges <- fileedges[, 1:3]
+    fileEdges <- fileEdges[, 1:3]
 
     possible_cor <- seq(from = -1, to = 1, by = 1e-3)
-    threshold = abs(0.5+(0.5*possible_cor))**softPower
+    threshold = abs(0.5 + (0.5*possible_cor))**softPower
     threshold <- round(threshold, 3)
     names(threshold) <- possible_cor
-    pearson_values <- sapply(as.numeric(fileedges$weight), function(x){
+    pearson_values <- sapply(as.numeric(fileEdges$weight), function(x){
         unique(round(as.numeric(names(threshold)[threshold == round(x, 3)]), 3))[1]
     })
 
-    fileedges <- dplyr::mutate(fileedges, weightPearson = pearson_values)
+    fileEdges <- dplyr::mutate(fileEdges, weightPearson = pearson_values)
 
-    # fileedges[, 1] <- unname(sapply(fileedges[, 1], function(w){
+    # fileEdges[, 1] <- unname(sapply(fileEdges[, 1], function(w){
     #     paste0(unlist(strsplit(w, "\\|"))[2])}))
     #
-    # fileedges[, 2] <- unname(sapply(fileedges[, 2], function(w){
+    # fileEdges[, 2] <- unname(sapply(fileEdges[, 2], function(w){
     #     paste0(unlist(strsplit(w, "\\|"))[2])}))
 
-    write.table(fileedges, paste0(DIR, "/CytoscapeInput-edges-",
-                                  paste(module, collapse="-"), "with_threshold_",
-                                  Threshold**softPower, ".txt"))
+    write.table(fileEdges, paste0(DIR, "/CytoscapeInput_edges_",
+                                  paste(module, collapse = "_"), "_with_threshold_",
+                                  Threshold**softPower, ".txt"),
+                quote = FALSE, row.names = FALSE)
 
 
-    # optional (antonio)####
-    # network <- list(moduleColors=moduleColors, MEs=MEs)
-    #
-    # try(network_km <- km2gcn::applykM2WGCNA(net.label="dummy",
-    #                                     net.file=network,
-    #                                     expr.data=datExpr,
-    #                                     job.path = DIR,
-    #                                     meg=0, net.type=networkType,
-    #                                     plot.evolution=TRUE))
-    #
-    # final_modules <- data.frame(network_km$moduleColors)
-    #
-    # write.table(final_modules, file = file.path(DIR, 'gene_modules_km.tsv'),
-    #             col.names = c("module"), sep = "\t", quote = FALSE)
+    if (suppressWarnings(is.na(as.numeric(Name)))) {
+        # Symbol before |
+        selected_from <- grep(paste0(toupper(Name), "\\|"), fileEdges$fromNode)
+        selected_to <- grep(paste0(toupper(Name), "\\|"), fileEdges$toNode)
+    } else {
+        # Entrez
+        selected_from <- grep(paste0("\\|", toupper(Name)), fileEdges$fromNode)
+        selected_to <- grep(paste0("\\|", toupper(Name)), fileEdges$toNode)
+    }
 
-    # from WGCNA tutorial ####
-    # restGenes= (dynamicColors != "grey")
-    # diss1=1-TOMsimilarityFromExpr(datExpr[,restGenes], power = softPower, )
-    #
-    # colnames(diss1) =rownames(diss1) =SubGeneNames[restGenes]
-    # hier1=flashClust::flashClust(as.dist(diss1), method="average" )
-    # plotDendroAndColors(hier1, dynamicColors[restGenes], "Dynamic Tree Cut", dendroLabels = FALSE, hang = 0.03, addGuide = TRUE, guideHang = 0.05, main = "Gene dendrogram and module colors")
-    #
-    # #set the diagonal of the dissimilarity to NA
-    # diag(diss1) = NA
-    #
-    # #Visualize the Tom plot. Raise the dissimilarity matrix to the power of 4 to bring out the module structure
-    # TOMplot(diss1, hier1, as.character(dynamicColors[restGenes]))
-    #
-    #
-    # module_colors= setdiff(unique(dynamicColors), "grey")
-    # for (color in module_colors){
-    #     module=SubGeneNames[which(dynamicColors==color)]
-    #     write.table(module, paste("module_",color, ".txt",sep=""), sep="\t", row.names=FALSE, col.names=FALSE,quote=FALSE)
-    # }
-    #
-    # module.order <- unlist(tapply(1:ncol(datExpr),as.factor(dynamicColors),I))
-    # m<-t(t(datExpr[,module.order])/apply(datExpr[,module.order],2,max))
-    # heatmap(t(m),zlim=c(0,1),col=gray.colors(100),Rowv=NA,Colv=NA,labRow=NA,scale="none",RowSideColors=dynamicColors[module.order])
-    #
-    # # Quantify module similarity by eigengene correlation. Eigengenes: Module representatives
-    #
-    # MEList = moduleEigengenes(datExpr, colors = dynamicColors)
-    # MEs = MEList$eigengenes
-    # plotEigengeneNetworks(MEs, "", marDendro = c(0,4,1,2), marHeatmap = c(3,4,1,2))
-    # dissTOM =TOMdist(adjacency)
-    # #hierarchical clustering
-    # geneTree = flashClust::flashClust(as.dist(dissTOM),method="average")
-    #
-    # minModuleSize = 30
-    # # Module identification using dynamic tree cut:
-    # dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
-    #                             deepSplit = 2, pamRespectsDendro = FALSE,
-    #                             minClusterSize = minModuleSize)
-    # #table(dynamicMods)
-    #
-    # # LISTS THE SIZE OF THE MODULES (42 MODULES WERE FOUND)
-    # # Convert numeric lables into colors
-    # dynamicColors = labels2colors(dynamicMods)
-    #
-    # diag(dissTOM) = NA
-    # # Transform dissTOM with a power to enhance visibility
-    # png(filename = file.path(DIR,"TOM_plot.png"), width=Width, height=Height, res = Res, unit = Unit)
-    # TOMplot(dissim=dissTOM^7,dendro=geneTree,colors=dynamicColors, main = "Network heatmap plot, all genes")
-    # dev.off()
+    fileEdges <- fileEdges[c(selected_from, selected_to), ]
 
-    # from brand ####
-    # verboseScatterplot(abs(as.data.frame(cor(datExpr, MEs, use = "p"))[moduleColors=="greenyellow", match("greenyellow", substring(names(MEs), 3))]),
-    #                    abs(as.data.frame(cor(datExpr, datTraits$Peso10dias, use = "p"))[moduleColors=="greenyellow", 1]),
-    #                    xlab = paste("Module Membership in", "greenyellow", "module"),
-    #                    ylab = "Gene significance for Peso 10 dias",
-    #                    main = paste("Module membership vs. gene significance\n"),
-    #                    cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, col = "greenyellow")
 
-    #TOM = TOMsimilarityFromExpr(datExpr, power = 10)
-    #########modTOMSignificantes = which(modTOM>0.1)
+    write.table(fileEdges, paste0(DIR, "/", toupper(Name), "_edges_",
+                                  paste(module, collapse = "_"), "_with_threshold_",
+                                  Threshold**softPower, ".txt"),
+                quote = FALSE, row.names = FALSE)
+
+
+    # put together node and edge
+    coexp_genes <- unique(unlist(fileEdges[, 1:2]))
+
+
+    # export gene list    CHUNTA TUTO XXXX
+    assign("coexp_genes", coexp_genes, envir = get(envir_link))
+
 
     gc(verbose = FALSE)
     message("\nDone!")
