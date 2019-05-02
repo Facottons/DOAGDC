@@ -1,4 +1,5 @@
 Package: DOAGDC
+Type: Package
 Title: A Package to Download, Organize and Analyze Genomic Data Commons (GDC) Data
 Version: 0.99.0
 Date: 2019-05-01
@@ -7,6 +8,7 @@ Authors@R: c(
     person("Douglas", "Adamoski", , role = "ctb"),
     person("Marcelo", "Carazzole", , role = "ctb"),
     person("Sandra Martha Gomes", "Dias", , role = "ctb"))
+Maintainer: Fábio Patroni <fabio_patroni@yahoo.com.br>
 Description: In order to download, organize and analyze GDC data we have developed DOAGDC. 
     It implements and uses many well-known R packages like DESeq2, edgeR, WGCNA, and mclust. 
     This is a free open-source software that implements academic research
@@ -15,7 +17,7 @@ Description: In order to download, organize and analyze GDC data we have develop
     citation("DOAGDC").
 Depends: R (>= 3.4)
 Imports: 
-    stats,
+    stats, 
     utils,
     RCurl,
     curl,

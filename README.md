@@ -15,6 +15,15 @@ article listed running the following command `citation("DOAGDC")`.
 ## Installation
 
 ``` r
+# Checking for missing dependencies manually
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install(c("annotate", "AnnotationDbi", "BiocParallel", "clusterProfiler", 
+                      "DESeq2", "DO.db", "DOSE", "EBSeq", "edgeR", "fpc", "gage", 
+                      "GO.db", "goseq", "IHW", "MineICA", "org.Hs.eg.db", "pathview", 
+                      "reactome.db", "ReactomePA", "SummarizedExperiment"))
+
+
 # Get DOAGDC from GitHub:
 install.packages("devtools") # if not already done 
 devtools::install_github("Facottons/DOAGDC")
