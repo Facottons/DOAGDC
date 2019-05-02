@@ -170,10 +170,8 @@ GOnto(condition = "Upregulated",
 ## More information
 
 If you would like more information, please check the DOAGDC
-<a href="https://github.com/Facottons/DOAGDC/tree/master/vignettes/DOAGDC-vignette" target="_blank">vignette</a>
-or the DOAGDC
-<a href="https://github.com/Facottons/DOAGDC/tree/master/" target="_blank">Manual</a>
-to learn even more.
+<a href="https://raw.githubusercontent.com/Facottons/DOAGDC/master/vignettes/DOAGDC-vignette.html" target="_blank">vignette</a>.
+<!-- or the DOAGDC <a href="https://github.com/Facottons/DOAGDC/tree/master/" target="_blank">Manual</a> to learn even more.  -->
 
 ## Getting help
 
