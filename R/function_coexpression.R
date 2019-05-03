@@ -47,8 +47,9 @@
 #' @inheritParams dea_EBSeq
 #' @inheritParams GOnto
 #'
-#' @return
-#' @export
+#' @return a list of genes co-expressed and store it inside the determined
+#'   environment name for further use.
+#'
 #'
 #' @examples
 #' \dontrun{

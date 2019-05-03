@@ -29,8 +29,8 @@
 #' @inheritParams dea_EBSeq
 #' @inheritParams groups_identification_mclust
 #'
-#' @return
-#' @export
+#' @return the groups generated after using the seleted clinical category and
+#'   store it inside the determined environment name.
 #'
 #' @examples
 #' \dontrun{

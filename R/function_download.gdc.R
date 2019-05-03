@@ -32,7 +32,13 @@
 #'   "all"}.} }The default for all dataType cited is \code{"all"} (when
 #'   downloading data).
 #'
-#' @export
+#' @return the files download are stored inside the determined folders in the
+#'   user machine.
+#'
+#' @import utils stats IHW clusterProfiler methods AnnotationDbi ggplot2 DOSE
+#'   scales RCurl readr stringi MineICA devtools pheatmap dendextend GO.db
+#'   annotate DO.db reactome.db igraph mgcv xlsx ggthemes grid reshape extrafont
+#'   cgdsr
 #'
 #' @examples
 #' \dontrun{

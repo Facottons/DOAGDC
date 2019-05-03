@@ -43,6 +43,10 @@ environment following the standard criteria:
 \item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
 in separated matrices).}}}
 }
+\value{
+a list of genes co-expressed and differentially expressed genes
+inside the determined environment name for further use.
+}
 \description{
 Cross co-expression gene list against differential expression genes list
 }

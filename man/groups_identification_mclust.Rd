@@ -67,6 +67,9 @@ next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
 "mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
 quantification matrix.}
 }
+\value{
+the groups generated after using the mclust analysis.
+}
 \description{
 \code{groups_identification_mclust} is a function designed to separate patients in
 groups, powered by mclust.

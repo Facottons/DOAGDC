@@ -31,7 +31,7 @@
 #' @inheritParams download_gdc
 #' @inheritParams concatenate_files
 #'
-#' @export
+#' @return the groups generated after using the mclust analysis.
 #'
 #' @examples
 #' \dontrun{

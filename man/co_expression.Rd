@@ -106,6 +106,10 @@ point. The default is FALSE.}
 \item{pearsonCutoff}{Numerical value specifying the minimum Pearson
 correlation value. The default is 0.5.}
 }
+\value{
+a list of genes co-expressed and store it inside the determined
+environment name for further use.
+}
 \description{
 Powered by WGCNA
 }

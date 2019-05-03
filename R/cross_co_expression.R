@@ -12,8 +12,8 @@
 #' @inheritParams groups_identification_mclust
 #' @inheritParams dea_EBSeq
 #'
-#' @return
-#' @export
+#' @return a list of genes co-expressed and differentially expressed genes
+#'   inside the determined environment name for further use.
 #'
 #' @examples
 #' \dontrun{

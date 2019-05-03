@@ -45,6 +45,9 @@ environment following the standard criteria:
 \item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
 in separated matrices).}}}
 }
+\value{
+the objects imported are stored inside the determined environment name.
+}
 \description{
 From global to DOAGDC environment
 }

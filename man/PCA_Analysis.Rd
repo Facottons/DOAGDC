@@ -48,6 +48,9 @@ environment following the standard criteria:
 \item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
 in separated matrices).}}}
 }
+\value{
+the PCAs plots.
+}
 \description{
 Generate plot for Principal Component Analysis
 }

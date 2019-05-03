@@ -21,8 +21,8 @@
 #' @inheritParams groups_identification_mclust
 #' @inheritParams dea_EBSeq
 #'
-#' @return
-#' @export
+#' @return a list of differentially expressed genes in common between two or
+#'   three differential expression analysis packages.
 #'
 #' @examples
 #' \dontrun{

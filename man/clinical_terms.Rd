@@ -81,6 +81,10 @@ in separated matrices).}}}
 in X and Y axis respectively should be modified relative to the default
 size. The default value is 16 for both arguments.}
 }
+\value{
+the groups generated after using the seleted clinical category and
+store it inside the determined environment name.
+}
 \description{
 Search for clinical terms for all available tumors
 }

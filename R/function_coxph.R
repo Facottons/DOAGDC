@@ -19,8 +19,7 @@
 #' @inheritParams concatenate_files
 #' @inheritParams groups_identification_mclust
 #'
-#' @return
-#' @export
+#' @return the groups generated after using the coxHR analysis.
 #'
 #' @examples
 #' \dontrun{
@@ -1084,7 +1083,7 @@ groups_identification_coxHR <- function(Name,
                rep(min(cutoff_optimization$HR_min95, na.rm = TRUE), length(TableNow[,"zscore"])),
                pch="|", col=rgb(37,37,37, 90, max=255))
 
-        par(new = T)
+        par(new = TRUE)
 
         plot(x=cutoff_optimization$zscorecut,
              y=cutoff_optimization$logrank_p, type="l",
@@ -1126,7 +1125,7 @@ groups_identification_coxHR <- function(Name,
                     max(log2(cutoff_optimization$HR_max95), na.rm = TRUE)),
              xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
                     max(cutoff_optimization$zscorecut, na.rm = TRUE)),
-             lwd=2, lty=1, xlab="Expression z-score", ylab=expression('Log'[2]*'(Cox HR RFS)'), axes=F,
+             lwd=2, lty=1, xlab="Expression z-score", ylab=expression('Log'[2]*'(Cox HR RFS)'), axes=FALSE,
              col=rgb(8,88,158, 240, max=255))
 
         axis(side = 1, lwd = 2, cex.axis=1.5, cex=1.5,
@@ -1149,7 +1148,7 @@ groups_identification_coxHR <- function(Name,
         points(TableNow[,"zscore"],
                rep(min(log2(cutoff_optimization$HR_min95), na.rm = TRUE), length(TableNow[,"zscore"])),
                pch="|", col=rgb(37,37,37, 90, max=255))
-        par(new = T)
+        par(new = TRUE)
 
         plot(x=cutoff_optimization$zscorecut,
              y=cutoff_optimization$logrank_p, type="l",
@@ -1158,7 +1157,7 @@ groups_identification_coxHR <- function(Name,
              xlim=c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
                     max(cutoff_optimization$zscorecut, na.rm = TRUE)),
              lwd=2, lty=1, xlab=NA, ylab=NA,
-             axes=F, cex=1.5, col=rgb(252,78,42, 150, max=255))
+             axes=FALSE, cex=1.5, col=rgb(252,78,42, 150, max=255))
         axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las =1)
         mtext(side = 4, line = 3.8, "p logrank", cex=1.2)
 
@@ -1205,12 +1204,12 @@ groups_identification_coxHR <- function(Name,
            rep(min(cutoff_optimization$HR, na.rm = TRUE), length(cutoff_optimization$zscorecut)),
            pch="|", col=rgb(37,37,37, 90, max=255))
 
-    par(new = T)
+    par(new = TRUE)
     plot(x=cutoff_optimization$zscorecut,
          y=cutoff_optimization$logrank_p, type="l",
          ylim=c(max(cutoff_optimization$logrank_p, na.rm = TRUE), min(cutoff_optimization$logrank_p, na.rm = TRUE)),
          lwd=3, lty=1, xlab=NA, ylab=NA,
-         axes=F, cex=1.5, col=rgb(252,78,42, alpha = 100, max=255))
+         axes=FALSE, cex=1.5, col=rgb(252,78,42, alpha = 100, max=255))
     axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las = 1)
     mtext(side = 4, line = 3.8, "p logrank", cex=1.2)
 
@@ -1236,7 +1235,7 @@ groups_identification_coxHR <- function(Name,
     par(mar = c(5,5,3,5))
     plot(x=cutoff_optimization$zscorecut,
          y=log2(cutoff_optimization$HR), type="l",
-         lwd=2, lty=1, xlab="Expression z-score", ylab=expression('Log'[2]*'(Cox HR RFS)'), axes=F,
+         lwd=2, lty=1, xlab="Expression z-score", ylab=expression('Log'[2]*'(Cox HR RFS)'), axes=FALSE,
          col=rgb(8,88,158, alpha = 100, max=255))
 
     axis(side = 1, lwd = 2, cex.axis=1.5, cex=1.5,
@@ -1254,13 +1253,13 @@ groups_identification_coxHR <- function(Name,
            rep(min(log2(cutoff_optimization$HR), na.rm = TRUE), length(cutoff_optimization$zscorecut)),
            pch="|", col=rgb(37,37,37, 90, max=255))
 
-    par(new = T)
+    par(new = TRUE)
 
     plot(x=cutoff_optimization$zscorecut,
          y=cutoff_optimization$logrank_p, type="l",
          ylim=c(max(cutoff_optimization$logrank_p, na.rm = TRUE), min(cutoff_optimization$logrank_p, na.rm = TRUE)),
          lwd=3, lty=1, xlab=NA, ylab=NA,
-         axes=F, cex=1.5, col=rgb(252,78,42, alpha = 100, max=255))
+         axes=FALSE, cex=1.5, col=rgb(252,78,42, alpha = 100, max=255))
     axis(side = 4, lwd = 2, cex.axis=1.5, cex=1.5, col=rgb(252,78,42, 255, max=255), las = 1)
     mtext(side = 4, line = 3.8, "p logrank", cex=1.2)
 

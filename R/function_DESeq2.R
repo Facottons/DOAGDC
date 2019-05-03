@@ -22,7 +22,6 @@
 #' @inheritParams dea_EBSeq
 #'
 #' @return A matrix with DE genes in row and statistical values in columns.
-#' @export
 #'
 #' @examples
 #' \dontrun{

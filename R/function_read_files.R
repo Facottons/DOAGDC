@@ -59,7 +59,6 @@
 #' @inheritParams download_gdc
 #'
 #' @return A matrix with data names in row and patients code in column.
-#' @export
 #'
 #' @examples
 #' \dontrun{

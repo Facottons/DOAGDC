@@ -10,8 +10,7 @@
 #' @inheritParams dea_EBSeq
 #' @inheritParams GOnto
 #'
-#' @return
-#' @export
+#' @return the PCAs plots.
 #'
 #' @examples
 #' \dontrun{
@@ -29,7 +28,7 @@ PCA_Analysis <- function(Tool,
 
     # local function ####
     PCA_Anal_local <- function(SIZE, FILE){
-        if (tolower(SIZE) == "all"){
+        if (tolower(SIZE) == "all") {
 
             GENETOP <- SIZE
             ParaHeatmaps <- NormalizedExpression[match(rownames(resultadosDE), rownames(NormalizedExpression)), ]

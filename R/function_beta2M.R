@@ -10,8 +10,8 @@
 #' @inheritParams download_gdc
 #' @inheritParams concatenate_files
 #'
-#' @return
-#' @export
+#' @return the beta values converted in mValues stored inside the determined
+#'   environment name.
 #'
 #' @examples
 #' \dontrun{
@@ -25,7 +25,7 @@ beta2mValues <- function(probeName,
     # Comparison of Beta-value and M-value methods for quantifying methylation
     # levels by microarray analysis Pan Du1,3*, Xiao Zhang2, Chiang-Ching Huang2,
 
-    if (missing(env)){
+    if (missing(env)) {
         message("Please, before using this function, insert the Environment name.")
     } else {
         envir_link <- deparse(substitute(env))

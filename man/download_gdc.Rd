@@ -42,6 +42,10 @@ methylation, exon quantificaton, miRNA, and mutation data. \itemize{
   "all"}.} }The default for all dataType cited is \code{"all"} (when
 downloading data).}
 }
+\value{
+the files download are stored inside the determined folders in the
+user machine.
+}
 \description{
 \code{download_gdc} is a function designed to download methylation, mutation,
 clinical data, protein expression, MAGETAB, gene expression, isoform

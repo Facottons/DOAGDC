@@ -82,6 +82,9 @@ default size.}
 names (\code{"labRow"}) and col names (\code{"labCol"}). The default is
 \code{"FALSE"} for both, in order to kepp the plot clean.}
 }
+\value{
+a heat map image.
+}
 \description{
 Draw a heatmap
 }

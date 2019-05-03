@@ -60,6 +60,9 @@ Portal or \code{"legacy"} for GDC Legacy Archive.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 }
+\value{
+the groups generated after using the coxHR analysis.
+}
 \description{
 \code{groups_identification_cox} is a function designed to separate patients in
 groups, based in clinical data, and coxHR.

@@ -1,7 +1,7 @@
 Package: DOAGDC
 Type: Package
 Title: A Package to Download, Organize and Analyze Genomic Data Commons (GDC) Data
-Version: 0.99.0
+Version: 0.98.0
 Date: 2019-05-01
 Authors@R: c(
     person("Fábio Malta de Sá", "Patroni", role = c("aut", "cre", "cph"), email = "fabio_patroni@yahoo.com.br"),
@@ -85,6 +85,8 @@ Suggests:
 License: GPL-3 | file LICENSE
 URL: https://github.com/Facottons/DOAGDC
 BugReports: https://github.com/Facottons/DOAGDC/issues
+biocViews: RNASeq, GeneExpression, DifferentialExpression, 
+    PrincipalComponent
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr

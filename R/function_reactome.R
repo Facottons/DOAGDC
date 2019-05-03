@@ -11,7 +11,6 @@
 #' @inheritParams GOnto
 #'
 #' @return Enriched terms.
-#' @export
 #'
 #' @examples
 #' \dontrun{

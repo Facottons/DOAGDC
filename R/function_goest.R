@@ -17,7 +17,6 @@
 #' @inheritParams dea_EBSeq
 #'
 #' @return Enriched terms.
-#' @export
 #'
 #' @examples
 #' \dontrun{

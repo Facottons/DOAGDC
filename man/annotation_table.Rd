@@ -8,6 +8,10 @@
 \usage{
 annotation_table
 }
+\value{
+a dataframe object with gene annotation from the most commonly used
+organizations.
+}
 \description{
 This dataset was exported from UCSC Genome Browser available from
 \url{http://research.stlouisfed.org/fred2}.

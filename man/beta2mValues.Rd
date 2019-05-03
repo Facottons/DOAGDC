@@ -21,6 +21,10 @@ in separated matrices).}}}
 concatenate and filtered matrix should be saved in local storage. The
 default is FALSE.}
 }
+\value{
+the beta values converted in mValues stored inside the determined
+environment name.
+}
 \description{
 Convert beta values to mvalues
 }

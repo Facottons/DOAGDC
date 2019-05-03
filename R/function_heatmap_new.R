@@ -34,8 +34,7 @@
 #' @inheritParams dea_EBSeq
 #' @inheritParams GOnto
 #'
-#' @return
-#' @export
+#' @return a heat map image.
 #'
 #' @examples
 #' \dontrun{
@@ -390,7 +389,7 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                 image(rbind(1:nr), col = RowSideColors[rowInd], axes = FALSE)
             } else {
                 par(mar = c(margins[1], 0, 0, 0.5))
-                rsc = t(RowSideColors[rowInd, , drop=F])
+                rsc = t(RowSideColors[rowInd, , drop=FALSE])
                 rsc.colors = matrix()
                 rsc.names = names(table(rsc))
                 rsc.i = 1
@@ -408,8 +407,8 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                 # add labels
                 if (length(colnames(RowSideColors)) > 0) {
                     #axis(1, 0:(dim(rsc)[2] - 1)/(dim(rsc)[2] - 1), rownames(RowSideColors), las = 2, tick = FALSE)
-                    #axis(1, 0:(nrow(rsc)-1), colnames(RowSideColors), las = 2, tick = T) # ncol because transposed
-                    axis(1, 1:ncol(RowSideColors), labels=colnames(RowSideColors), las=2, tick=F, xlab="", ylab="")
+                    #axis(1, 0:(nrow(rsc)-1), colnames(RowSideColors), las = 2, tick = TRUE) # ncol because transposed
+                    axis(1, 1:ncol(RowSideColors), labels=colnames(RowSideColors), las=2, tick=FALSE, xlab="", ylab="")
                     # cex.axis=0.5,
 
                 }
@@ -423,7 +422,7 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                 image(cbind(1:nc), col = ColSideColors[colInd], axes = FALSE)
             } else {
                 par(mar = c(0.5, 0, 0, margins[2]))
-                csc = ColSideColors[, colInd, drop=F]
+                csc = ColSideColors[, colInd, drop=FALSE]
                 csc.colors = matrix()
                 csc.names = names(table(csc))
                 csc.i = 1
@@ -682,23 +681,23 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         # EXAMPLE USAGE
 
         # example of colsidecolors rowsidecolors (single column, single row)
-        #mat <- matrix(1:100, byrow=T, nrow=10)
-        #column_annotation <- sample(c("red", "blue", "green"), 10, replace=T)
+        #mat <- matrix(1:100, byrow=TRUE, nrow=10)
+        #column_annotation <- sample(c("red", "blue", "green"), 10, replace=TRUE)
         #column_annotation <- as.matrix(column_annotation)
         #colnames(column_annotation) <- c("Variable X")
 
-        #row_annotation <- sample(c("red", "blue", "green"), 10, replace=T)
+        #row_annotation <- sample(c("red", "blue", "green"), 10, replace=TRUE)
         #row_annotation <- as.matrix(t(row_annotation))
         #rownames(row_annotation) <- c("Variable Y")
 
         #heatmap.3(mat, RowSideColors=row_annotation, ColSideColors=column_annotation)
 
         # multiple column and row
-        #mat <- matrix(1:100, byrow=T, nrow=10)
-        #column_annotation <- matrix(sample(c("red", "blue", "green"), 20, replace=T), ncol=2)
+        #mat <- matrix(1:100, byrow=TRUE, nrow=10)
+        #column_annotation <- matrix(sample(c("red", "blue", "green"), 20, replace=TRUE), ncol=2)
         #colnames(column_annotation) <- c("Variable X1", "Variable X2")
 
-        #row_annotation <- matrix(sample(c("red", "blue", "green"), 20, replace=T), nrow=2)
+        #row_annotation <- matrix(sample(c("red", "blue", "green"), 20, replace=TRUE), nrow=2)
         #rownames(row_annotation) <- c("Variable Y1", "Variable Y2")
 
         #heatmap.3(mat, RowSideColors=row_annotation, ColSideColors=column_annotation)

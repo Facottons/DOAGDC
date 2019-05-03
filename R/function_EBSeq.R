@@ -38,7 +38,6 @@
 #' @inheritParams groups_identification_mclust
 #'
 #' @return A matrix with DE genes in row and statistical values in columns.
-#' @export
 #'
 #' @examples
 #' \dontrun{

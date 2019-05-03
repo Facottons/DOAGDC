@@ -56,6 +56,10 @@ environment following the standard criteria:
 \item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
 in separated matrices).}}}
 }
+\value{
+a list of differentially expressed genes in common between two or
+three differential expression analysis packages.
+}
 \description{
 Venn diagram of differential expression genes list
 }
