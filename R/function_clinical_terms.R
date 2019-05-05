@@ -31,6 +31,10 @@
 #'
 #' @return the groups generated after using the seleted clinical category and
 #'   store it inside the determined environment name.
+#' @export
+#'
+#' @importFrom data.table fread
+#' @importFrom forcats fct_collapse
 #'
 #' @examples
 #' \dontrun{

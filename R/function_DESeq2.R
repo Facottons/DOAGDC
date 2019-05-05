@@ -22,6 +22,11 @@
 #' @inheritParams dea_EBSeq
 #'
 #' @return A matrix with DE genes in row and statistical values in columns.
+#' @export
+#'
+#' @importFrom SummarizedExperiment assay
+#' @importFrom BiocParallel register
+#' @importFrom BiocParallel SnowParam
 #'
 #' @examples
 #' \dontrun{
@@ -53,7 +58,6 @@ dea_DESeq2 <- function(Name,
 
 
     # #verifying if the package is already installed
-    # to.load <- c("DESeq2", "gage", "BiocParallel", "IHW")
 
     #local functions ####
 
@@ -411,7 +415,6 @@ dea_DESeq2 <- function(Name,
 
         res <- DESeq2::results(dds, parallel = TRUE, addMLE=FALSE, cooksCutoff = cooksCutoff,
                                contrast = c("condition", "2", "1"))#, alpha = FDR_cutoff) alfa is the FDR
-                               #, filterFun=ihw)
 
         # resLFC <- lfcShrink(dds, coef="condition_G2_vs_G1", type="apeglm")
 

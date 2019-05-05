@@ -35,6 +35,11 @@
 #' @inheritParams GOnto
 #'
 #' @return a heat map image.
+#' @export
+#'
+#' @importFrom gplots colorpanel
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom amap Dist
 #'
 #' @examples
 #' \dontrun{
@@ -60,7 +65,6 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                          labCol = NULL) {
 
     #verifying if the package is already installed
-    # to.load <- c("RColorBrewer", "methods", "VennDiagram", "dendextend", "amap")
 
     #local function ####
     heatmap.3 <- function(x,
@@ -924,7 +928,5 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
     }
 
     message("\nDone!\n")
-    # #color the branches and leaves
-    # library('dendextend')
-    # myclust=function(c) {color_branches(hclust(c,method="average"))}
+
 }

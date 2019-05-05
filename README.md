@@ -19,7 +19,7 @@ article listed running the following command `citation("DOAGDC")`.
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install(c("annotate", "AnnotationDbi", "BiocParallel", "clusterProfiler", 
-                      "DESeq2", "DO.db", "DOSE", "EBSeq", "edgeR", "fpc", "gage", 
+                      "DESeq2", "DO.db", "DOSE", "EBSeq", "edgeR", "gage", 
                       "GO.db", "goseq", "IHW", "MineICA", "org.Hs.eg.db", "pathview", 
                       "reactome.db", "ReactomePA", "SummarizedExperiment"))
 
@@ -46,12 +46,12 @@ the `concatenate_files()` function. Then, choose which functions should
 be used in the next steps:
 
 1.  Groups Identification (like `groups_identification_coxHR()`,
-    `groups_identification_mclust()`, or `check_clinical_terms()`).
+    `groups_identification_mclust()`, or `clinical_terms()`).
 2.  Differential Expression Analysis (dea) (like `dea_DESeq2()`,
     `dea_EBSeq()`, and/or `dea_edgeR()`).
 3.  Visualization (like `draw_heatmap()`, or `PCA_Analysis()`).
 4.  Pathway enrichment analysis (like `GOnto()`, `GSEA()`,
-    `DO.REAC.ENRICH()`, or `KEEG_ENRICH()`).
+    `DO_React_enrich()`, or `KEEG_enrich()`).
 
 ## Example
 

@@ -24,6 +24,9 @@
 #' @return a list of differentially expressed genes in common between two or
 #'   three differential expression analysis packages.
 #'
+#' @importFrom VennDiagram venn.diagram
+#' @export
+#'
 #' @examples
 #' \dontrun{
 #' venn_diagram("DESeq2", 2, packageNames = c("edgeR", "DESeq2"), env = "env name without quotes")
@@ -39,9 +42,6 @@ venn_diagram <- function(FinalData, n_pack = 3,
                       VennDiagram_imagetype = "png",
                       workDir,
                       env) {
-
-    #verifying if the package is already installed
-    # to.load <- c("stringi", "stringr", "VennDiagram")
 
 
     # local functions ####

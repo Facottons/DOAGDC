@@ -35,10 +35,15 @@
 #' @return the files download are stored inside the determined folders in the
 #'   user machine.
 #'
-#' @import utils stats IHW clusterProfiler methods AnnotationDbi ggplot2 DOSE
-#'   scales RCurl readr stringi MineICA devtools pheatmap dendextend GO.db
-#'   annotate DO.db reactome.db igraph mgcv xlsx ggthemes grid reshape extrafont
-#'   cgdsr
+#' @import AnnotationDbi clusterProfiler devtools DOSE ggbiplot ggplot2 methods
+#'   stringi survminer yarrr
+#' @export
+#'
+#' @importFrom curl curl
+#' @importFrom httr content
+#' @importFrom httr GET
+#' @importFrom jsonlite fromJSON
+#' @importFrom tools md5sum
 #'
 #' @examples
 #' \dontrun{
@@ -56,9 +61,6 @@ download_gdc <- function(dataType = "gene",
                          all.files = FALSE,
                          Platform = "all"){
 
-    #verifying if the package is already installed - c("jsonlite")
-    # to.load <- c("RCurl", "R.utils", "readr", "jsonlite", "stringr", "tools", "httr")
-
     # local functions ####
     download.httr <- function(URL, destfile){
         first <- httr::GET(url = URL)
@@ -67,7 +69,7 @@ download_gdc <- function(dataType = "gene",
     }
 
     size.par <- function(tumor, typeOfData, DB){
-        if (DB == "legacy"){
+        if (DB == "legacy") {
             first.part <- "https://api.gdc.cancer.gov/legacy/projects/TCGA-"
         } else {
             first.part <- "https://api.gdc.cancer.gov/projects/TCGA-"
@@ -931,7 +933,7 @@ download_gdc <- function(dataType = "gene",
         url <- paste0(inicio, id.matrix)
         pb <- txtProgressBar(min = 0, max = length(url), style = 3)
         contador <- 0
-        for (id in url){
+        for (id in url) {
             contador <- contador + 1
             message(paste("\nDownloading", tumor, dataType, contador, "of", length(url), sep = " "))
             setTxtProgressBar(pb, contador)
@@ -940,7 +942,7 @@ download_gdc <- function(dataType = "gene",
                                                     manifest.df[manifest.df$id == id.matrix[contador], "filename"]))
             md5 <- tools::md5sum(dir(path = DIR, pattern = manifest.df[manifest.df$id == id.matrix[contador],
                                                                 "filename"], full.names = TRUE))
-            while(md5[[1]] != manifest.df[manifest.df$id == id.matrix[contador], "md5"]){
+            while (md5[[1]] != manifest.df[manifest.df$id == id.matrix[contador], "md5"]) {
                 message(paste0("The md5 of file '", manifest.df[manifest.df$id == id.matrix[contador],
                                                               "filename"], "' differs from the original file. Downloading again...\n"))
                 download.httr(URL = id,

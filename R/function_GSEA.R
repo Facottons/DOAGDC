@@ -11,6 +11,14 @@
 #' @inheritParams GOnto
 #'
 #' @return Enriched terms.
+#' @export
+#'
+#' @importFrom AnnotationDbi keytypes
+#' @importFrom org.Hs.eg.db org.Hs.eg.db
+#' @importFrom clusterProfiler bitr
+#' @importFrom ReactomePA gsePathway
+#' @importFrom stringr str_count
+#' @importFrom forcats fct_reorder
 #'
 #' @examples
 #' \dontrun{
@@ -31,11 +39,9 @@ GSEA <- function(FDR_cutoff = 0.05,
     # Looks for enrichment by fold direction
     #List of input id types
 
-    # BiocParallel::register(BiocParallel::SerialParam())
+    # BiocParallel::register(BiocParallel::SerialParam(1))
 
-    BiocParallel::register(BiocParallel::SnowParam(1))
-
-    if(missing(env)){stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+    if (missing(env)) {stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
@@ -88,12 +94,12 @@ GSEA <- function(FDR_cutoff = 0.05,
 
     GeneSetVector <- TCGAExpression$FC
 
-    if (ID == "GeneID"){
+    if (ID == "GeneID") {
         # It demands FOld change in one vector decreasing ordered
         names(GeneSetVector) <- TCGAExpression$GeneID
         GeneSetVector <- GeneSetVector[order(GeneSetVector, decreasing = TRUE)]
 
-    } else if(ID == "GeneSymbol"){
+    } else if (ID == "GeneSymbol") {
         # It demands FOld change in one vector decreasing ordered
         names(GeneSetVector) <- TCGAExpression$GeneSymbol
         GeneSetVector <- GeneSetVector[order(GeneSetVector, decreasing = TRUE)]
@@ -104,7 +110,7 @@ GSEA <- function(FDR_cutoff = 0.05,
         GeneSetVector <- GeneSetVector[ids$ALIAS]
         names(GeneSetVector) <- ids$ENTREZID
 
-    } else if (ID == "Ensembl"){
+    } else if (ID == "Ensembl") {
         names(GeneSetVector) <- rownames(TCGAExpression)
         GeneSetVector <- GeneSetVector[order(GeneSetVector, decreasing = TRUE)]
 

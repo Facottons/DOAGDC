@@ -15,6 +15,7 @@
 #' @inheritParams concatenate_files
 #'
 #' @return the objects imported are stored inside the determined environment name.
+#' @export
 #'
 #' @examples
 #' \dontrun{

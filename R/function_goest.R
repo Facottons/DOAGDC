@@ -17,6 +17,13 @@
 #' @inheritParams dea_EBSeq
 #'
 #' @return Enriched terms.
+#' @export
+#'
+#' @importFrom stringr str_count
+#' @importFrom goseq nullp
+#' @importFrom goseq goseq
+#' @importFrom clusterProfiler enrichGO
+#' @importFrom org.Hs.eg.db org.Hs.eg.db
 #'
 #' @examples
 #' \dontrun{
@@ -40,12 +47,6 @@ GOnto <- function(condition,
                                    pairName = "G2_over_G1",
                                    env,
                                    Tool) {
-
-        #verifying if the package is already installed
-        # to.load <- c("RColorBrewer", "GO.db", "goseq",
-        #              "methods", "annotate", "org.Hs.eg.db", "DO.db", "reactome.db",
-        #              "goseq", "clusterProfiler", "DOSE", "ReactomePA", "igraph",
-        #              "pathview", "gage", "gageData")
 
         # @param File A character string indicating the object name containg the DE
         #   matrix. It must be named \code{Results_Completed.} and it must be inside

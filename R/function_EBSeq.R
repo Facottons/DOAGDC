@@ -38,6 +38,7 @@
 #' @inheritParams groups_identification_mclust
 #'
 #' @return A matrix with DE genes in row and statistical values in columns.
+#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -61,9 +62,6 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
                       Unit = "px",
                       image_format = "png",
                       Bullard_quantile = 0.75) {
-
-    #verifying if the package is already installed
-    # to.load <- c("RColorBrewer", "ggbiplot", "devtools", "methods", "pheatmap", "ggplot2")
 
     #local functions ####
     ebseq_plots <- function(test, Pairs){

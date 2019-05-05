@@ -17,6 +17,7 @@
 #' @return A matrix with DE genes in row and statistical values in columns.
 #'
 #' @import edgeR
+#' @export
 #'
 #' @examples
 #' \dontrun{

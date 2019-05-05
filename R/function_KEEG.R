@@ -11,6 +11,12 @@
 #' @inheritParams GOnto
 #'
 #' @return Enriched terms.
+#' @export
+#'
+#' @importFrom AnnotationDbi columns
+#' @importFrom AnnotationDbi select
+#' @importFrom gage gage
+#' @importFrom pathview pathview
 #'
 #' @examples
 #' \dontrun{

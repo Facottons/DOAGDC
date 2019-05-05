@@ -11,6 +11,12 @@
 #' @inheritParams GOnto
 #'
 #' @return Enriched terms.
+#' @export
+#'
+#' @importFrom DOSE enrichDO
+#' @importFrom clusterProfiler bitr
+#' @importFrom stringr str_count
+#' @importFrom ReactomePA enrichPathway
 #'
 #' @examples
 #' \dontrun{
@@ -82,10 +88,10 @@ DO_React_enrich <- function(p_cutoff = 0.05,
     dir.create(file.path(DIR, "DO_Output"), showWarnings = FALSE)
 
     # "GeneID" equal to "entrez gene id"
-    if (tolower(dataBase) == "gdc"){
+    if (tolower(dataBase) == "gdc") {
         geneIDList_DE <- clusterProfiler::bitr(DEGenes_all$ensembl, fromType = "ENSEMBL",
                                                toType = "ENTREZID", OrgDb = "org.Hs.eg.db")$ENTREZID
-        geneIDList_Universe <- clusterProfiler::bitr(TCGAExpression$ensembl, fromType="ENSEMBL",
+        geneIDList_Universe <- clusterProfiler::bitr(TCGAExpression$ensembl, fromType = "ENSEMBL",
                                                      toType = "ENTREZID", OrgDb = "org.Hs.eg.db")$ENTREZID
     } else {
         geneIDList_DE <- DEGenes_all$GeneID
@@ -137,7 +143,7 @@ DO_React_enrich <- function(p_cutoff = 0.05,
 
         log_10_DO <- -log10(as.numeric(PlotNowDO[, "p.adjust"]))
         new_inf <- log_10_DO[order(log_10_DO, decreasing = TRUE)]
-        log_10_DO[log_10_DO == "Inf"] <- (new_inf[new_inf != "Inf"][1]+1)
+        log_10_DO[log_10_DO == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
 
         longest_word <- max(stringr::str_count(PlotNowDO$Description))
 
@@ -169,7 +175,7 @@ DO_React_enrich <- function(p_cutoff = 0.05,
         p <- ggplot2::ggplot(PlotNowDO, ggplot2::aes(x = log_10_DO,
                                                      y = forcats::fct_reorder(Description, log_10_DO))) +
             ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
-            ggplot2::scale_colour_gradient(limits=c(0, 1), low="red", high = "blue") +
+            ggplot2::scale_colour_gradient(limits = c(0, 1), low = "red", high = "blue") +
             ggplot2::labs(y = "", x = "-log(FDR)") +
             ggplot2::theme_bw(base_size = 10) +
             ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
@@ -202,7 +208,7 @@ DO_React_enrich <- function(p_cutoff = 0.05,
 
     # Write
     write.csv(REACTOME_Enriched_summary,
-              file=paste0(DIR,
+              file = paste0(DIR,
                          "/REACTOME_Output/REAC_enrichment_", pairName, ".csv"), row.names = FALSE)
 
     #Get fdr <0.05
@@ -228,7 +234,7 @@ DO_React_enrich <- function(p_cutoff = 0.05,
 
         log_10_REACT <- -log10(as.numeric(PlotNowREACT[, "p.adjust"]))
         new_inf <- log_10_REACT[order(log_10_REACT, decreasing = TRUE)]
-        log_10_REACT[log_10_REACT == "Inf"] <- (new_inf[new_inf != "Inf"][1]+1)
+        log_10_REACT[log_10_REACT == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
 
         longest_word <- max(stringr::str_count(PlotNowREACT$Description))
 
@@ -260,7 +266,7 @@ DO_React_enrich <- function(p_cutoff = 0.05,
         p <- ggplot2::ggplot(PlotNowREACT, ggplot2::aes(x = log_10_REACT,
                                                      y = forcats::fct_reorder(Description, log_10_REACT))) +
             ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
-            ggplot2::scale_colour_gradient(limits=c(0, 1), low="red", high = "blue") +
+            ggplot2::scale_colour_gradient(limits = c(0, 1), low = "red", high = "blue") +
             ggplot2::labs(y = "", x = "-log(FDR)") +
             ggplot2::theme_bw(base_size = 10) +
             ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",

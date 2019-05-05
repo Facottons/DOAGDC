@@ -49,6 +49,11 @@
 #'
 #' @return a list of genes co-expressed and store it inside the determined
 #'   environment name for further use.
+#' @export
+#'
+#' @importFrom dynamicTreeCut printFlush
+#' @importFrom dynamicTreeCut cutreeDynamic
+#' @importFrom dplyr mutate
 #'
 #'
 #' @examples

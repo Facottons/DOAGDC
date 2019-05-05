@@ -12,6 +12,7 @@
 #'
 #' @return the beta values converted in mValues stored inside the determined
 #'   environment name.
+#' @export
 #'
 #' @examples
 #' \dontrun{

@@ -11,6 +11,10 @@
 #' @inheritParams GOnto
 #'
 #' @return the PCAs plots.
+#' @export
+#'
+#' @importFrom ggbiplot ggbiplot
+#' @importFrom RColorBrewer brewer.pal
 #'
 #' @examples
 #' \dontrun{
@@ -181,7 +185,7 @@ PCA_Analysis <- function(Tool,
 
     color_pallete <- RColorBrewer::brewer.pal(8, "Set2")
 
-    if (nrow(resultadosDE) != 0 ){
+    if (nrow(resultadosDE) != 0 ) {
         PCA_Anal_local(SIZE = "All", FILE = paste0("/PCA_Plots/PCA_GENETOP=all_",
                                                    pairName))
         PCA_Anal_local(SIZE = nrow(resultadosDE)%/%4,

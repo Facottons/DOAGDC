@@ -59,12 +59,19 @@
 #' @inheritParams download_gdc
 #'
 #' @return A matrix with data names in row and patients code in column.
+#' @export
+#'
+#' @importFrom data.table fread
+#' @importFrom R.utils gunzip
+#' @importFrom reshape2 melt
+#' @importFrom XML xmlToDataFrame
 #'
 #' @examples
 #' \dontrun{
 #' # Concatenating isoform expression data into a single matrix
 #' concatenate_files(dataType = "isoform", Name = "uc002peh.2", dataBase = "legacy", tumor = "BRCA")
 #' }
+#'
 concatenate_files <- function(dataType,
                       normalization = TRUE,
                       Name , dataBase,

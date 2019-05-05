@@ -14,6 +14,9 @@
 #'
 #' @return a list of genes co-expressed and differentially expressed genes
 #'   inside the determined environment name for further use.
+#' @export
+#'
+#' @importFrom VennDiagram venn.diagram
 #'
 #' @examples
 #' \dontrun{

@@ -20,6 +20,15 @@
 #' @inheritParams groups_identification_mclust
 #'
 #' @return the groups generated after using the coxHR analysis.
+#' @export
+#'
+#' @importFrom survival coxph
+#' @importFrom survival Surv
+#' @importFrom survival survfit
+#' @importFrom survminer ggsurvplot
+#' @importFrom XML xmlParse
+#' @importFrom XML xmlToList
+#' @importFrom yarrr pirateplot
 #'
 #' @examples
 #' \dontrun{

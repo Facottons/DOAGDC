@@ -32,6 +32,11 @@
 #' @inheritParams concatenate_files
 #'
 #' @return the groups generated after using the mclust analysis.
+#' @export
+#'
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom scales alpha
+#' @importFrom scales percent
 #'
 #' @examples
 #' \dontrun{
@@ -60,8 +65,6 @@ groups_identification_mclust <- function(dataType,
     # values <- hist(x, col = col, breaks = breaks)
     # col <- ifelse(values$mids <= -1, "red", "blue")
     # hist(x, col = col, breaks = breaks)
-
-    # to.load <- c("mclust", "MineICA")
 
 
     #local functions ####
