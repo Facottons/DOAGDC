@@ -14,9 +14,10 @@ isoform and protein expression, methylation and mutation data)}
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
   "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-  quantification", "miRNA isoform quantification", "isoform", "image",
-  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+   quantification", "miRNA isoform quantification", "isoform", "image",
+   "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+   Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
+}}
 
 \item{normalization}{Logical value where \code{TRUE} specify the desire to
 work with normalized files only. When FALSE, in the second run, do not
@@ -31,7 +32,8 @@ come from GDC/Legacy data base, and it is related with genome version GRCh
 with genome version GRCh 38, please insert "GDC" in this argument.}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
-the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
+the TCGA project. For instance, the \code{"BRCA"} stands for breast
+cancer.}
 
 \item{tumorData}{Logical value where \code{TRUE} specifies the desire to work
 with tumor tissue files only. When set to FALSE, it creates two matrices,

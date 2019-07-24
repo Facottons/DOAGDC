@@ -14,9 +14,10 @@ groups_identification_mclust(dataType, group.number = "",
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
   "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-  quantification", "miRNA isoform quantification", "isoform", "image",
-  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+   quantification", "miRNA isoform quantification", "isoform", "image",
+   "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+   Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
+}}
 
 \item{group.number}{Numerical value indicating how many groups should be
 generated.}
@@ -37,7 +38,7 @@ bars. As default \code{nBreaks = 55}.}
 
 \item{Width, Height, Res, Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -55,7 +56,8 @@ environment following the standard criteria:
 in separated matrices).}}}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
-the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
+the TCGA project. For instance, the \code{"BRCA"} stands for breast
+cancer.}
 
 \item{dataBase}{A character string specifying \code{"GDC"} for GDC Data
 Portal or \code{"legacy"} for GDC Legacy Archive.}
@@ -71,12 +73,21 @@ quantification matrix.}
 the groups generated after using the mclust analysis.
 }
 \description{
-\code{groups_identification_mclust} is a function designed to separate patients in
-groups, powered by mclust.
+\code{groups_identification_mclust} is a function designed to separate
+patients in groups, powered by mclust.
 }
 \examples{
-\dontrun{
-#separating isoform uc002peh.2 expression data patients in two groups
-groups_identification_mclust("isoform", 2, Name = "uc002peh.2", modelName = "E")
-}
+concatenate_files("gene",
+                   Name = "HIF3A",
+                   dataBase = "legacy",
+                   tumor = "CHOL",
+                   workDir = "~/Desktop")
+
+#separating gene HIF3A expression data patients in two groups
+groups_identification_mclust("gene", 2,
+                               Name = "HIF3A",
+                               modelName = "E",
+                               env = CHOL_LEGACY_gene_tumor_data,
+                               tumor = "CHOL")
+
 }

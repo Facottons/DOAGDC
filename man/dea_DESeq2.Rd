@@ -20,43 +20,46 @@ used in the analysis. The default value is 2.}
 
 \item{test}{A character string indicating which test should be used:
 \code{"LRT", "wald" or "Default Test"}. The default is \code{"Default
-  Test"}.}
+   Test"}.}
 
 \item{groupGen}{A character string indicating the groups generation function:
 \itemize{\item{"mclust" - }{\code{groups_identification_mclust()};}
-\item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical" -
-}{\code{groups_identification_clinical()}.} }}
+\item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical"
+\itemize{
+\item }{\code{groups_identification_clinical()}.} }
+}}
 
 \item{clinical_pair}{A character string containing one of the group pairs
 selected after statistical analysis runned in \code{clinical_terms()}
 function.}
 
-\item{FC_cutoff}{Numerical value indicating the maximum value for Fold Change
-(FC). The default is \code{2}.}
+\item{FC_cutoff}{Numerical value indicating the maximum value for Fold
+Change '(FC). The default is \code{2}.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
-the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
+the TCGA project. For instance, the \code{"BRCA"} stands for breast
+cancer.}
 
 \item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -79,8 +82,31 @@ A matrix with DE genes in row and statistical values in columns.
 Run DESeq2 gene Differential Expression Analysis (DEA).
 }
 \examples{
-\dontrun{
-#considering concatenate_files and groups_identification already runned
-dea_DESeq2(Name = "HIF3A", test = "LRT", env = "env name without quotes")
-}
+concatenate_files("gene",
+                   Name = "HIF3A",
+                   dataBase = "legacy",
+                   tumor = "CHOL",
+                   workDir = "~/Desktop")
+
+#separating gene HIF3A expression data patients in two groups
+groups_identification_mclust("gene", 2,
+                               Name = "HIF3A",
+                               modelName = "E",
+                               env = CHOL_LEGACY_gene_tumor_data,
+                               tumor = "CHOL")
+
+# load not normalized data
+concatenate_files("gene",
+                   normalization = FALSE,
+                   Name = "HIF3A",
+                   dataBase = "legacy",
+                   tumor = "CHOL",
+                   env = CHOL_LEGACY_gene_tumor_data,
+                   workDir = "~/Desktop")
+
+# start DE analysis
+dea_DESeq2(Name = "HIF3A",
+           test = "LRT",
+           env = CHOL_LEGACY_gene_tumor_data,
+           groupGen = "mclust")
 }

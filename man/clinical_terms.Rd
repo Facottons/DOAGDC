@@ -4,12 +4,11 @@
 \alias{clinical_terms}
 \title{Search for clinical terms for all available tumors}
 \usage{
-clinical_terms(Name, workDir = "~/Desktop", tumor = "all", dataType,
+clinical_terms(Name, workDir, tumor = "all", dataType,
   group.number = 2, term, dataBase = "legacy", term_keyword = NULL,
-  tumor_with_term = 1, p_cutoff = 0.05, FDR_cutoff = 0.05,
-  confidence.level = 0.95, Width = 7, Height = 7, Res = 300,
-  Unit = "in", image_format = "svg", env, cexAxixX = 16,
-  cexAxixY = 16)
+  tumor_with_term = 1, p_cutoff = 0.05, confidence.level = 0.95,
+  Width = 7, Height = 7, Res = 300, Unit = "in",
+  image_format = "svg", env, cexAxixX = 16, cexAxixY = 16)
 }
 \arguments{
 \item{Name}{A character string indicating the desired values to be used in
@@ -19,8 +18,8 @@ quantification matrix.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
-\item{tumor}{A character vector indicating which tumors should be used in the
-analysis. The default is "all".}
+\item{tumor}{A character vector indicating which tumors should be used in
+the analysis. The default is "all".}
 
 \item{dataType}{A character string indicating which dataType will be used to
 group the patients. Only needed when the environment was not created yet
@@ -44,27 +43,24 @@ tumors containing a specific term with the keyword used. The default is 1.}
 \item{p_cutoff}{Numerical value indicating the maximum value for p-values.
 The default is \code{0.05}.}
 
-\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
-values. The default is \code{0.05}.}
-
 \item{confidence.level}{A numerical value containing the confidence interval
 to be used. The default is 0.95.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is

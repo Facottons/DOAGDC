@@ -4,32 +4,32 @@
 #' @param FC_cutoff
 #' @param Name
 #' @param Method The agglomeration method to be used: \code{"euclidean",
-#'   "maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
-#'   "correlation", "abscorrelation", "spearman" or "kendall"}. The default is
-#'   \code{"euclidean"}. More details about \code{Method} argument in
-#'   \code{amap} package \link{Dist} \code{method} argument.
+#'    "maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
+#'    "correlation", "abscorrelation", "spearman" or "kendall"}. The default is
+#'    \code{"euclidean"}. More details about \code{Method} argument in
+#'    \code{amap} package \link{Dist} \code{method} argument.
 #' @param pairName A character string indicating the pair name to be used. When
-#'   there are only two groups the default is \code{"G2_over_G1"}
+#'    there are only two groups the default is \code{"G2_over_G1"}
 #' @param RawValues A logical value. If \code{"TRUE"} the expression values are
-#'   going to be converted to Z-Score before draw the heat map.
+#'    going to be converted to Z-Score before draw the heat map.
 #' @param Width,Height,Res,Unit,image_format
 #' @param env
 #' @param ScaleMethod A character string indicating which method of scale should
-#'   be used: \code{"none"}, \code{"row"}, \code{"column"}. The default is
-#'   \code{"row"}. More details about \code{ScaleMethod} argument in
-#'   \link{heatmap} \code{scale} argument.
+#'    be used: \code{"none"}, \code{"row"}, \code{"column"}. The default is
+#'    \code{"row"}. More details about \code{ScaleMethod} argument in
+#'    \link{heatmap} \code{scale} argument.
 #' @param outerMargins A numerical vector of the form c(bottom, left, top,
-#'   right) giving the outer margins measured in lines of text. The default is
-#'   no outer margins, i.e \code{"c(0,0,0,0)"}. Note: This argument is only used
-#'   when \code{"labRow"} and \code{"labCol"} are set.
+#'    right) giving the outer margins measured in lines of text. The default is
+#'    no outer margins, i.e \code{"c(0,0,0,0)"}. Note: This argument is only
+#'    used 'when \code{"labRow"} and \code{"labCol"} are set.
 #' @param cexCol,cexRow A numerical value giving the amount by which
-#'   \code{"labRow"} and \code{"labCol"} should be modified relative to the
-#'   default size.
+#'    \code{"labRow"} and \code{"labCol"} should be modified relative to the
+#'    default size.
 #' @param degree The \code{"labCol"} rotation in degrees. The default value is
-#'   45 degrees.
+#'    45 degrees.
 #' @param labRow,labCol A logical value. If \code{"TRUE"} it is displayed row
-#'   names (\code{"labRow"}) and col names (\code{"labCol"}). The default is
-#'   \code{"FALSE"} for both, in order to kepp the plot clean.
+#'    names (\code{"labRow"}) and col names (\code{"labCol"}). The default is
+#'    \code{"FALSE"} for both, in order to kepp the plot clean.
 #' @inheritParams groups_identification_mclust
 #' @inheritParams dea_EBSeq
 #' @inheritParams GOnto
@@ -46,85 +46,86 @@
 #' draw_heatmap("EBSeq", Name = "HIF3A", env = "env name without quotes")
 #' }
 draw_heatmap <- function(Tool, FC_cutoff = 2,
-                         Name,
-                         Method = "euclidean",
-                         pairName = "G2_over_G1",
-                         RawValues = FALSE,
-                         Width = 6,
-                         Height = 6,
-                         Res = 300,
-                         Unit = "in",
-                         image_format = "svg",
-                         env,
-                         ScaleMethod = "row",
-                         outerMargins = c(0,0,0,0),
-                         cexCol= 0,
-                         cexRow = 0,
-                         degree = 45,
-                         labRow = NULL,
-                         labCol = NULL) {
+                        Name,
+                        Method = "euclidean",
+                        pairName = "G2_over_G1",
+                        RawValues = FALSE,
+                        Width = 6,
+                        Height = 6,
+                        Res = 300,
+                        Unit = "in",
+                        image_format = "svg",
+                        env,
+                        ScaleMethod = "row",
+                        outerMargins = c(0,0,0,0),
+                        cexCol= 0,
+                        cexRow = 0,
+                        degree = 45,
+                        labRow = NULL,
+                        labCol = NULL) {
 
     #verifying if the package is already installed
 
     #local function ####
     heatmap.3 <- function(x,
-                          Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
-                          distfun = dist,
-                          hclustfun = hclust,
-                          dendrogram = c("both","row", "column", "none"),
-                          symm = FALSE,
-                          scale = c("none","row", "column"),
-                          na.rm = TRUE,
-                          revC = identical(Colv,"Rowv"),
-                          add.expr,
-                          breaks,
-                          symbreaks = max(x < 0, na.rm = TRUE) || scale != "none",
-                          col = "heat.colors",
-                          colsep,
-                          rowsep,
-                          sepcolor = "white",
-                          sepwidth = c(0.05, 0.05),
-                          cellnote,
-                          notecex = 1,
-                          notecol = "cyan",
-                          na.color = par("bg"),
-                          trace = c("none", "column","row", "both"),
-                          tracecol = "cyan",
-                          hline = median(breaks),
-                          vline = median(breaks),
-                          linecol = tracecol,
-                          margins = c(5,5),
-                          ColSideColors,
-                          RowSideColors,
-                          side.height.fraction=0.1,
-                          #cexRow = 0.2 + 1/log10(max(nr,2)),
-                          #cexCol = 0.2 + 1/log10(max(nc,2)),
-                          cexRow,
-                          cexCol,
-                          degree = 65,
-                          scaleRangeMin,
-                          scaleRangeMax,
-                          cex.main = 1,
-                          labRow = NULL,
-                          labCol = NULL,
-                          key = TRUE,
-                          keysize = 1.5,
-                          density.info = c("none", "histogram", "density"),
-                          denscol = tracecol,
-                          symkey = max(x < 0, na.rm = TRUE) || symbreaks,
-                          densadj = 0.25,
-                          main = NULL,
-                          xlab = NULL,
-                          ylab = NULL,
-                          lmat = NULL,
-                          lhei = NULL,
-                          lwid = NULL,
-                          NumColSideColors = 1,
-                          NumRowSideColors = 1,
-                          KeyValueName,...){
+                        Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE,
+                        distfun = dist,
+                        hclustfun = hclust,
+                        dendrogram = c("both","row", "column", "none"),
+                        symm = FALSE,
+                        scale = c("none","row", "column"),
+                        na.rm = TRUE,
+                        revC = identical(Colv,"Rowv"),
+                        add.expr,
+                        breaks,
+                        symbreaks = max(x < 0, na.rm = TRUE) || scale != "none",
+                        col = "heat.colors",
+                        colsep,
+                        rowsep,
+                        sepcolor = "white",
+                        sepwidth = c(0.05, 0.05),
+                        cellnote,
+                        notecex = 1,
+                        notecol = "cyan",
+                        na.color = par("bg"),
+                        trace = c("none", "column","row", "both"),
+                        tracecol = "cyan",
+                        hline = median(breaks),
+                        vline = median(breaks),
+                        linecol = tracecol,
+                        margins = c(5,5),
+                        ColSideColors,
+                        RowSideColors,
+                        side.height.fraction=0.1,
+                        #cexRow = 0.2 + 1/log10(max(nr,2)),
+                        #cexCol = 0.2 + 1/log10(max(nc,2)),
+                        cexRow,
+                        cexCol,
+                        degree = 65,
+                        scaleRangeMin,
+                        scaleRangeMax,
+                        cex.main = 1,
+                        labRow = NULL,
+                        labCol = NULL,
+                        key = TRUE,
+                        keysize = 1.5,
+                        density.info = c("none", "histogram", "density"),
+                        denscol = tracecol,
+                        symkey = max(x < 0, na.rm = TRUE) || symbreaks,
+                        densadj = 0.25,
+                        main = NULL,
+                        xlab = NULL,
+                        ylab = NULL,
+                        lmat = NULL,
+                        lhei = NULL,
+                        lwid = NULL,
+                        NumColSideColors = 1,
+                        NumRowSideColors = 1,
+                        KeyValueName,...){
 
-        # created by obigriffith in "https://raw.githubusercontent.com/trinityrnaseq/trinityrnaseq/master/Analysis/DifferentialExpression/R/heatmap.3.R"
-        ## pulled from here, and then tweaked slightly: http://www.biostars.org/p/18211/
+        # created by obigriffith in
+        # "https://raw.githubusercontent.com/trinityrnaseq/trinityrnaseq/master/Analysis/DifferentialExpression/R/heatmap.3.R"
+        # # pulled from here, and then tweaked slightly: http://www.biostars.org/p/18211/
 
         invalid <- function (x) {
             if (missing(x) || is.null(x) || length(x) == 0)
@@ -159,7 +160,8 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
 
         if (!missing(breaks) && (scale != "none"))
             warning("Using scale=\"row\" or scale=\"column\" when breaks are",
-                    "specified can produce unpredictable results.", "Please consider using only one or the other.")
+                    "specified can produce unpredictable results.",
+                    "Please consider using only one or the other.")
 
         if (is.null(Rowv) || is.na(Rowv))
             Rowv <- FALSE
@@ -177,8 +179,6 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
 
         if (nr <= 1 || nc <= 1)
             stop("`x' must have at least 2 rows and 2 columns")
-        #print(paste("nr:", nr, "nc:", nc, "cexCol:", cexCol, "cexRow:", cexRow))
-        #stop("debug")
 
         if (!is.numeric(margins) || length(margins) != 2)
             stop("`margins' must be a numeric vector of length 2")
@@ -369,7 +369,6 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                 if (!is.character(RowSideColors) || nrow(RowSideColors) != nr)
                     stop("'RowSideColors' must be a matrix of nrow(x) ", nr, " rows.  It currently has ", nrow(RowSideColors), " rows.")
                 lmat <- cbind(lmat[, 1] + 1, c(rep(NA, nrow(lmat) - 1), 1), lmat[,2] + 1)
-                #lwid <- c(lwid[1], side.height.fraction*NumRowSideColors, lwid[2])
                 side_width = min(side.height.fraction*ncol(RowSideColors), 1);
                 lwid <- c(lwid[1], side_width, lwid[2])
             }
@@ -404,17 +403,15 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                 }
                 # print(rsc)
                 rsc = matrix(as.numeric(rsc), nrow = dim(rsc)[1])
-                #print("RSC: ", rsc)
-                #print(rsc.colors)
-                image(1:nrow(rsc), 1:ncol(rsc), rsc, col = as.vector(rsc.colors), axes = FALSE, xlab="", ylab="")
+                image(1:nrow(rsc), 1:ncol(rsc), rsc,
+                    col = as.vector(rsc.colors), axes = FALSE,
+                    xlab="", ylab="")
 
                 # add labels
                 if (length(colnames(RowSideColors)) > 0) {
-                    #axis(1, 0:(dim(rsc)[2] - 1)/(dim(rsc)[2] - 1), rownames(RowSideColors), las = 2, tick = FALSE)
-                    #axis(1, 0:(nrow(rsc)-1), colnames(RowSideColors), las = 2, tick = TRUE) # ncol because transposed
-                    axis(1, 1:ncol(RowSideColors), labels=colnames(RowSideColors), las=2, tick=FALSE, xlab="", ylab="")
-                    # cex.axis=0.5,
-
+                    axis(1, 1:ncol(RowSideColors),
+                                        labels=colnames(RowSideColors), las=2,
+                                        tick=FALSE, xlab="", ylab="")
                 }
             }
         }
@@ -436,14 +433,15 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                     csc.i = csc.i + 1
                 }
                 csc = matrix(as.numeric(csc), nrow = dim(csc)[1])
-                #print(csc)
-                image(1:nrow(t(csc)), 1:ncol(t(csc)), t(csc), col = as.vector(csc.colors), axes = FALSE, xlab="", ylab="")
+                image(1:nrow(t(csc)), 1:ncol(t(csc)), t(csc),
+                                    col = as.vector(csc.colors), axes = FALSE,
+                                    xlab="", ylab="")
 
                 # add labels
                 if (length(rownames(ColSideColors)) > 0) {
-                    #axis(2, 0:(dim(csc)[2] - 1)/max(1,(dim(csc)[2] - 1)), colnames(ColSideColors), las = 2, tick = FALSE)
-                    axis(2, 1:(nrow(ColSideColors)), labels=rownames(ColSideColors), las = 2, tick = FALSE)
-                    # , cex.axis=0.5
+                    axis(2, 1:(nrow(ColSideColors)),
+                                    labels=rownames(ColSideColors), las = 2,
+                                    tick = FALSE)
                 }
             }
         }
@@ -461,7 +459,9 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         else iy <- 1:nr
 
         # draw the central heatmap
-        image(1:nc, 1:nr, x, xlim = 0.5 + c(0, nc), ylim = 0.5 + c(0, nr), axes = FALSE, xlab = "", ylab = "", col = col, breaks = breaks, ...)
+        image(1:nc, 1:nr, x, xlim = 0.5 + c(0, nc), ylim = 0.5 + c(0, nr),
+                                            axes = FALSE, xlab = "", ylab = "",
+                                            col = col, breaks = breaks, ...)
 
         # store the matrix drawn
         retval$carpet <- x
@@ -481,7 +481,8 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         # specially color in the na values
         if (!invalid(na.color) & any(is.na(x))) { # load library(gplots)
             mmat <- ifelse(is.na(x), 1, NA)
-            image(1:nc, 1:nr, mmat, axes = FALSE, xlab = "", ylab = "", col = na.color, add = TRUE)
+            image(1:nc, 1:nr, mmat, axes = FALSE, xlab = "", ylab = "",
+                                                    col = na.color, add = TRUE)
         }
 
         # X-axis column labels
@@ -489,11 +490,12 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
             axis(1, 1:nc, labels = labCol, las = 2, line = -0.5, tick = 0)
             # , cex.axis = cexCol
         } else {
-            tck <- axis(1, 1:nc, labels = FALSE, las = 2, line = -0.5, tick = 0)
+            tck <- axis(1, 1:nc, labels = FALSE, las = 2, line = -0.5,
+                                                                    tick = 0)
             # ,cex.axis = cexCol
             labels <- labCol
             text(tck, par("usr")[3], labels=labels, srt=degree,
-                 xpd=NA, adj=c(1,0.8), cex=cexCol)
+                xpd=NA, adj=c(1,0.8), cex=cexCol)
         }
 
         # X-axis title
@@ -552,7 +554,9 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
 
         # add cell labels
         if (!missing(cellnote))
-            text(x = c(row(cellnote)), y = c(col(cellnote)), labels = c(cellnote), col = notecol, cex = notecex)
+            text(x = c(row(cellnote)), y = c(col(cellnote)),
+                                        labels = c(cellnote), col = notecol,
+                                        cex = notecex)
 
         # Plot the row dendrogram
         par(mar = c(margins[1], 0, 0, 0))
@@ -587,11 +591,9 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                 max.raw <- max(c(x,breaks), na.rm = TRUE)
             }
 
-            # message('for plotting:: min.raw: ', min.raw, ' max.raw: ', max.raw);
-
             z <- seq(min.raw, max.raw, length = length(col))
             image(z = matrix(z, ncol = 1), col = col, breaks = tmpbreaks,
-                  xaxt = "n", yaxt = "n")
+                xaxt = "n", yaxt = "n")
             par(usr = c(0, 1, 0, 1))
             lv <- pretty(breaks)
             xv <- scale01(as.numeric(lv), min.raw, max.raw)
@@ -608,7 +610,7 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                 dens$y <- dens$y[-omit]
                 dens$x <- scale01(dens$x, min.raw, max.raw)
                 lines(dens$x, dens$y/max(dens$y) * 0.95, col = denscol,
-                      lwd = 1)
+                    lwd = 1)
                 axis(2, at = pretty(dens$y)/max(dens$y) * 0.95, pretty(dens$y))
                 title("Color Key\nand Density Plot")
                 par(cex = 0.3)
@@ -619,7 +621,7 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                 hx <- scale01(breaks, min.raw, max.raw)
                 hy <- c(h$counts, h$counts[length(h$counts)])
                 lines(hx, hy/max(hy) * 0.95, lwd = 1, type = "s",
-                      col = denscol)
+                    col = denscol)
                 axis(2, at = pretty(hy)/max(hy) * 0.95, pretty(hy))
                 title("Color Key\nand Histogram")
                 par(cex = 0.3)
@@ -632,79 +634,6 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         retval$colorTable <- data.frame(low = retval$breaks[-length(retval$breaks)], high = retval$breaks[-1], color = retval$col)
 
         invisible(retval)
-
-        # colorpanel = function (n, low, mid, high)
-        # {
-        #     if (missing(mid) || missing(high)) {
-        #         low <- col2rgb(low)
-        #         if (missing(high))
-        #             high <- col2rgb(mid)
-        #         else high <- col2rgb(high)
-        #         red <- seq(low[1, 1], high[1, 1], length = n)/255
-        #         green <- seq(low[3, 1], high[3, 1], length = n)/255
-        #         blue <- seq(low[2, 1], high[2, 1], length = n)/255
-        #     }
-        #     else {
-        #         isodd <- odd(n)
-        #         if (isodd) {
-        #             n <- n + 1
-        #         }
-        #         low <- col2rgb(low)
-        #         mid <- col2rgb(mid)
-        #         high <- col2rgb(high)
-        #         lower <- floor(n/2)
-        #         upper <- n - lower
-        #         red <- c(seq(low[1, 1], mid[1, 1], length = lower), seq(mid[1,
-        #                                                                     1], high[1, 1], length = upper))/255
-        #         green <- c(seq(low[3, 1], mid[3, 1], length = lower),
-        #                    seq(mid[3, 1], high[3, 1], length = upper))/255
-        #         blue <- c(seq(low[2, 1], mid[2, 1], length = lower),
-        #                   seq(mid[2, 1], high[2, 1], length = upper))/255
-        #         if (isodd) {
-        #             red <- red[-(lower + 1)]
-        #             green <- green[-(lower + 1)]
-        #             blue <- blue[-(lower + 1)]
-        #         }
-        #     }
-        #     rgb(red, blue, green)
-        # }
-        #
-        #
-        # greenred = function (n)  {
-        #     colorpanel(n, "green", "black", "red")
-        # }
-        #
-        # odd = function (x) {
-        #     x%%2 == 1
-        # }
-        #
-        # even = function (x) {
-        #     x%%2 == 0
-        # }
-
-        # EXAMPLE USAGE
-
-        # example of colsidecolors rowsidecolors (single column, single row)
-        #mat <- matrix(1:100, byrow=TRUE, nrow=10)
-        #column_annotation <- sample(c("red", "blue", "green"), 10, replace=TRUE)
-        #column_annotation <- as.matrix(column_annotation)
-        #colnames(column_annotation) <- c("Variable X")
-
-        #row_annotation <- sample(c("red", "blue", "green"), 10, replace=TRUE)
-        #row_annotation <- as.matrix(t(row_annotation))
-        #rownames(row_annotation) <- c("Variable Y")
-
-        #heatmap.3(mat, RowSideColors=row_annotation, ColSideColors=column_annotation)
-
-        # multiple column and row
-        #mat <- matrix(1:100, byrow=TRUE, nrow=10)
-        #column_annotation <- matrix(sample(c("red", "blue", "green"), 20, replace=TRUE), ncol=2)
-        #colnames(column_annotation) <- c("Variable X1", "Variable X2")
-
-        #row_annotation <- matrix(sample(c("red", "blue", "green"), 20, replace=TRUE), nrow=2)
-        #rownames(row_annotation) <- c("Variable Y1", "Variable Y2")
-
-        #heatmap.3(mat, RowSideColors=row_annotation, ColSideColors=column_annotation)
     }
 
     final.heatmap <- function(dist_Method, Scale_Method){
@@ -725,44 +654,46 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
 
         if (tolower(image_format) == "png") {
             png(filename = paste0(DIR,
-                                  "/Heatmaps/", dist_Method, "_",
-                                  method, "_", Scale_Method,
-                                  "_FC_cutoff=", FC_cutoff, "_",
-                                  pairName, ".png"),
+                                "/Heatmaps/", dist_Method, "_",
+                                method, "_", Scale_Method,
+                                "_FC_cutoff=", FC_cutoff, "_",
+                                pairName, ".png"),
                 width = Width, height = Height, res = Res, units = Unit)
         } else if (tolower(image_format) == "svg") {
             svg(filename = paste0(DIR,
-                                  "/Heatmaps/", dist_Method, "_",
-                                  method, "_", Scale_Method,
-                                  "_FC_cutoff=", FC_cutoff, "_",
-                                  pairName, ".svg"),
+                                "/Heatmaps/", dist_Method, "_",
+                                method, "_", Scale_Method,
+                                "_FC_cutoff=", FC_cutoff, "_",
+                                pairName, ".svg"),
                 width = Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format!",
+                                                        " ('png' or 'svg')"))
         }
         par(oma = outerMargins)
         heatmap.3(DF,
-                  scale=Scale_Method,
-                  dendrogram="both",
-                  margins=c(3, 9),
-                  Rowv=row.dendro,
-                  keysize = 1.1,
-                  Colv=col.dendro,
-                  labRow = labRow,
-                  labCol = labCol,
-                  symbreaks=FALSE,
-                  key=TRUE, symkey=FALSE,
-                  ColSideColors = t(colour.groups),
-                  density.info="none",
-                  trace="none",
-                  cexCol= cexCol,
-                  cexRow = cexRow,
-                  degree = degree, col=RampaDeCor,
-                  #main=main_title, ColSideColorsSize=1,
-                  KeyValueName = color_key_name)
-        legend("topright", legend=paste0("G", levels(condHeatmap)), title = "Groups",
-               fill=possible_colors[as.numeric(levels(condHeatmap))], border=FALSE,
-               bty="n", y.intersp = 0.7, cex=0.7)
+                scale=Scale_Method,
+                dendrogram="both",
+                margins=c(3, 9),
+                Rowv=row.dendro,
+                keysize = 1.1,
+                Colv=col.dendro,
+                labRow = labRow,
+                labCol = labCol,
+                symbreaks=FALSE,
+                key=TRUE, symkey=FALSE,
+                ColSideColors = t(colour.groups),
+                density.info="none",
+                trace="none",
+                cexCol= cexCol,
+                cexRow = cexRow,
+                degree = degree, col=RampaDeCor,
+                KeyValueName = color_key_name)
+        legend("topright", legend=paste0("G", levels(condHeatmap)),
+                        title = "Groups",
+                        fill=possible_colors[as.numeric(levels(condHeatmap))],
+                        border=FALSE,
+                        bty="n", y.intersp = 0.7, cex=0.7)
         dev.off()
 
         patient.order <- as.matrix(patient.order)
@@ -773,7 +704,7 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                                         method, "_", Scale_Method,
                                         "_FC_cutoff=", FC_cutoff, "_",
                                         pairName, ".csv"),
-                  row.names = FALSE)
+                row.names = FALSE)
 
         row.order <- as.matrix(row.order)
         row.order <- cbind(1:nrow(resultadosDE), row.order)
@@ -783,25 +714,21 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
                                     method, "_", Scale_Method,
                                     "_FC_cutoff=", FC_cutoff, "_",
                                     pairName, ".csv"),
-                  row.names = FALSE)
+                row.names = FALSE)
     }
 
     #code ####
     Name <- gsub("-", "_", Name)
 
-    if (missing(env)) {stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+    if (missing(env)) {stop(message("The 'env' argument is missing, please",
+                                    " insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
 
-    # if (missing("workDir")){
-    #     workDir <- string_vars[["envir_link"]]$workDir
-    # }
-    # assign("PATH", file.path(workDir, "DOAGDC", toupper(string_vars[["envir_link"]]$tumor),
-    #                          "Analyses"), envir = get(envir_link))
-
     if (exists("Name.e", envir = get(envir_link))) {
-        PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
+        PATH <- file.path(string_vars[["envir_link"]]$PATH,
+                                            string_vars[["envir_link"]]$Name.e)
     } else {
         PATH <- string_vars[["envir_link"]]$PATH
     }
@@ -811,17 +738,17 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
     #creating the dir to outputs
     if (tolower(Tool) == "ebseq") {
         DIR <- paste0(PATH, "/EBSeq_Results.",
-                      tolower(groupGen), "_", toupper(Name))
+                    tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.EBSeq[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.EBSeq
     } else if (tolower(Tool) == "edger") {
         DIR <- paste0(PATH, "/edgeR_Results.",
-                      tolower(groupGen), "_", toupper(Name))
+                    tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.edgeR[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.edgeR
     } else if (tolower(Tool) == "deseq2") {
         DIR <- paste0(PATH, "/DESeq2_Results.",
-                      tolower(groupGen), "_", toupper(Name))
+                    tolower(groupGen), "_", toupper(Name))
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE.DESeq2[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
     } else if (tolower(Tool) == "crosstable.deseq2") {
@@ -837,12 +764,14 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
         resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
         NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.EBSeq
     } else {
-        stop(message("Please, insert a valid Tool name! ('EBSeq', 'DESeq2' or 'edgeR')"))
+        stop(message("Please, insert a valid Tool name!",
+                                            " ('EBSeq', 'DESeq2' or 'edgeR')"))
     }
 
     dir.create(file.path(DIR, "Heatmaps"), showWarnings = FALSE)
 
-    condHeatmap <- eval(parse(text= paste0("string_vars[['envir_link']]$condHeatmap")))
+    condHeatmap <- eval(parse(text= paste0("string_vars[['envir_link']]",
+                                                            "$condHeatmap")))
 
     patients_stay <- unlist(strsplit(gsub("G", "", pairName), "_over_"))
 
@@ -858,16 +787,11 @@ draw_heatmap <- function(Tool, FC_cutoff = 2,
 
     #Select only the DE results to use in heatmaps (next step) removing the EE
     ParaHeatmaps <- as.matrix(NormalizedExpression[match(rownames(resultadosDE),
-                                                         rownames(NormalizedExpression)), ])
+                                                        rownames(NormalizedExpression)), ])
     colnames(ParaHeatmaps) <- 1:length(colnames(ParaHeatmaps))
 
     #Preparing color ramp
-    # RampaDeCor <- rev(colorRampPalette(RColorBrewer::brewer.pal(11, "RdBu"))(512))
     RampaDeCor <- gplots::colorpanel(512,"blue","white","red")
-
-    #ex deseq2
-    # condHeatmap <- Grupos_DESeq2[, 1]
-    # condHeatmap <- sapply(condHeatmap, FUN = function(x){ifelse(x == 1, "Low", "High")})
 
     #Naming the heatmap cols
     possible_colors <- RColorBrewer::brewer.pal(8, "Set2")

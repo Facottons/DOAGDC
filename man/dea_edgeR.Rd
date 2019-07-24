@@ -23,11 +23,13 @@ function.}
 
 \item{groupGen}{A character string indicating the groups generation function:
 \itemize{\item{"mclust" - }{\code{groups_identification_mclust()};}
-\item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical" -
-}{\code{groups_identification_clinical()}.} }}
+\item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical"
+\itemize{
+\item }{\code{groups_identification_clinical()}.} }
+}}
 
-\item{FC_cutoff}{Numerical value indicating the maximum value for Fold Change
-(FC). The default is \code{2}.}
+\item{FC_cutoff}{Numerical value indicating the maximum value for Fold
+Change '(FC). The default is \code{2}.}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
@@ -43,19 +45,19 @@ values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -70,6 +72,6 @@ Run edgeR gene Differential Expression Analysis (DEA).
 \examples{
 \dontrun{
 #considering concatenate_files and groups_identification already runned
-dea_edgeR(Name = "HIF3A", env = "env name without quotes")
+dea_edgeR(pairName = "G2_over_G1", rounds = 7, Name = "HIF3A", env = "env_name")
 }
 }

@@ -27,12 +27,15 @@ environment following the standard criteria:
 in separated matrices).}}}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
-the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
+the TCGA project. For instance, the \code{"BRCA"} stands for breast
+cancer.}
 
 \item{groupGen}{A character string indicating the groups generation function:
 \itemize{\item{"mclust" - }{\code{groups_identification_mclust()};}
-\item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical" -
-}{\code{groups_identification_clinical()}.} }}
+\item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical"
+\itemize{
+\item }{\code{groups_identification_clinical()}.} }
+}}
 
 \item{clinical_pair}{A character string containing one of the group pairs
 selected after statistical analysis runned in \code{clinical_terms()}
@@ -47,13 +50,13 @@ adjust this value until the hyper-parameter estimations converged. The
 default is \code{7}.}
 
 \item{normType}{A character string indicating which EBSeq normalization
-factors type should be used in the analysis "QuantileNorm" or "MedianNorm".
-The default is \code{"all"}.}
+factors type should be used in the analysis "QuantileNorm" or
+"MedianNorm". 'The default is \code{"all"}.}
 
 \item{EBTest_Qtrm, EBTest_QtrmCut}{Numerical value. It is removed from the
 analysis genes with EBTest_Qtrm th quantile < = EBTest_QtrmCut. More
 details in EBSeq \link{EBTest} page. The default is \code{EBTest_Qtrm =
-  0.75} and \code{EBTest_QtrmCut = 10}.}
+   0.75} and \code{EBTest_QtrmCut = 10}.}
 
 \item{p_cutoff}{Numerical value indicating the maximum value for p-values.
 The default is \code{0.05}.}
@@ -61,24 +64,24 @@ The default is \code{0.05}.}
 \item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
-\item{FC_cutoff}{Numerical value indicating the maximum value for Fold Change
-(FC). The default is \code{2}.}
+\item{FC_cutoff}{Numerical value indicating the maximum value for Fold
+Change '(FC). The default is \code{2}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is

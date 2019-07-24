@@ -5,45 +5,51 @@
 #' @param dataType
 #' @param normalization
 #' @param dataBase If the data was downloaded from GDC/Legacy data base, however
-#'   not using DOAGDC, please specified which data base. If the data do not
-#'   come from GDC/Legacy data base, and it is related with genome version GRCh
-#'   37, please insert "legacy" in this argument. Otherwise, if it is related
-#'   with genome version GRCh 38, please insert "GDC" in this argument.
+#'   not using DOAGDC, please specified which data base. If the data do not come
+#'   from GDC/Legacy data base, and it is related with genome version GRCh 37,
+#'   please insert "legacy" in this argument. Otherwise, if it is related with
+#'   genome version GRCh 38, please insert "GDC" in this argument.
 #' @param tumor
 #' @param tumorData
 #' @param env
 #' @inheritParams concatenate_files
 #'
-#' @return the objects imported are stored inside the determined environment name.
+#' @return the objects imported are stored inside the determined environment
+#'   name.
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' patient <- paste0(paste0("patient_", LETTERS[1:4]))
 #' genes <- paste0("gene_", seq(1, 5))
 #' # generate a simulated gene expression matrix
-#' example_gene_table <- matrix(runif(20, 0.0, 90.5), 5, 4, TRUE, list(genes, patient))
+#' example_gene_table <- matrix(runif(20, 0.0, 90.5), 5, 4, TRUE,
+#'                          list(genes, patient))
 #' # without env created
-#' table2DOAGDC(example_gene_table, dataType = "gene", dataBase = "legacy", tumor = "UCS")
-#' # with env created
-#' table2DOAGDC(example_gene_table, env = "env name without quotes")
-#' }
+#' table2DOAGDC(example_gene_table,
+#'              dataType = "gene",
+#'              dataBase = "legacy",
+#'              tumor = "UCS")
 table2DOAGDC <- function(table, dataType,
                             normalization = TRUE,
                             dataBase, tumor,
                             tumorData = TRUE,
                             env){
-    if(missing(env)) {
-        if (!(paste(tumor, dataBase, dataType, sep = "_") %in% ls(all.names = TRUE, envir = .GlobalEnv)) && tumorData){
+    if (missing(env)) {
+        if (!(paste(tumor, dataBase, dataType,sep = "_") %in% ls(all.names = TRUE, envir = .GlobalEnv)) && tumorData) {
             assign(paste(tumor, dataBase, dataType, "tumor_data", sep = "_"),
-                   new.env(parent=emptyenv()), envir = .GlobalEnv)
-            envir_link <- paste(tumor, dataBase, dataType, "tumor_data", sep = "_")
-            message(paste0("It was created", paste(tumor, dataBase, dataType, "tumor_data", sep = "_"), "Environment"))
-        } else if (!(paste(tumor, dataBase, dataType, sep = "_") %in% ls(all.names = TRUE, envir = .GlobalEnv))){
+                new.env(parent = emptyenv()), envir = .GlobalEnv)
+            envir_link <- paste(tumor, dataBase, dataType, "tumor_data",
+                                sep = "_")
+            message(paste0("It was created", paste(tumor, dataBase, dataType,
+                                "tumor_data", sep = "_"), "Environment"))
+        } else if (!(paste(tumor, dataBase, dataType,
+                    sep = "_") %in% ls(all.names = TRUE, envir = .GlobalEnv))) {
             assign(paste(tumor, dataBase, dataType, "both_data", sep = "_"),
-                   new.env(parent=emptyenv()), envir = .GlobalEnv)
-            envir_link <- paste(tumor, dataBase, dataType, "both_data", sep = "_")
-            message(paste0("It was created", paste(tumor, dataBase, dataType, "both_data", sep = "_"), "Environment"))
+                new.env(parent = emptyenv()), envir = .GlobalEnv)
+            envir_link <- paste(tumor, dataBase, dataType, "both_data",
+                                sep = "_")
+            message(paste0("It was created", paste(tumor, dataBase, dataType,
+                                    "both_data", sep = "_"), "Environment"))
         }
     }
 

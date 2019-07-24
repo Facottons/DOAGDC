@@ -1,16 +1,17 @@
 #' Perform Gene-Ontology Pathways Enrichment
 #'
 #' @param condition A character string containing which condition should be
-#'   used: "Upregulated", "Downregulated" or "all".
+#'    used: "Upregulated", "Downregulated" or "all".
 #' @param use_genes_without_cat Logical value where \code{FALSE} indicate that
-#'   genes outside the category being tested will be ignored in the calculation
-#'   of p-values. The default is "FALSE".
+#'    genes outside the category being tested will be ignored in the calculation
+#'    of p-values. The default is "FALSE".
 #' @param FDR_cutoff
 #' @param Width,Height,Res,Unit,image_format
 #' @param Tool A character string indicating which differential expression
-#'   analysis tool was last used.
+#'    analysis tool was last used.
 #' @param ID A character string indicating which ID should be used: "HUGO",
-#'   "GeneSymbol", "ensembl" , "refGene" or "GeneID". The default is \code{"GeneID"}.
+#'    "GeneSymbol", "ensembl" , "refGene" or "GeneID". The default is
+#'    \code{"GeneID"}.
 #' @param pairName
 #' @param env
 #' @inheritParams groups_identification_mclust
@@ -30,38 +31,41 @@
 #' GOnto(condition = "Upregulated", Tool = "edgeR", env = "env name without quotes")
 #' }
 GOnto <- function(condition,
-                  use_genes_without_cat = TRUE,
-                  FDR_cutoff = 0.05,
-                  Width = 2000,
-                  Height = 2000,
-                  Res = 300,
-                  Unit = "px",
-                  image_format = "png",
-                  Tool,
-                  ID = "GeneID",
-                  pairName = "G2_over_G1",
-                  env){
+                    use_genes_without_cat = TRUE,
+                    FDR_cutoff = 0.05,
+                    Width = 2000,
+                    Height = 2000,
+                    Res = 300,
+                    Unit = "px",
+                    image_format = "png",
+                    Tool,
+                    ID = "GeneID",
+                    pairName = "G2_over_G1",
+                    env) {
 
     # local functions ####
     prepar_path_enrich <- function(ID = "GeneID",
-                                   pairName = "G2_over_G1",
-                                   env,
-                                   Tool) {
+                                    pairName = "G2_over_G1",
+                                    env,
+                                    Tool) {
 
-        # @param File A character string indicating the object name containg the DE
-        #   matrix. It must be named \code{Results_Completed.} and it must be inside
-        #   the given \code{env}. Use the function \code{table2DOAGDC} to allocate
-        #   your table inside the given \code{env}.
+        # @param File A character string indicating the object name containg
+        #   the DE matrix. It must be named \code{Results_Completed.} and it
+        #   must be inside the given \code{env}. Use the function
+        #   \code{table2DOAGDC} to allocate your table inside the given
+        #   \code{env}.
 
         if (missing(env)) {
-            stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))
+            stop(message("The 'env' argument is missing, please insert ",
+                                            "the 'env' name and try again!"))
         }
 
         envir_link <- deparse(substitute(env))
         string_vars <- list(envir_link = get(envir_link))
 
         if (exists("Name.e", envir = get(envir_link))) {
-            PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
+            PATH <- file.path(string_vars[["envir_link"]]$PATH,
+                                            string_vars[["envir_link"]]$Name.e)
         } else {
             PATH <- string_vars[["envir_link"]]$PATH
         }
@@ -90,17 +94,20 @@ GOnto <- function(condition,
 
             File2 <- "Results_Completed_crossed"
 
-            dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
-            DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
+            dir.create(file.path(DIR, paste0("Ontology_Results",
+                                    tolower(groupGen))), showWarnings = FALSE)
+            DIR <- file.path(DIR, paste0("Ontology_Results",
+                                                            tolower(groupGen)))
 
         } else {
             File <- paste("resultadosDE", Tool, sep = ".")
             File2 <- paste("Results_Completed", Tool, sep = ".")
 
-            dir.create(paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
-                              Tool, "_", toupper(Name)), showWarnings = FALSE)
+            dir.create(paste0(PATH, "/Ontology_Results_",
+                            tolower(groupGen), "_",
+                            Tool, "_", toupper(Name)), showWarnings = FALSE)
             DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
-                          Tool, "_", toupper(Name))
+                        Tool, "_", toupper(Name))
         }
 
         # generate annotation table
@@ -113,32 +120,26 @@ GOnto <- function(condition,
 
         #pre-GO        gbutils::isNA
         if (tolower(ID) == "geneid") {
-
             if (tolower(dataBase) == "gdc") {
-
-                # If you haven't already installed devtools...
-                # install.packages("devtools")
-
-                # Use devtools to install the package
-                # devtools::install_github("stephenturner/annotables")
-                # library(annotables)
-                # head(grch38)
-
-
                 # resultadosDE
-                resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                resultadosDE$ensembl <- gsub(pattern = "\\..*", "",
+                                                        rownames(resultadosDE))
                 annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 geneID <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "GeneID")])
                 # Outer_join
-                resultadosDE <- merge(x = resultadosDE, y = geneID, by = "ensembl", all = TRUE)
+                resultadosDE <- merge(x = resultadosDE, y = geneID,
+                                                    by = "ensembl", all = TRUE)
 
                 # Results_Completed
-                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
-                selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
+                Results_Completed$ensembl <- gsub(pattern = "\\..*", "",
+                                                rownames(Results_Completed))
+                selected <- intersect(annotation_table$ensembl,
+                                                    Results_Completed$ensembl)
                 geneID <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "GeneID")])
                 # Outer_join
-                Results_Completed <- merge(x = Results_Completed, y = geneID, by = "ensembl", all = TRUE)
+                Results_Completed <- merge(x = Results_Completed, y = geneID,
+                                                    by = "ensembl", all = TRUE)
 
             }
 
@@ -179,19 +180,23 @@ GOnto <- function(condition,
             if (tolower(dataBase) == "gdc") {
 
                 # resultadosDE
-                resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                resultadosDE$ensembl <- gsub(pattern = "\\..*", "",
+                                                        rownames(resultadosDE))
                 annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 GeneSymbol <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "UCSC_GeneSymbol")])
                 # Outer_join
-                resultadosDE <- merge(x = resultadosDE, y = GeneSymbol, by = "ensembl", all = TRUE)
+                resultadosDE <- merge(x = resultadosDE, y = GeneSymbol,
+                                                    by = "ensembl", all = TRUE)
 
                 # Results_Completed
-                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
+                Results_Completed$ensembl <- gsub(pattern = "\\..*", "",
+                                                rownames(Results_Completed))
                 selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
                 GeneSymbol <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "UCSC_GeneSymbol")])
                 # Outer_join
-                Results_Completed <- merge(x = Results_Completed, y = GeneSymbol, by = "ensembl", all = TRUE)
+                Results_Completed <- merge(x = Results_Completed,
+                                    y = GeneSymbol, by = "ensembl", all = TRUE)
 
             }
 
@@ -199,15 +204,15 @@ GOnto <- function(condition,
             resultadosDE <- resultadosDE[!is.na(resultadosDE$GeneSymbol), ]
             resultadosDE[resultadosDE$GeneSymbol == "SLC35E2", "GeneSymbol"][1] <- "SLC35E2B"
             resultadosDE[duplicated(resultadosDE$GeneSymbol),
-                         "GeneSymbol"] <- paste0("?", 1:length(resultadosDE[duplicated(resultadosDE$GeneSymbol),
+                        "GeneSymbol"] <- paste0("?", 1:length(resultadosDE[duplicated(resultadosDE$GeneSymbol),
                                                                                                             "GeneSymbol"]))
 
             Results_Completed <- Results_Completed[!is.na(Results_Completed$GeneSymbol), ]
             Results_Completed[Results_Completed$GeneSymbol == "SLC35E2", "GeneSymbol"][1] <- "SLC35E2B"
             Results_Completed[duplicated(Results_Completed$GeneSymbol),
-                              "GeneSymbol"] <- paste0("?",
-                                                      1:length(Results_Completed[duplicated(Results_Completed$GeneSymbol),
-                                                                                                            "GeneSymbol"]))
+                            "GeneSymbol"] <- paste0("?",
+                                                    1:length(Results_Completed[duplicated(Results_Completed$GeneSymbol),
+                                                                                                        "GeneSymbol"]))
 
             #upregulated DE
             DEGenes_up <- resultadosDE[resultadosDE$FC > 0, ]
@@ -220,8 +225,6 @@ GOnto <- function(condition,
             #Up e Down
             DEGenes_all <- resultadosDE
             assign("DEGenes_all", DEGenes_all, envir = get(envir_link))
-
-
 
             gene_vector_up <- as.integer(Results_Completed$GeneSymbol %in% DEGenes_up$GeneSymbol)
             names(gene_vector_up) <- Results_Completed$GeneSymbol
@@ -240,19 +243,23 @@ GOnto <- function(condition,
             if (tolower(dataBase) == "gdc") {
 
                 # resultadosDE
-                resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                resultadosDE$ensembl <- gsub(pattern = "\\..*", "",
+                                                        rownames(resultadosDE))
                 annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 HUGO <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "HUGO")])
                 # Outer_join
-                resultadosDE <- merge(x = resultadosDE, y = HUGO, by = "ensembl", all = TRUE)
+                resultadosDE <- merge(x = resultadosDE, y = HUGO,
+                                                    by = "ensembl", all = TRUE)
 
                 # Results_Completed
-                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
+                Results_Completed$ensembl <- gsub(pattern = "\\..*", "",
+                                                rownames(Results_Completed))
                 selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
                 HUGO <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "HUGO")])
                 # Outer_join
-                Results_Completed <- merge(x = Results_Completed, y = HUGO, by = "ensembl", all = TRUE)
+                Results_Completed <- merge(x = Results_Completed, y = HUGO,
+                                                    by = "ensembl", all = TRUE)
             }
 
             #remove any duplicates and NA
@@ -260,14 +267,14 @@ GOnto <- function(condition,
             resultadosDE <- resultadosDE[!duplicated(resultadosDE$GeneID), ]
 
             resultadosDE$HUGO <- as.character(annotation_table[match(resultadosDE$GeneID,
-                                                                     annotation_table$GeneID), "HUGO"])
+                                                                    annotation_table$GeneID), "HUGO"])
 
             Results_Completed <- Results_Completed[!is.na(Results_Completed$GeneID), ]
             Results_Completed <- Results_Completed[!duplicated(Results_Completed$GeneID), ]
 
 
             Results_Completed$HUGO <- as.character(annotation_table[match(Results_Completed$GeneID,
-                                                                     annotation_table$GeneID), "HUGO"])
+                                                                    annotation_table$GeneID), "HUGO"])
 
             #remove any NA
             resultadosDE <- resultadosDE[!is.na(resultadosDE$HUGO), ]
@@ -302,23 +309,25 @@ GOnto <- function(condition,
             assign("gene_vector_all", gene_vector_all, envir = get(envir_link))
 
         } else if (tolower(ID) == "ensembl") {
-
             if (tolower(dataBase) == "legacy") {
-
                 # resultadosDE
-                resultadosDE$GeneID <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                resultadosDE$GeneID <- gsub(pattern = "\\..*", "",
+                                                        rownames(resultadosDE))
                 annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 ensembl <- unique(annotation_table[annotation_table$ensembl %in% selected, c("GeneID", "ensembl")])
                 # Outer_join
-                resultadosDE <- merge(x = resultadosDE, y = ensembl, by = "GeneID", all = TRUE)
+                resultadosDE <- merge(x = resultadosDE, y = ensembl,
+                                                    by = "GeneID", all = TRUE)
 
                 # Results_Completed
-                Results_Completed$GeneID <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
+                Results_Completed$GeneID <- gsub(pattern = "\\..*", "",
+                                                rownames(Results_Completed))
                 selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
                 ensembl <- unique(annotation_table[annotation_table$ensembl %in% selected, c("GeneID", "ensembl")])
                 # Outer_join
-                Results_Completed <- merge(x = Results_Completed, y = ensembl, by = "GeneID", all = TRUE)
+                Results_Completed <- merge(x = Results_Completed, y = ensembl,
+                                                    by = "GeneID", all = TRUE)
 
 
                 #remove any duplicates and NA
@@ -339,7 +348,6 @@ GOnto <- function(condition,
                 #Up e Down
                 DEGenes_all <- resultadosDE
                 assign("DEGenes_all", DEGenes_all, envir = get(envir_link))
-
 
 
                 gene_vector_up <- as.integer(Results_Completed$ensembl %in% DEGenes_up$ensembl)
@@ -380,28 +388,31 @@ GOnto <- function(condition,
             #remove any duplicates and NA
             assign("gene_vector_up", gene_vector_up, envir = get(envir_link))
 
-            assign("gene_vector_down", gene_vector_down, envir = get(envir_link))
+            assign("gene_vector_down", gene_vector_down,
+                                                    envir = get(envir_link))
 
             assign("gene_vector_all", gene_vector_all, envir = get(envir_link))
 
         } else if (tolower(ID) == "refgene") {
-
             if (tolower(dataBase) == "gdc") {
-
                 # resultadosDE
-                resultadosDE$ensembl <- gsub(pattern = "\\..*", "", rownames(resultadosDE))
+                resultadosDE$ensembl <- gsub(pattern = "\\..*", "",
+                                                        rownames(resultadosDE))
                 annotation_table <- DOAGDC::annotation_table
                 selected <- intersect(annotation_table$ensembl, resultadosDE$ensembl)
                 refGene <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "RefSeq")])
                 # Outer_join
-                resultadosDE <- merge(x = resultadosDE, y = refGene, by = "ensembl", all = TRUE)
+                resultadosDE <- merge(x = resultadosDE, y = refGene,
+                                                    by = "ensembl", all = TRUE)
 
                 # Results_Completed
-                Results_Completed$ensembl <- gsub(pattern = "\\..*", "", rownames(Results_Completed))
+                Results_Completed$ensembl <- gsub(pattern = "\\..*", "",
+                                                rownames(Results_Completed))
                 selected <- intersect(annotation_table$ensembl, Results_Completed$ensembl)
                 refGene <- unique(annotation_table[annotation_table$ensembl %in% selected, c("ensembl", "RefSeq")])
                 # Outer_join
-                Results_Completed <- merge(x = Results_Completed, y = refGene, by = "ensembl", all = TRUE)
+                Results_Completed <- merge(x = Results_Completed,
+                                    y = refGene, by = "ensembl", all = TRUE)
 
             }
 
@@ -427,8 +438,6 @@ GOnto <- function(condition,
             Results_Completed <- Results_Completed[!is.na(Results_Completed$refGene), ]
             Results_Completed <- Results_Completed[!duplicated(Results_Completed$refGene), ]
 
-
-
             #upregulated DE
             DEGenes_up <- resultadosDE[resultadosDE$FC > 0, ]
             assign("DEGenes_up", DEGenes_up, envir = get(envir_link))
@@ -440,8 +449,6 @@ GOnto <- function(condition,
             #Up e Down
             DEGenes_all <- resultadosDE
             assign("DEGenes_all", DEGenes_all, envir = get(envir_link))
-
-
 
             gene_vector_up <- as.integer(Results_Completed$refGene %in% DEGenes_up$refGene)
             names(gene_vector_up) <- Results_Completed$refGene
@@ -456,7 +463,6 @@ GOnto <- function(condition,
             assign("gene_vector_all", gene_vector_all, envir = get(envir_link))
         }
 
-        # assign("resultadosDE", resultadosDE, envir = get(envir_link))
         assign("pairName", pairName, envir = get(envir_link))
     }
 
@@ -475,8 +481,9 @@ GOnto <- function(condition,
             # large <- lengths(strsplit(PlotNowGO[, 2], "\\W+")) > 7
             large <- lengths(strsplit(PlotNowGO[, 2], " ")) > 7
             PlotNowGO[large, 2] <- unname(sapply(PlotNowGO[large, 2],
-                                                    function(w){paste(unlist(strsplit(w, " "))[1:7],
-                                                                      collapse = " ")}))
+                                                    function(w){
+                                                        paste(unlist(strsplit(w, " "))[1:7],
+                                                            collapse = " ")}))
 
             log.10.GO <- -log10(as.numeric(PlotNowGO[, "over_represented_BH"]))
             new_inf <- log.10.GO[order(log.10.GO, decreasing = TRUE)]
@@ -505,56 +512,69 @@ GOnto <- function(condition,
             if (!skip) {
                 if (tolower(image_format) == "png") {
                     png(filename = paste0(DIR,
-                                          "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
-                                          MainNames_short[n], "_", tolower(condition), "_", ID,
-                                          "_", pairName,".png"),
-                        width = longest_Width, height = Height, res = Res, units = Unit)
+                                    "/GO_Output/GraphOutput/",
+                                    "GOEnrichPlot_smallest_FDR_",
+                                    MainNames_short[n], "_",
+                                    tolower(condition), "_", ID,
+                                    "_", pairName,".png"),
+                        width = longest_Width, height = Height,
+                        res = Res, units = Unit)
                 } else if (tolower(image_format) == "svg") {
                     svg(filename = paste0(DIR,
-                                          "/GO_Output/GraphOutput/GOEnrichPlot_smallest_FDR_",
-                                          MainNames_short[n], "_", tolower(condition), "_", ID,
-                                          "_", pairName,".svg"),
+                                        "/GO_Output/GraphOutput/",
+                                        "GOEnrichPlot_smallest_FDR_",
+                                        MainNames_short[n], "_",
+                                        tolower(condition), "_", ID,
+                                        "_", pairName,".svg"),
                         width = longest_Width, height = Height, onefile = TRUE)
                 } else {
-                    stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
+                    stop(message("Please, Insert a valid ",
+                                            "image_format! ('png' or 'svg')"))
                 }
 
                 Count <- PlotNowGO$numDEInCat
                 Gene_Ratio <- round(as.numeric(PlotNowGO$GeneRatio), 2)
 
                 p <- ggplot2::ggplot(PlotNowGO, ggplot2::aes(x = log.10.GO,
-                                                             y = forcats::fct_reorder(term, log.10.GO))) +
-                    ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
+                                                            y = forcats::fct_reorder(term, log.10.GO))) +
+                    ggplot2::geom_point(ggplot2::aes(size = Count,
+                                                        color = Gene_Ratio)) +
                     ggplot2::scale_colour_gradient(limits = c(0, 1),
-                                                   low = "red", high = "blue") +
+                                                low = "red", high = "blue") +
                     ggplot2::labs(y = "", x = "-log(FDR)", title = MainNames[n]) +
                     ggplot2::theme_bw(base_size = 10) +
                     ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
                                                                         size = 16),
-                                   axis.text = ggplot2::element_text(face = "bold",
-                                                                     color = "#011600", size = 12),
-                                   title = ggplot2::element_text(face = "bold",
-                                                                 size = 18),
-                                   plot.title = ggplot2::element_text(hjust = 0.5))
+                                axis.text = ggplot2::element_text(face = "bold",
+                                                            color = "#011600",
+                                                            size = 12),
+                                title = ggplot2::element_text(face = "bold",
+                                                            size = 18),
+                                plot.title = ggplot2::element_text(hjust = 0.5))
                 print(p)
                 dev.off()
 
             }
 
         } else {
-            message(paste0("There are no terms with FDR < ", FDR_cutoff, " to plot."))
+            message(paste0("There are no terms with FDR < ",
+                            FDR_cutoff, " to plot."))
         }
     }
 
     # code GO ####
 
-    if (missing(env)) {stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+    if (missing(env)) {
+        stop(message("The 'env' argument is missing, ",
+                                "please insert the 'env' name and try again!"))
+    }
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
 
     if (exists("Name.e", envir = get(envir_link))) {
-        PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
+        PATH <- file.path(string_vars[["envir_link"]]$PATH,
+                                            string_vars[["envir_link"]]$Name.e)
     } else {
         PATH <- string_vars[["envir_link"]]$PATH
     }
@@ -568,9 +588,9 @@ GOnto <- function(condition,
     message("Running GO preparations...")
 
     prepar_path_enrich(ID = ID,
-                       pairName = pairName,
-                       env = env,
-                       Tool = Tool)
+                        pairName = pairName,
+                        env = env,
+                        Tool = Tool)
 
     message("Starting GO estimation...")
     if (grepl("crosstable", tolower(Tool))) {
@@ -586,19 +606,21 @@ GOnto <- function(condition,
             DIR <- file.path(DIR, "co_expression")
         }
 
-        dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
+        dir.create(file.path(DIR, paste0("Ontology_Results",
+                                    tolower(groupGen))), showWarnings = FALSE)
         DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
     } else {
         dir.create(paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
-                          Tool, "_", toupper(Name)), showWarnings = FALSE)
-        DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_", Tool, "_", toupper(Name))
+                        Tool, "_", toupper(Name)), showWarnings = FALSE)
+        DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
+                                                    Tool, "_", toupper(Name))
     }
 
     dir.create(file.path(DIR, "GO_Output"), showWarnings = FALSE)
     dir.create(file.path(DIR, "GO_Output", "GraphOutput"),
-               showWarnings = FALSE)
+            showWarnings = FALSE)
     dir.create(file.path(DIR, "GO_Output", "TextOutput"),
-               showWarnings = FALSE)
+            showWarnings = FALSE)
 
     if (tolower(ID) == "geneid") {
         formatted_ID <- "knownGene"
@@ -612,13 +634,13 @@ GOnto <- function(condition,
 
     if (tolower(image_format) == "png") {
         png(filename = paste0(DIR,
-                   "/GO_Output/GraphOutput/ProbabilityWeightingFunction_",
-                   tolower(condition), "_", ID, "_", pairName, ".png"),
+                "/GO_Output/GraphOutput/ProbabilityWeightingFunction_",
+                tolower(condition), "_", ID, "_", pairName, ".png"),
             width = Width, height = Height, res = Res, units = Unit)
     } else if (tolower(image_format) == "svg") {
         svg(filename = paste0(DIR,
-                          "/GO_Output/GraphOutput/ProbabilityWeightingFunction_",
-                          tolower(condition), "_", ID, "_", pairName, ".svg"),
+                        "/GO_Output/GraphOutput/ProbabilityWeightingFunction_",
+                        tolower(condition), "_", ID, "_", pairName, ".svg"),
             width = Width, height = Height, onefile = TRUE)
     } else {
         stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
@@ -634,20 +656,20 @@ GOnto <- function(condition,
     if (tolower(condition) == "upregulated") {
         gene_vector_up <- string_vars[["envir_link"]]$gene_vector_up
         suppressPackageStartupMessages(pwf <- goseq::nullp(gene_vector_up ,
-                                                           genome_version,
-                                                           formatted_ID))
+                                                        genome_version,
+                                                        formatted_ID))
         dev.off()
     } else if (tolower(condition) == "downregulated") {
         gene_vector_down <- string_vars[["envir_link"]]$gene_vector_down
         suppressPackageStartupMessages(pwf <- goseq::nullp(gene_vector_down,
-                                                           genome_version,
-                                                           formatted_ID))
+                                                        genome_version,
+                                                        formatted_ID))
         dev.off()
     } else if (tolower(condition) == "all") {
         gene_vector_all <- string_vars[["envir_link"]]$gene_vector_all
         suppressPackageStartupMessages(pwf <- goseq::nullp(gene_vector_all,
-                                                           genome_version,
-                                                           formatted_ID))
+                                                        genome_version,
+                                                        formatted_ID))
         dev.off()
     }
 
@@ -657,19 +679,7 @@ GOnto <- function(condition,
                             test.cats = c("GO:CC", "GO:BP", "GO:MF"),
                             method = "Wallenius",
                             use_genes_without_cat = use_genes_without_cat))
-    # assign("GO_wall", GO_wall, envir = get(envir_link))
 
-
-    #FDR
-    # # Create table for FDR
-    # GO_wall_WithFDR <- matrix(ncol = 8, nrow = length(row.names(GO_wall)))
-    # # put col names
-    # colnames(GO_wall_WithFDR) <- c(colnames(GO_wall), "Benjamini.Hochberg_FDR")
-    #
-    # #Fill the new table until last column
-    # for(w in 1:7){
-    #     GO_wall_WithFDR[, w] <- GO_wall[, w]
-    # }
 
     #FDR Add to GO_wall
     GO_wall$over_represented_BH <- p.adjust(GO_wall$over_represented_pvalue,
@@ -685,17 +695,19 @@ GOnto <- function(condition,
     GO_wall_BH_MF <- GO_wall[GO_wall[, "ontology"] == 'MF', ]
 
     # Define category order
-    MainNames <- c("Cellular component", "Biological Process", "Molecular Funcion", "KEGG")
+    MainNames <- c("Cellular component", "Biological Process",
+                                                "Molecular Funcion", "KEGG")
     MainNames_short <- c("CC", "BP", "MF", "KEGG")
 
     GO_wall_FUN(x = GO_wall_BH_CC, n = 1)
     GO_wall_FUN(x = GO_wall_BH_BP, n = 2)
     GO_wall_FUN(x = GO_wall_BH_MF, n = 3)
 
-    suppressPackageStartupMessages(GO_wall <- goseq::goseq(pwf, genome_version, formatted_ID,
-                                                           test.cats = c("KEGG"),
-                                                           method = "Wallenius",
-                                                           use_genes_without_cat = use_genes_without_cat))
+    suppressPackageStartupMessages(GO_wall <- goseq::goseq(pwf, genome_version,
+                                                        formatted_ID,
+                                                        test.cats = c("KEGG"),
+                                                        method = "Wallenius",
+                                                        use_genes_without_cat = use_genes_without_cat))
 
     GO_wall$over_represented_BH <- p.adjust(GO_wall$over_represented_pvalue,
                                             method = "BH")
@@ -721,10 +733,10 @@ GOnto <- function(condition,
                                         "_FDR_", FDR_cutoff,
                                         "_", pairName,".csv"))
     write.csv(GO_wall_BH_KEGG, file = paste0(DIR,
-                                           "/GO_Output/TextOutput/KEGG_",
-                                           tolower(condition), "_", ID,
-                                           "_FDR_", FDR_cutoff,
-                                           "_", pairName,".csv"))
+                                        "/GO_Output/TextOutput/KEGG_",
+                                        tolower(condition), "_", ID,
+                                        "_FDR_", FDR_cutoff,
+                                        "_", pairName,".csv"))
 
     GO_wall_FUN(x = GO_wall_BH_KEGG, n = 4, KEGG = TRUE)
     #################### GO ENRICHMENT
@@ -735,25 +747,11 @@ GOnto <- function(condition,
 
     # code enrichGO ####
 
-    # if (grepl("crosstable", tolower(Tool))) {
-    #     if (tolower(Tool) == "crosstable.deseq2") {
-    #         DIR <- paste0(PATH, "/CrossData_deseq2")
-    #     } else if (tolower(Tool) == "crosstable.edger") {
-    #         DIR <- paste0(PATH, "/CrossData_edger")
-    #     } else if (tolower(Tool) == "crosstable.ebseq") {
-    #         DIR <- paste0(PATH, "/CrossData_ebseq")
-    #     }
-    #     dir.create(file.path(DIR, "Ontology_Results"), showWarnings = FALSE)
-    #     DIR <- file.path(DIR, "Ontology_Results")
-    # } else {
-    #     DIR <- paste0(PATH, "/Ontology_Results_", Tool, "_", toupper(Name))
-    # }
-
     dir.create(file.path(DIR, "enrichGO_Output"), showWarnings = FALSE)
     dir.create(file.path(DIR, "enrichGO_Output", "GraphOutput"),
-               showWarnings = FALSE)
+            showWarnings = FALSE)
     dir.create(file.path(DIR, "enrichGO_Output", "TextOutput"),
-               showWarnings = FALSE)
+            showWarnings = FALSE)
 
     if (tolower(ID) == "geneid") {
         formatted_ID2 <- "ENTREZID"
@@ -765,8 +763,6 @@ GOnto <- function(condition,
         formatted_ID2 <- "REFSEQ"
     }
 
-    # clusterProfiler::bitr(x, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db")
-
     erichgo <- function(Ont, Condition, n) {
         if (tolower(Condition) == "upregulated") {
             gene_vector <- string_vars[["envir_link"]]$gene_vector_up
@@ -777,11 +773,11 @@ GOnto <- function(condition,
         }
 
         enrichGO_obj <- clusterProfiler::enrichGO(gene = names(gene_vector)[gene_vector != 0],
-                                         OrgDb = org.Hs.eg.db::org.Hs.eg.db,
-                                         keytype = formatted_ID2,
-                                         ont = Ont,
-                                         pAdjustMethod = "BH",
-                                         pvalueCutoff = FDR_cutoff)
+                                        OrgDb = org.Hs.eg.db::org.Hs.eg.db,
+                                        keytype = formatted_ID2,
+                                        ont = Ont,
+                                        pAdjustMethod = "BH",
+                                        pvalueCutoff = FDR_cutoff)
 
         enrichGO_resuts <- enrichGO_obj@result
 
@@ -808,8 +804,9 @@ GOnto <- function(condition,
             PlotNowGO[, 2] <- gsub("-", " ", PlotNowGO[, 2])
             large <- lengths(strsplit(PlotNowGO[, 2], " ")) > 3
             PlotNowGO[large, 2] <- unname(sapply(PlotNowGO[large, 2],
-                                                 function(w){paste(unlist(strsplit(w, " "))[1:4],
-                                                                   collapse = " ")}))
+                                                function(w){
+                                                    paste(unlist(strsplit(w, " "))[1:4],
+                                                            collapse = " ")}))
 
             log.10.GO <- -log10(as.numeric(PlotNowGO[, "p.adjust"]))
             new_inf <- log.10.GO[order(log.10.GO, decreasing = TRUE)]
@@ -826,18 +823,22 @@ GOnto <- function(condition,
             if (nrow(enrichGO_resuts) > 0) {
                 if (tolower(image_format) == "png") {
                     png(filename = paste0(DIR,
-                                          "/enrichGO_Output/GraphOutput/enrichGO_smallest_FDR_Ont_", Ont, "_",
-                                          tolower(condition), "_", ID,
-                                          "_", pairName,".png"),
-                        width = longest_Width, height = Height, res = Res, units = Unit)
+                                        "/enrichGO_Output/GraphOutput/",
+                                        "enrichGO_smallest_FDR_Ont_", Ont, "_",
+                                        tolower(condition), "_", ID,
+                                        "_", pairName,".png"),
+                        width = longest_Width, height = Height, res = Res,
+                                                                units = Unit)
                 } else if (tolower(image_format) == "svg") {
                     svg(filename = paste0(DIR,
-                                          "/enrichGO_Output/GraphOutput/enrichGO_smallest_FDR_", Ont, "_",
-                                          tolower(condition), "_", ID,
-                                          "_", pairName,".svg"),
+                                        "/enrichGO_Output/GraphOutput/",
+                                        "enrichGO_smallest_FDR_", Ont, "_",
+                                        tolower(condition), "_", ID,
+                                        "_", pairName,".svg"),
                         width = longest_Width, height = Height, onefile = TRUE)
                 } else {
-                    stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
+                    stop(message("Please, Insert a valid image_format!",
+                                                        " ('png' or 'svg')"))
                 }
 
                 # Count <- PlotNowGO$numDEInCat
@@ -845,19 +846,22 @@ GOnto <- function(condition,
 
                 ## plot alternative to barplot
                 p <- ggplot2::ggplot(PlotNowGO, ggplot2::aes(x = log.10.GO,
-                                                             y = forcats::fct_reorder(Description, log.10.GO))) +
-                    ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
+                                                            y = forcats::fct_reorder(Description, log.10.GO))) +
+                    ggplot2::geom_point(ggplot2::aes(size = Count,
+                                                        color = Gene_Ratio)) +
                     ggplot2::scale_colour_gradient(limits = c(0, 1),
-                                                   low = "red", high = "blue") +
-                    ggplot2::labs(y = "", x = "-log(FDR)", title = MainNames[n]) +
+                                                low = "red", high = "blue") +
+                    ggplot2::labs(y = "", x = "-log(FDR)",
+                                                        title = MainNames[n]) +
                     ggplot2::theme_bw(base_size = 10) +
                     ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
                                                                         size = 16),
-                                   axis.text = ggplot2::element_text(face = "bold",
-                                                                     color = "#011600", size = 12),
-                                   title = ggplot2::element_text(face = "bold",
-                                                                 size = 18),
-                                   plot.title = ggplot2::element_text(hjust = 0.5))
+                                axis.text = ggplot2::element_text(face = "bold",
+                                                            color = "#011600",
+                                                                size = 12),
+                                title = ggplot2::element_text(face = "bold",
+                                                            size = 18),
+                                plot.title = ggplot2::element_text(hjust = 0.5))
                 print(p)
 
                 dev.off()
@@ -873,20 +877,20 @@ GOnto <- function(condition,
 
     message("Writting tables...\n")
     write.csv(erichgo_CC, file = paste0(DIR,
-                                           "/enrichGO_Output/TextOutput/CC_",
-                                           tolower(condition), "_", ID,
-                                           "_FDR_", FDR_cutoff,
-                                           "_", pairName,".csv"))
+                                        "/enrichGO_Output/TextOutput/CC_",
+                                        tolower(condition), "_", ID,
+                                        "_FDR_", FDR_cutoff,
+                                        "_", pairName,".csv"))
     write.csv(erichgo_BP, file = paste0(DIR,
-                                           "/enrichGO_Output/TextOutput/BP_",
-                                           tolower(condition), "_", ID,
-                                           "_FDR_", FDR_cutoff,
-                                           "_", pairName,".csv"))
+                                        "/enrichGO_Output/TextOutput/BP_",
+                                        tolower(condition), "_", ID,
+                                        "_FDR_", FDR_cutoff,
+                                        "_", pairName,".csv"))
     write.csv(erichgo_MF, file = paste0(DIR,
-                                           "/enrichGO_Output/TextOutput/MF_",
-                                           tolower(condition), "_", ID,
-                                           "_FDR_", FDR_cutoff,
-                                           "_", pairName,".csv"))
+                                        "/enrichGO_Output/TextOutput/MF_",
+                                        tolower(condition), "_", ID,
+                                        "_FDR_", FDR_cutoff,
+                                        "_", pairName,".csv"))
 
     message("Done!\n")
- }
+}

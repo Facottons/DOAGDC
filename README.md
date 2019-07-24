@@ -18,14 +18,14 @@ article listed running the following command `citation("DOAGDC")`.
 # Checking for missing dependencies manually
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install(c("annotate", "AnnotationDbi", "BiocParallel", "clusterProfiler", 
-                      "DESeq2", "DO.db", "DOSE", "EBSeq", "edgeR", "gage", 
-                      "GO.db", "goseq", "IHW", "MineICA", "org.Hs.eg.db", "pathview", 
-                      "reactome.db", "ReactomePA", "SummarizedExperiment"))
+BiocManager::install(c("annotate", "AnnotationDbi", "BiocParallel", "clusterProfiler",
+                    "DESeq2", "DO.db", "DOSE", "EBSeq", "edgeR", "gage",
+                    "GO.db", "goseq", "IHW", "MineICA", "org.Hs.eg.db", "pathview",
+                    "reactome.db", "ReactomePA", "SummarizedExperiment"))
 
 
 # Get DOAGDC from GitHub:
-install.packages("devtools") # if not already done 
+install.packages("devtools") # if not already done
 devtools::install_github("Facottons/DOAGDC")
 ```
 
@@ -67,9 +67,9 @@ DIR <- "/any/full/path/name"
 # set the data type to use in groups identification step.
 Data <- "protein"
 
-# set the desired data base to be used ("gdc" or "legacy") 
+# set the desired data base to be used ("gdc" or "legacy")
 # for using GDC Legacy Archive
-DB <- "legacy" 
+DB <- "legacy"
 
 # set the tumor type
 # for using 'Uterine Carcinosarcoma'
@@ -78,19 +78,19 @@ Tumor <- "UCS"
 
 ## step 1: Download
 download_gdc(dataType = Data, tumor = Tumor, dataBase = DB,
-  workDir = DIR)
+    workDir = DIR)
 
 
 ## step 2: concatenate into a single table
-# first normalized data to groups identification 
+# first normalized data to groups identification
 concatenate_files(dataType = Data,
-  Name = "Caspase-8-M-E",
-  normalization = TRUE,
-  tumorData = TRUE,
-  dataBase = DB,
-  workDir = DIR, 
-  tumor = Tumor)
-  
+    Name = "Caspase-8-M-E",
+    normalization = TRUE,
+    tumorData = TRUE,
+    dataBase = DB,
+    workDir = DIR,
+    tumor = Tumor)
+
 ```
 
 It was created an object called `UCS_LEGACY_protein_tumor_data`, its
@@ -103,63 +103,64 @@ this recent created object as value to the `env` function arguments.
 
 ``` r
 # now, uses not normalized data, as required by the dea packages
-# remember to use the object mentionate later 
+# remember to use the object mentionate later
 concatenate_files(dataType = "gene",
-  normalization = FALSE,
-  tumorData = TRUE,
-  dataBase = "legacy",
-  workDir = DIR,
-  tumor = Tumor,
-  env = UCS_LEGACY_protein_tumor_data)
+    normalization = FALSE,
+    tumorData = TRUE,
+    dataBase = "legacy",
+    workDir = DIR,
+    tumor = Tumor,
+    env = UCS_LEGACY_protein_tumor_data)
 
 ## step 3: groups identification
 # forcing three groups here ("G1", "G2", "G3")
 groups_identification_mclust(dataType = Data,
-  Name = "Caspase-8-M-E",
-  tumor = Tumor, 
-  group.number = 3,
-  dataBase = DB,
-  workDir = DIR,
-  env = UCS_LEGACY_protein_tumor_data)
+    Name = "Caspase-8-M-E",
+    tumor = Tumor,
+    group.number = 3,
+    dataBase = DB,
+    workDir = DIR,
+    env = UCS_LEGACY_protein_tumor_data)
+
 ```
 
 <img src="GitHubfig/VIGNETTE-mixture_log2_expression_1.png" align="center" width="667" height="500"/>
 
 ``` r
 ## step 4: dea
-# using edgeR 'exactTest' method 
+# using edgeR 'exactTest' method
 dea_edgeR(dataType = Data,
-  Name = "Caspase-8-M-E",
-  Method = "exactTest",
-  workDir = DIR,
-  env = UCS_LEGACY_protein_tumor_data)
-  
+    Name = "Caspase-8-M-E",
+    Method = "exactTest",
+    workDir = DIR,
+    env = UCS_LEGACY_protein_tumor_data)
+
 ```
 
 <img src="GitHubfig/VIGNETTE-VolcanoPlot_Basic_G3_over_G1.png" align="center" width="667" height="500"/>
 
 ``` r
-## step 5: visualization 
+## step 5: visualization
 # PCA of 'G2_over_G1'
-PCA_Analysis(Tool = "edgeR", 
-  dataType = Data,
-  Name = "Caspase-8-M-E",
-  pairName = "G2_over_G1",
-  env = UCS_LEGACY_protein_tumor_data)
-  
+PCA_Analysis(Tool = "edgeR",
+    dataType = Data,
+    Name = "Caspase-8-M-E",
+    pairName = "G2_over_G1",
+    env = UCS_LEGACY_protein_tumor_data)
+
 ```
 
 <img src="GitHubfig/VIGNETTE-PCA_GENETOP=all_G2_over_G1.png" align="center" width="638" height="388"/>
 
 ``` r
-# Heat Map of 'G2_over_G1'  
+# Heat Map of 'G2_over_G1'
 draw_heatmap(Tool = "edgeR",
-  dataType = Data,
-  Name = "Caspase-8-M-E",
-  Method = "euclidean",
-  pairName = "G2_over_G1",
-  env = UCS_LEGACY_protein_tumor_data)
-  
+    dataType = Data,
+    Name = "Caspase-8-M-E",
+    Method = "euclidean",
+    pairName = "G2_over_G1",
+    env = UCS_LEGACY_protein_tumor_data)
+
 ```
 
 <img src="GitHubfig/VIGNETTE-euclidean_average_row_FC.cutoff=2_G2_over_G1.png" align="center" width="595" height="842"/>
@@ -167,10 +168,10 @@ draw_heatmap(Tool = "edgeR",
 ``` r
 ## step 6: Pathway enrichment analysis
 # using only the 'Upregulated' genes
-# powered by enrichGO (image below) and goseq 
+# powered by enrichGO (image below) and goseq
 GOnto(condition = "Upregulated",
-  Tool = "edgeR",
-  env = UCS_LEGACY_protein_tumor_data)
+    Tool = "edgeR",
+    env = UCS_LEGACY_protein_tumor_data)
 }
 ```
 

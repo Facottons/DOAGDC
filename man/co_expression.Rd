@@ -28,7 +28,8 @@ Portal or \code{"legacy"} for GDC Legacy Archive.}
 \item{workDir}{A character string specifying the path to work directory.}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
-the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
+the TCGA project. For instance, the \code{"BRCA"} stands for breast
+cancer.}
 
 \item{normalization}{Logical value where \code{TRUE} specify the desire to
 work with normalized files only. When FALSE, in the second run, do not
@@ -49,40 +50,40 @@ function. Use "custom" for data inserted by the user after the
 \code{rownames} and the trait categories as \code{colnames}. By default
 trait data is not used.}
 
-\item{networkType}{A character string indicating which network type should be
-used. WGCNA allows: "unsigned", "signed", and "signed hybrid". The default
-is "unsigned".}
+\item{networkType}{A character string indicating which network type should
+be used. WGCNA allows: "unsigned", "signed", and "signed hybrid". The
+default is "unsigned".}
 
-\item{minModuleSize}{Numerical value specifying the minimum cluster size. The
-default is 15.}
+\item{minModuleSize}{Numerical value specifying the minimum cluster size.
+The default is 15.}
 
-\item{max_softpower}{Numerical value indicating the maximum soft thresholding
-power for which the scale free topology fit indices are to be calculated.
-The default is 20.}
+\item{max_softpower}{Numerical value indicating the maximum soft
+thresholding power for which the scale free topology fit indices are to be
+calculated. The default is 20.}
 
 \item{nthreads}{Numerical value indicating how many threads to allow. The
 number of threads should not be more than the number of actual
 processors/cores. The default is 1.}
 
 \item{MEDissThres}{Numerical value specifying the maximum dendrogram cut
-height for module merging qualified by dissimilarity (i.e., 1-correlation).
-The default is 0.25.}
+height for module merging qualified by dissimilarity (i.e.,
+1-correlation). The default is 0.25.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -112,9 +113,4 @@ environment name for further use.
 }
 \description{
 Powered by WGCNA
-}
-\examples{
-\dontrun{
-co_expression(Data, workDir, tumor, env = "env name without quotes")
-}
 }

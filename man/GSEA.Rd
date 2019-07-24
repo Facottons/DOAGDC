@@ -14,19 +14,19 @@ values. The default is \code{0.05}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -36,7 +36,8 @@ inches ('in'). The default is "png".}
 analysis tool was last used.}
 
 \item{ID}{A character string indicating which ID should be used: "HUGO",
-"GeneSymbol", "ensembl" , "refGene" or "GeneID". The default is \code{"GeneID"}.}
+"GeneSymbol", "ensembl" , "refGene" or "GeneID". The default is
+\code{"GeneID"}.}
 
 \item{pairName}{A character string indicating which condition name should be
 used. When there are only two groups the default is \code{"G2_over_G1"}.}

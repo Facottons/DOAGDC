@@ -7,7 +7,8 @@
 venn_diagram(FinalData, n_pack = 3, packageNames,
   pairName = "G2_over_G1", Width = 2000, Height = 2000, Res = 300,
   Unit = "px", Colors = c("green", "blue", "red"),
-  VennDiagram_imagetype = "png", workDir, env)
+  VennDiagram_imagetype = "png", workDir, FC_cutoff = 2,
+  FDR_cutoff = 0.05, env)
 }
 \arguments{
 \item{FinalData}{A character string indicating the name of which diferential
@@ -27,27 +28,33 @@ used. When there are only two groups the default is \code{"G2_over_G1"}.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
-\item{Colors}{A character vector indicating the colors to be used in the venn
-diagram. The default is c('green', 'blue', "red").}
+\item{Colors}{A character vector indicating the colors to be used in the
+venn diagram. The default is c('green', 'blue', "red").}
 
-\item{VennDiagram_imagetype}{A character string indicating the image_format
-(e.g. "tiff", "png" or "svg"). The default is "png".}
+\item{VennDiagram_imagetype}{A character string indicating the
+VennDiagram_imagetype (e.g. "tiff", "png" or "svg"). The default is "png".}
 
 \item{workDir}{A character string specifying the path to work directory.}
+
+\item{FC_cutoff}{Numerical value indicating the maximum value for Fold
+Change '(FC). The default is \code{2}.}
+
+\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
+values. The default is \code{0.05}.}
 
 \item{env}{A character string containing the environment name that should be
 used. If none has been set yet, the function will create one in global
@@ -62,9 +69,4 @@ three differential expression analysis packages.
 }
 \description{
 Venn diagram of differential expression genes list
-}
-\examples{
-\dontrun{
-venn_diagram("DESeq2", 2, packageNames = c("edgeR", "DESeq2"), env = "env name without quotes")
-}
 }

@@ -17,25 +17,26 @@ quantification matrix.}
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
   "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-  quantification", "miRNA isoform quantification", "isoform", "image",
-  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+   quantification", "miRNA isoform quantification", "isoform", "image",
+   "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+   Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
+}}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -53,7 +54,8 @@ environment following the standard criteria:
 in separated matrices).}}}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
-the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
+the TCGA project. For instance, the \code{"BRCA"} stands for breast
+cancer.}
 
 \item{dataBase}{A character string specifying \code{"GDC"} for GDC Data
 Portal or \code{"legacy"} for GDC Legacy Archive.}
@@ -64,8 +66,8 @@ Portal or \code{"legacy"} for GDC Legacy Archive.}
 the groups generated after using the coxHR analysis.
 }
 \description{
-\code{groups_identification_cox} is a function designed to separate patients in
-groups, based in clinical data, and coxHR.
+\code{groups_identification_cox} is a function designed to separate patients
+in groups, based in clinical data, and coxHR.
 }
 \examples{
 \dontrun{

@@ -14,8 +14,8 @@ draw_heatmap(Tool, FC_cutoff = 2, Name, Method = "euclidean",
 \item{Tool}{A character string indicating which differential expression
 analysis tool was last used.}
 
-\item{FC_cutoff}{Numerical value indicating the maximum value for Fold Change
-(FC). The default is \code{2}.}
+\item{FC_cutoff}{Numerical value indicating the maximum value for Fold
+Change '(FC). The default is \code{2}.}
 
 \item{Name}{A character string indicating the desired values to be used in
 next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
@@ -23,8 +23,8 @@ next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
 quantification matrix.}
 
 \item{Method}{The agglomeration method to be used: \code{"euclidean",
-  "maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
-  "correlation", "abscorrelation", "spearman" or "kendall"}. The default is
+   "maximum", "manhattan", "canberra", "binary", "pearson", "abspearson",
+   "correlation", "abscorrelation", "spearman" or "kendall"}. The default is
 \code{"euclidean"}. More details about \code{Method} argument in
 \code{amap} package \link{Dist} \code{method} argument.}
 
@@ -36,19 +36,19 @@ going to be converted to Z-Score before draw the heat map.}
 
 \item{Width}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Height}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Res}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{Unit}{Graphical parameters. See \link{par} for more
 details. As default \code{Width = 2000, Height = 1500, Res =
-  300 and Unit = "px"}.}
+   300 and Unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -68,8 +68,8 @@ be used: \code{"none"}, \code{"row"}, \code{"column"}. The default is
 
 \item{outerMargins}{A numerical vector of the form c(bottom, left, top,
 right) giving the outer margins measured in lines of text. The default is
-no outer margins, i.e \code{"c(0,0,0,0)"}. Note: This argument is only used
-when \code{"labRow"} and \code{"labCol"} are set.}
+no outer margins, i.e \code{"c(0,0,0,0)"}. Note: This argument is only
+used 'when \code{"labRow"} and \code{"labCol"} are set.}
 
 \item{cexCol, cexRow}{A numerical value giving the amount by which
 \code{"labRow"} and \code{"labCol"} should be modified relative to the

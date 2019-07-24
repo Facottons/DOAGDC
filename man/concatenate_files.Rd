@@ -5,18 +5,18 @@
 \title{Concatenate GDC files into a single matrix and prepar the data}
 \usage{
 concatenate_files(dataType, normalization = TRUE, Name, dataBase,
-  HTSeq = NULL, workDir = "~/Desktop", tumor, workflowType,
-  tumorData = TRUE, cutoffBetaNA = 0.25, cutoffBetasd = 0.005,
-  onlyFilter = FALSE, Platform = "", use_hg19_mirbase20 = FALSE, env,
-  saveData = FALSE)
+  HTSeq = NULL, workDir, tumor, workflowType, tumorData = TRUE,
+  cutoffBetaNA = 0.25, cutoffBetasd = 0.005, onlyFilter = FALSE,
+  Platform = "", use_hg19_mirbase20 = FALSE, env, saveData = FALSE)
 }
 \arguments{
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
   "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-  quantification", "miRNA isoform quantification", "isoform", "image",
-  "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
-  Expression Quantification", "Isoform Expression Quantification"(miRNA)}.} }}
+   quantification", "miRNA isoform quantification", "isoform", "image",
+   "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+   Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
+}}
 
 \item{normalization}{Logical value where \code{TRUE} specify the desire to
 work with normalized files only. When FALSE, in the second run, do not
@@ -33,13 +33,14 @@ quantification matrix.}
 Portal or \code{"legacy"} for GDC Legacy Archive.}
 
 \item{HTSeq}{A character string indicating which HTSeq workflow data should
-be downloaded (only applied to "GDC" gene expression): "Counts", "FPKM", or
-"FPKM-UQ".}
+be downloaded (only applied to "GDC" gene expression): "Counts", "FPKM",
+or "FPKM-UQ".}
 
 \item{workDir}{A character string specifying the path to work directory.}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
-the TCGA project. For instance, the \code{"BRCA"} stands for breast cancer.}
+the TCGA project. For instance, the \code{"BRCA"} stands for breast
+cancer.}
 
 \item{workflowType}{A character string specifying the workflow type for
 mutation data in "gdc". Where: \itemize{\item{"varscan" stands for}{
@@ -60,21 +61,22 @@ for beta values (methylation data). The default is 0.25.}
 
 \item{cutoffBetasd}{Numerical value indicating the standard deviation
 threshold of beta values (methylation data). It keeps only rows that have
-standard deviation of beta values higher than the threshold. The default is
-\code{0.005}.}
+standard deviation of beta values higher than the threshold. The default
+is \code{0.005}.}
 
 \item{onlyFilter}{Logical value where \code{TRUE} indicates that the matrix
 is already concatenate and the function should choose a different
-\code{Name}, without concatenate all the files again. The default is FALSE.}
+\code{Name}, without concatenate all the files again. The default is
+FALSE.}
 
 \item{Platform}{A character string indicating the platform name for
 methylation, exon quantificaton, miRNA, and mutation data. \itemize{
 \item{For mutation and exon quantificaton data:}{\code{"Illumina GA",
-  "Illumina HiSeq" or "all"}.} \item{For methylation data}{\code{"Illumina
-  Human Methylation 450", "Illumina Human Methylation 27" or "all"}.}
+   "Illumina HiSeq" or "all"}.} \item{For methylation data}{\code{"Illumina
+   Human Methylation 450", "Illumina Human Methylation 27" or "all"}.}
 \item{For miRNA data:}{\code{"Illumina GA", "Illumina HiSeq",
-  "H-miRNA_8x15K" (for GBM tumor), "H-miRNA_8x15Kv2" (for OV tumor), or
-  "all"}.} }The default for all dataType cited is \code{"all"} (when
+   "H-miRNA_8x15K" (for GBM tumor), "H-miRNA_8x15Kv2" (for OV tumor), or
+   "all"}.} }The default for all dataType cited is \code{"all"} (when
 downloading data).}
 
 \item{use_hg19_mirbase20}{Logical value where \code{TRUE} indicates that only
@@ -103,9 +105,12 @@ a single matrix, where the columns stand for patients code and rows stand for
 data names.
 }
 \examples{
-\dontrun{
-# Concatenating isoform expression data into a single matrix
-concatenate_files(dataType = "isoform", Name = "uc002peh.2", dataBase = "legacy", tumor = "BRCA")
-}
+# Concatenating gene expression data into a single matrix
+# data already downloaded using the 'download_gdc' function
+concatenate_files("gene",
+                   Name = "HIF3A",
+                   dataBase = "legacy",
+                   tumor = "CHOL",
+                   workDir = "~/Desktop")
 
 }

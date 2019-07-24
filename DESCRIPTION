@@ -9,14 +9,14 @@ Authors@R: c(
     person("Marcelo", "Carazzole", , role = "ctb"),
     person("Sandra Martha Gomes", "Dias", , role = "ctb"))
 Maintainer: Fábio Patroni <fabio_patroni@yahoo.com.br>
-Description: In order to download, organize and analyze GDC data we have developed DOAGDC. 
-    It implements and uses many well-known R packages like DESeq2, edgeR, WGCNA, and mclust. 
+Description: In order to download, organize and analyze GDC data we have developed DOAGDC.
+    It implements and uses many well-known R packages like DESeq2, edgeR, WGCNA, and mclust.
     This is a free open-source software that implements academic research
     by the authors and co-workers. If you use it, please support
     the project by citing the appropriate journal article listed in
     citation("DOAGDC").
 Depends: R (>= 3.4)
-Imports: 
+Imports:
     curl,
     R.utils,
     jsonlite,
@@ -48,7 +48,7 @@ Imports:
     SummarizedExperiment,
     survival,
     scales,
-    AnnotationDbi, 
+    AnnotationDbi,
     dynamicTreeCut,
     forcats,
     reshape2,
@@ -56,7 +56,7 @@ Imports:
     survminer,
     ggbiplot,
     dplyr
-Suggests: 
+Suggests:
     rmarkdown (>= 0.9),
     knitr (>= 1.12),
     WGCNA,
@@ -65,7 +65,7 @@ Suggests:
 License: GPL-3 | file LICENSE
 URL: https://github.com/Facottons/DOAGDC
 BugReports: https://github.com/Facottons/DOAGDC/issues
-biocViews: RNASeq, GeneExpression, DifferentialExpression, 
+biocViews: RNASeq, GeneExpression, DifferentialExpression,
     PrincipalComponent
 Encoding: UTF-8
 LazyData: true

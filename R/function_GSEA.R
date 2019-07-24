@@ -25,15 +25,15 @@
 #' GSEA(Tool = "edgeR", env = "env name without quotes")
 #' }
 GSEA <- function(FDR_cutoff = 0.05,
-                 Width = 10,
-                 Height = 3,
-                 Res = 500,
-                 Unit = "in",
-                 image_format = "png",
-                 Tool = "edgeR",
-                 ID = "GeneID",
-                 pairName = "G2_over_G1",
-                 env){
+                Width = 10,
+                Height = 3,
+                Res = 500,
+                Unit = "in",
+                image_format = "png",
+                Tool = "edgeR",
+                ID = "GeneID",
+                pairName = "G2_over_G1",
+                env){
 
     message("Performing Gene Set Enrichment Analysis - over Reactome...\n")
     # Looks for enrichment by fold direction
@@ -41,7 +41,9 @@ GSEA <- function(FDR_cutoff = 0.05,
 
     # BiocParallel::register(BiocParallel::SerialParam(1))
 
-    if (missing(env)) {stop(message("The 'env' argument is missing, please insert the 'env' name and try again!"))}
+    if (missing(env)) {
+        stop(message("The 'env' argument is missing, please",
+                                    " insert the 'env' name and try again!"))}
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
@@ -61,8 +63,9 @@ GSEA <- function(FDR_cutoff = 0.05,
     if (grepl("crosstable", tolower(Tool))) {
         TCGAExpression <- string_vars[["envir_link"]]$Results_Completed_crossed
     } else {
-        TCGAExpression <- eval(parse(text= paste0("string_vars[['envir_link']]$Results_Completed.",
-                                                  Tool)))
+        TCGAExpression <- eval(parse(text = paste0("string_vars",
+                                        "[['envir_link']]$Results_Completed.",
+                                                Tool)))
     }
 
     TCGAExpression <- TCGAExpression[[pairName]]
@@ -79,18 +82,17 @@ GSEA <- function(FDR_cutoff = 0.05,
         DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
     } else {
         dir.create(paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
-                          Tool, "_", toupper(Name)), showWarnings = FALSE)
-        DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_", Tool, "_", toupper(Name))
+                        Tool, "_", toupper(Name)), showWarnings = FALSE)
+        DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
+                                                    Tool, "_", toupper(Name))
     }
 
     dir.create(file.path(DIR, "GSEA_Output"), showWarnings = FALSE)
 
     suppressPackageStartupMessages(input.types <- as.matrix(x = AnnotationDbi::keytypes(org.Hs.eg.db::org.Hs.eg.db)))
     write.table(input.types, paste0(DIR,
-                                  "/GSEA_Output/input_types",
-                                  ID, "_", pairName, ".txt"), row.names = FALSE)
-
-    # GeneSetVector <- string_vars[["envir_link"]]$TCGAExpression$FC
+                                "/GSEA_Output/input_types",
+                                ID, "_", pairName, ".txt"), row.names = FALSE)
 
     GeneSetVector <- TCGAExpression$FC
 
@@ -106,7 +108,8 @@ GSEA <- function(FDR_cutoff = 0.05,
 
         # Again, change the names for ID using HUGO names
         ids <- clusterProfiler::bitr(names(GeneSetVector), fromType = "SYMBOL",
-                                     toType = "ENTREZID", OrgDb = "org.Hs.eg.db")
+                                    toType = "ENTREZID",
+                                    OrgDb = "org.Hs.eg.db")
         GeneSetVector <- GeneSetVector[ids$ALIAS]
         names(GeneSetVector) <- ids$ENTREZID
 
@@ -115,8 +118,10 @@ GSEA <- function(FDR_cutoff = 0.05,
         GeneSetVector <- GeneSetVector[order(GeneSetVector, decreasing = TRUE)]
 
         # Again, change the names for ID using HUGO names
-        ids <- clusterProfiler::bitr(names(GeneSetVector), fromType = 'ENSEMBL',
-                                                      toType = "ENTREZID", OrgDb = "org.Hs.eg.db")
+        ids <- clusterProfiler::bitr(names(GeneSetVector),
+                                                    fromType = 'ENSEMBL',
+                                                    toType = "ENTREZID",
+                                                    OrgDb = "org.Hs.eg.db")
         GeneSetVector <- GeneSetVector[ids$ENSEMBL]
         names(GeneSetVector) <- ids$ENTREZID
     }  else if (tolower(ID) == "refgene") {
@@ -125,7 +130,8 @@ GSEA <- function(FDR_cutoff = 0.05,
 
         # Again, change the names for ID using HUGO names
         ids <- clusterProfiler::bitr(names(GeneSetVector), fromType = 'REFSEQ',
-                                     toType = "ENTREZID", OrgDb = "org.Hs.eg.db")
+                                    toType = "ENTREZID",
+                                    OrgDb = "org.Hs.eg.db")
         GeneSetVector <- GeneSetVector[ids$ENSEMBL]
         names(GeneSetVector) <- ids$ENTREZID
     }
@@ -140,10 +146,11 @@ GSEA <- function(FDR_cutoff = 0.05,
 
     # Write
     write.csv(GSEA_REACTOME_summary_fdr, file = paste0(DIR,
-                                                   "/GSEA_Output/REAC.GSEA.enrichment",
-                                                   ID, "_", pairName, ".csv"), row.names = FALSE)
+                                                "/GSEA_Output/",
+                                                "REAC.GSEA.enrichment",
+                                                ID, "_", pairName, ".csv"),
+                                                row.names = FALSE)
     assign("GeneSetVector", GeneSetVector, envir = get(envir_link))
-    # GSEA_REACTOME_summary_fdr <- GSEA_REACTOME.summary[which(GSEA_REACTOME.summary$p.adjust < FDR_cutoff), ]
 
 
     # REACTOME-GSEA Plot
@@ -159,8 +166,9 @@ GSEA <- function(FDR_cutoff = 0.05,
         # large <- lengths(strsplit(PlotNowREACT[, 2], "\\W+")) > 7
         large <- lengths(strsplit(PlotNowREACT[, 2], " ")) > 7
         PlotNowREACT[large, 2] <- unname(sapply(PlotNowREACT[large, 2],
-                                             function(w){paste(unlist(strsplit(w, " "))[1:7],
-                                                               collapse = " ")}))
+                                            function(w){
+                                                paste(unlist(strsplit(w, " "))[1:7],
+                                                            collapse = " ")}))
 
         # is it better to use the manually adjusted?
         log_10_GSEA <- -log10(as.numeric(PlotNowREACT[, "p.adjust"]))
@@ -183,39 +191,44 @@ GSEA <- function(FDR_cutoff = 0.05,
 
         if (tolower(image_format) == "png") {
             png(filename = paste0(DIR,
-                              "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
-                              "_", pairName, ".png"),
-                width = longest_Width, height = Height, res = Res, units = Unit)
+                            "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
+                            "_", pairName, ".png"),
+                width = longest_Width, height = Height, res = Res,
+                                                                units = Unit)
         } else if (tolower(image_format) == "svg") {
             svg(filename = paste0(DIR,
-                              "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
-                              "_", pairName, ".svg"),
+                            "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
+                            "_", pairName, ".svg"),
                 width = longest_Width, height = Height, onefile = TRUE)
         } else {
-            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
+            stop(message("Please, Insert a valid image_format!",
+                                                        " ('png' or 'svg')"))
         }
 
         Count <- ceiling(PlotNowREACT$setSize * Gene_Ratio)
 
 
         p <- ggplot2::ggplot(PlotNowREACT, ggplot2::aes(x = log_10_GSEA,
-                                                     y = forcats::fct_reorder(Description, log_10_GSEA))) +
-            ggplot2::geom_point(ggplot2::aes(size = Count, color = Gene_Ratio)) +
-            ggplot2::scale_colour_gradient(limits=c(0, 1), low="red", high = "blue") +
+                                                    y = forcats::fct_reorder(Description, log_10_GSEA))) +
+            ggplot2::geom_point(ggplot2::aes(size = Count,
+                                                        color = Gene_Ratio)) +
+            ggplot2::scale_colour_gradient(limits=c(0, 1), low="red",
+                                                            high = "blue") +
             ggplot2::labs(y = "", x = "-log(FDR)") +
             ggplot2::theme_bw(base_size = 10) +
             ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
                                                                 size = 16),
-                           axis.text = ggplot2::element_text(face = "bold",
-                                                             color = "#011600", size = 12),
-                           title = ggplot2::element_text(face = "bold",
-                                                         size = 18),
-                           plot.title = ggplot2::element_text(hjust = 0.5))
+                        axis.text = ggplot2::element_text(face = "bold",
+                                                        color = "#011600",
+                                                        size = 12),
+                        title = ggplot2::element_text(face = "bold",
+                                                    size = 18),
+                        plot.title = ggplot2::element_text(hjust = 0.5))
         print(p)
         dev.off()
-
     } else {
-        message(cat("There is nothing to show in Gene Set Enrichment Analysis - over Reactome"))
+        message("There is nothing to show in Gene Set Enrichment",
+                                                " Analysis - over Reactome")
     }
     gc()
     message("Done!\n")
