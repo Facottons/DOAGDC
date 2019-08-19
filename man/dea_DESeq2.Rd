@@ -82,6 +82,7 @@ A matrix with DE genes in row and statistical values in columns.
 Run DESeq2 gene Differential Expression Analysis (DEA).
 }
 \examples{
+# data already downloaded using the 'download_gdc' function
 concatenate_files("gene",
                    Name = "HIF3A",
                    dataBase = "legacy",

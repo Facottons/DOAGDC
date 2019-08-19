@@ -94,6 +94,8 @@ concatenate_files <- function(dataType,
     #  c("data.table", "R.utils")
 
     #local functions ####
+    SW <- function(x) {suppressWarnings(x)}
+
     gene_isoform <- function() {
         codes <- dir(path = DIR, pattern = ".sdrf$")
         codigos <- read.table(file.path(DIR, codes[1]),
@@ -174,8 +176,10 @@ concatenate_files <- function(dataType,
                 genes_normalized_not_tumor <- grepl("^.+(genes.normalized).+$",
                                                     codigos_not_tumor$file_name)
                 isoforms_normalized_not_tumor <- grepl("^.+(isoforms.normalized).+$", codigos_not_tumor$file_name)
-                gene_files_not_tumor <- codigos_not_tumor[genes_normalized_not_tumor, ]
-                isoform_files_not_tumor <- codigos_not_tumor[isoforms_normalized_not_tumor, ]
+                tmp <- codigos_not_tumor[genes_normalized_not_tumor, ]
+                gene_files_not_tumor <- tmp
+                tmp <- codigos_not_tumor[isoforms_normalized_not_tumor, ]
+                isoform_files_not_tumor <- tmp
                 assign("genes_normalized_not_tumor", genes_normalized_not_tumor,
                     envir = get(envir_link))
                 assign("isoforms_normalized_not_tumor",
@@ -204,8 +208,12 @@ concatenate_files <- function(dataType,
                 isoforms_not_normalized_not_tumor <- grepl("^.+(isoforms.results)$", codigos_not_tumor$file_name)
                 gene_files_not_tumor <- codigos_not_tumor[genes_not_normalized_not_tumor, ]
                 isoform_files_not_tumor <- codigos_not_tumor[isoforms_not_normalized_not_tumor, ]
-                assign("genes_not_normalized_not_tumor", genes_not_normalized_not_tumor, envir = get(envir_link))
-                assign("isoforms_not_normalized_not_tumor", isoforms_not_normalized_not_tumor, envir = get(envir_link))
+                assign("genes_not_normalized_not_tumor",
+                        genes_not_normalized_not_tumor,
+                        envir = get(envir_link))
+                assign("isoforms_not_normalized_not_tumor",
+                        isoforms_not_normalized_not_tumor,
+                        envir = get(envir_link))
                 assign("gene_files_not_tumor", gene_files_not_tumor,
                     envir = get(envir_link))
                 assign("isoform_files_not_tumor", isoform_files_not_tumor,
@@ -238,12 +246,14 @@ concatenate_files <- function(dataType,
             }
         }
         close(pb)
+        tmp1 <- Var == "gene_files_not_tumor"
+        tmp2 <- Var == "isoform_files_not_tumor"
         if (Var == "gene_files" || Var == "isoform_files") {
             assign("name_row", rownames(completed_table1),
                 envir = get(envir_link))
             assign("completed_table1", completed_table1,
                 envir = get(envir_link))
-        } else if (Var == "gene_files_not_tumor" || Var == "isoform_files_not_tumor") {
+        } else if (tmp1 || tmp2) {
             assign("name_row_not_tumor", rownames(completed_table1),
                 envir = get(envir_link))
             assign("completed_table1_not_tumor", completed_table1,
@@ -252,8 +262,9 @@ concatenate_files <- function(dataType,
     }
 
     export <- function() {
+        tmp <- tolower(HTSeq) != "counts" && !is.null(HTSeq)
         if (tumorData) {
-            if (normalization || (tolower(HTSeq) != "counts" && !is.null(HTSeq))) {
+            if (normalization || tmp) {
                 assign("gene_tumor_normalized",
                     string_vars[["envir_link"]]$completed_table1,
                     envir = get(envir_link))
@@ -271,7 +282,7 @@ concatenate_files <- function(dataType,
             assign("patients", patients, envir = get(envir_link))
         } else {
             #tumor
-            if (normalization || (tolower(HTSeq) != "counts" && !is.null(HTSeq))) {
+            if (normalization || tmp) {
                 assign("gene_tumor_normalized",
                         string_vars[["envir_link"]]$completed_table1,
                         envir = get(envir_link))
@@ -402,13 +413,17 @@ concatenate_files <- function(dataType,
         setTxtProgressBar(pb, count)
 
         #Remove CpGs on sex chromosomes
-        sex_filter <- refererence_meth_table$Chromosome != "X" & refererence_meth_table$Chromosome != "Y"
+        tmp1 <- refererence_meth_table$Chromosome != "X"
+        tmp2 <- refererence_meth_table$Chromosome != "Y"
+        sex_filter <- tmp1 & tmp2
         sex_filter[is.na(sex_filter)] <- as.logical("FALSE")
         meth_table <- meth_table[sex_filter, ]
         refererence_meth_table <- refererence_meth_table[sex_filter, ]
 
         #only with gene symbol info (can be changed after released)
-        gene_symbol_filter <- refererence_meth_table$Gene_Symbol != "" & refererence_meth_table$Gene_Symbol != "."
+        tmp1 <- refererence_meth_table$Gene_Symbol != ""
+        tmp2 <- refererence_meth_table$Gene_Symbol != "."
+        gene_symbol_filter <- tmp1 & tmp2
         meth_table <- meth_table[gene_symbol_filter, ]
         refererence_meth_table <- refererence_meth_table[gene_symbol_filter, ]
 
@@ -426,8 +441,8 @@ concatenate_files <- function(dataType,
         #minfi package. or lumi R package or minfi Bioconductor packag(SWAN)
         # library(methylumi) ?? wateRmellow??
         if (nrow(meth_table) == 0) {
-            message("All data were filtered out! Please, ",
-                    "choose a different cutoffBetaNA and cutoffBetasd parameters")
+            message("All data were filtered out! Please, choose a different",
+                    " cutoffBetaNA and cutoffBetasd parameters")
             stop()
         }
 
@@ -438,20 +453,24 @@ concatenate_files <- function(dataType,
     }
 
     OPEN_miRNA <- function(mirna_files_arg) {
+        tmp1 <- tolower(dataType) == "mirna gene quantification"
+        tmp2 <- tolower(dataType) == "mirna expression quantification"
+        tmp3 <- tolower(dataType) == "mirna isoform quantification"
+        tmp4 <- tolower(dataType) == "isoform expression quantification"
         if (normalization) {
-            if (tolower(dataType) == "mirna gene quantification" || tolower(dataType) == "mirna expression quantification") {
+            if (tmp1 || tmp2) {
                 Select <- c(3,4)
                 first_col <- "reads_per_million_miRNA_mapped"
-            } else if (tolower(dataType) == "mirna isoform quantification" || tolower(dataType) == "isoform expression quantification") {
+            } else if (tmp3 || tmp4) {
                 message("Under development for this dataType!\n")
                 stop()
             }
 
         } else {
-            if (tolower(dataType) == "mirna gene quantification" || tolower(dataType) == "mirna expression quantification") {
+            if (tmp1 || tmp2) {
                 Select <- c(2,4)
                 first_col <- "read_count"
-            } else if (tolower(dataType) == "mirna isoform quantification" || tolower(dataType) == "isoform expression quantification") {
+            } else if (tmp3 || tmp4) {
                 message("Under development for this dataType!\n")
                 stop()
             }
@@ -467,20 +486,23 @@ concatenate_files <- function(dataType,
                                                 showProgress = FALSE,
                                                 select = Select)
                 data_mirna_table[, count] <- as.numeric(actual_file[[1]])
-                cross_mapped_mirna_table[, count] <- as.character(actual_file[[2]])
+                tmp <- as.character(actual_file[[2]])
+                cross_mapped_mirna_table[, count] <- tmp
             } else if (count == 1) {
                 actual_file <- data.table::fread(file, sep = "\t",
                                                 showProgress = FALSE)
+                tmp <- as.character(actual_file[["miRNA_ID"]])
                 data_mirna_table <- matrix(nrow = nrow(actual_file),
-                                        dimnames = list(as.character(actual_file[["miRNA_ID"]]),
+                                        dimnames = list(tmp,
                                                         manifest$cases),
                                         ncol = length(mirna_files_arg))
                 cross_mapped_mirna_table <- matrix(nrow = nrow(actual_file),
-                                                dimnames = list(as.character(actual_file[["miRNA_ID"]]),
+                                                dimnames = list(tmp,
                                                                 manifest$cases),
                                                 ncol = length(mirna_files_arg))
                 data_mirna_table[, 1] <- as.numeric(actual_file[["read_count"]])
-                cross_mapped_mirna_table[, 1] <- as.character(actual_file[["cross-mapped"]])
+                tmp <- as.character(actual_file[["cross-mapped"]])
+                cross_mapped_mirna_table[, 1] <- tmp
             }
             setTxtProgressBar(pb, count)
         }
@@ -516,7 +538,9 @@ concatenate_files <- function(dataType,
     }
 
     string_vars <- list(envir_link = get(envir_link))
-    attr(envir_link, "name" ) = "Environment created by DOAGDC package, use its name in 'env' argument"
+    attr(envir_link, "name" ) <- paste0("Environment created by DOAGDC",
+                                        " package, use its name in ",
+                                        "'env' argument")
 
     dir.create(path = file.path(workDir, "DOAGDC", toupper(tumor), "Analyses"),
             showWarnings = FALSE)
@@ -529,9 +553,11 @@ concatenate_files <- function(dataType,
             manifest <- data.table::fread(file.path(DIR, "manifest.sdrf"),
                                         select = c("file_name", "platform"))
             if (tolower(Platform) %in% "illumina ga") {
-                maf_files <- as.character(manifest[[1]][manifest$platform == "Illumina GA"])
+                tmp <- manifest[[1]][manifest$platform == "Illumina GA"]
+                maf_files <- as.character(tmp)
             } else if (tolower(Platform) %in% "illumina hiseq") {
-                maf_files <- as.character(manifest[[1]][manifest$platform == "Illumina HiSeq"])
+                tmp <- manifest[[1]][manifest$platform == "Illumina HiSeq"]
+                maf_files <- as.character(tmp)
             }
 
             #checking for unmatched data
@@ -565,14 +591,6 @@ concatenate_files <- function(dataType,
             }
             close(pb)
 
-            if (!missing(Name)) {
-
-                tmp <- apply(UCS_LEGACY_mutation_both_data[["bcgsc.ca_UCS.IlluminaHiSeq_DNASeq.1.somatic.maf"]][, 1:2], 1, function(x) {
-                    paste(x, collapse = "\\|")
-                })
-                gsub("\\s+", "", tmp)
-            }
-
         } else if (tolower(dataBase) == "gdc") {
             DIR <- file.path(workDir, "DOAGDC", toupper(tumor),
                             "gdc_mutation_data")
@@ -584,13 +602,17 @@ concatenate_files <- function(dataType,
             if (tolower(workflowType) %in% "all") {
                 to_gunzip <- dir(path = DIR, pattern = "maf.gz$")
             } else if (tolower(workflowType) %in% "varscan") {
-                to_gunzip <- as.character(manifest[[1]][manifest$submitter_id == "varscan"])
+                tmp <- manifest[[1]][manifest$submitter_id == "varscan"]
+                to_gunzip <- as.character(tmp)
             } else if (tolower(workflowType) %in% "mutect") {
-                to_gunzip <- as.character(manifest[[1]][manifest$submitter_id == "mutect"])
+                tmp <- manifest[[1]][manifest$submitter_id == "mutect"]
+                to_gunzip <- as.character(tmp)
             } else if (tolower(workflowType) %in% "muse") {
-                to_gunzip <- as.character(manifest[[1]][manifest$submitter_id == "muse"])
+                tmp <- manifest[[1]][manifest$submitter_id == "muse"]
+                to_gunzip <- as.character(tmp)
             } else if (tolower(workflowType) %in% "somaticsniper") {
-                to_gunzip <- as.character(manifest[[1]][manifest$submitter_id == "somaticsniper"])
+                tmp <- manifest[[1]][manifest$submitter_id == "somaticsniper"]
+                to_gunzip <- as.character(tmp)
             }
 
             tryCatch(R.utils::gunzip(file.path(DIR, to_gunzip),
@@ -644,10 +666,13 @@ concatenate_files <- function(dataType,
 
             #only meth data!!
             if (sum(tmp) > 0) {
+                tmp <- tolower(Platform) %in% "illumina human methylation 27"
                 if (tolower(Platform) %in% "illumina human methylation 450") {
-                    meth_files <- manifest[manifest$platform == "Illumina Human Methylation 450", ]
-                } else if (tolower(Platform) %in% "illumina human methylation 27") {
-                    meth_files <- manifest[manifest$platform == "Illumina Human Methylation 27", ]
+                    tmp <- manifest$platform == "Illumina Human Methylation 450"
+                    meth_files <- manifest[tmp, ]
+                } else if (tmp) {
+                    tmp <- manifest$platform == "Illumina Human Methylation 27"
+                    meth_files <- manifest[tmp, ]
                 }
 
                 #checking for unmatched data
@@ -678,7 +703,8 @@ concatenate_files <- function(dataType,
                 assign("patients", patients, envir = get(envir_link))
                 suppressWarnings(OPEN_meth(meth_tumor_files))
                 #saving
-                # write.table(x = meth_table, file = "./methylation_table/meth_table_completed.csv",
+                # write.table(x = meth_table,
+                        # file = "./methylation_table/meth_table_completed.csv",
                 #           row.names = TRUE, quote = FALSE)
 
                 ##filtering
@@ -701,9 +727,10 @@ concatenate_files <- function(dataType,
                 if (saveData) {
                     message("\nSaving data, this could take a while...\n")
                     #saving
+                    tmp <- "methylation_tumor_filtered.tsv"
                     write.table(x = cbind(refererence_meth_table,
                                         tumor_meth_table_filtered),
-                                file = file.path(DIR, "methylation_tumor_filtered.tsv"),
+                                file = file.path(DIR, tmp),
                                 row.names = TRUE, quote = FALSE, sep = "\t")
                 }
 
@@ -720,10 +747,11 @@ concatenate_files <- function(dataType,
 
                     message("\nSaving required data...\n")
                     #saving
+                    tmp <- "methylation_tumor_filtered_selected_"
                     write.table(x = cbind(reference_table_filtered[select_gene, ],
                                         tumor_meth_table_filtered[select_gene, ]),
                                 file = file.path(DIR,
-                                                paste0("methylation_tumor_filtered_selected_",Name,".tsv")),
+                                                paste0(tmp ,Name, ".tsv")),
                                 row.names = TRUE, quote = FALSE, sep = "\t")
 
                     assign(paste0("methylation_tumor_filtered_selected_", Name),
@@ -785,13 +813,15 @@ concatenate_files <- function(dataType,
                 #saving
                 if (saveData) {
                     message("\nSaving data...\n")
+                    tmp <- "tumor_meth_table_completed_filtered.tsv"
                     write.table(x = cbind(refererence_meth_table,
                                         tumor_meth_table_filtered),
-                                file = file.path(DIR, "tumor_meth_table_completed_filtered.tsv"),
+                                file = file.path(DIR, tmp),
                                 row.names = TRUE, quote = FALSE, sep = "\t")
+                    tmp <- "not_tumor_meth_table_completed_filtered.tsv"
                     write.table(x = cbind(refererence_meth_table,
                                         not_tumor_meth_table_filtered),
-                                file = file.path(DIR, "not_tumor_meth_table_completed_filtered.tsv"),
+                                file = file.path(DIR, tmp),
                                 row.names = TRUE, quote = FALSE, sep = "\t")
                 }
 
@@ -832,12 +862,10 @@ concatenate_files <- function(dataType,
 
                     message("\nSaving required data...\n")
                     #saving
+                    tmp <- "methylation_not_tumor_filtered_selected_"
                     write.table(x = cbind(reference_table_filtered[select_gene, ],
                                         not_tumor_meth_table_filtered[select_gene, ]),
-                                file = file.path(DIR,
-                                                paste0("methylation_not_tumor_filtered_selected_",
-                                                        Name,
-                                                        ".tsv")),
+                                file = file.path(DIR,paste0(tmp, Name, ".tsv")),
                                 row.names = TRUE, quote = FALSE, sep = "\t")
 
                     assign("Name", Name, envir = get(envir_link))
@@ -884,12 +912,11 @@ concatenate_files <- function(dataType,
 
                     message("\nSaving required data...\n")
                     #saving
+                    tmp <- "methylation_tumor_filtered_selected_"
                     write.table(x = cbind(string_vars[["envir_link"]]$reference_table_filtered[select_gene, ],
                                         string_vars[["envir_link"]]$methylation_not_tumor_filtered[select_gene, ]),
                                 file = file.path(DIR,
-                                                paste0("methylation_tumor_filtered_selected_",
-                                                        Name,
-                                                        ".tsv")),
+                                                paste0(tmp, Name, ".tsv")),
                                 row.names = TRUE, quote = FALSE, sep = "\t")
                 }
             }
@@ -943,7 +970,7 @@ concatenate_files <- function(dataType,
 
                         if (!missing(Name)) {
                             if (normalization) {
-                                to_google <- ifelse(suppressWarnings(is.na(as.numeric(Name))),
+                                to_google <- ifelse(SW(is.na(as.numeric(Name))),
                                                     paste0("(^", toupper(Name),
                                                         "\\|", ")"),
                                                     paste0("(", "\\|",
@@ -964,7 +991,7 @@ concatenate_files <- function(dataType,
                                     genes_transpo1, envir = get(envir_link))
 
                             } else {
-                                to_google <- ifelse(suppressWarnings(is.na(as.numeric(Name))),
+                                to_google <- ifelse(SW(is.na(as.numeric(Name))),
                                                     paste0("(^",
                                                                 toupper(Name),
                                                                 "\\|", ")"),
@@ -1008,7 +1035,7 @@ concatenate_files <- function(dataType,
                                     "normalized_selected_", toupper(Name)),
                                     genes_transpo1, envir = get(envir_link))
                             } else {
-                                to_google <- ifelse(suppressWarnings(is.na(as.numeric(Name))),
+                                to_google <- ifelse(SW(is.na(as.numeric(Name))),
                                                     paste0("(^",
                                                                 toupper(Name),
                                                                 "\\|",
@@ -1106,7 +1133,8 @@ concatenate_files <- function(dataType,
                                     envir = get(envir_link))
                             } else {
                                 to_google_not_tumor <- ifelse(is.numeric(Name), paste0("(", "\\|", Name, ")$"),
-                                                            paste0("(", Name, "\\|", ")"))
+                                                            paste0("(", Name,
+                                                                "\\|", ")"))
                                 gene_selector_final_not_tumor <- grepl(to_google_not_tumor,
                                                                     rownames(string_vars[["envir_link"]]$completed_table1),
                                                                     perl = TRUE)
@@ -1119,55 +1147,27 @@ concatenate_files <- function(dataType,
                                 colnames(genes_transpo1_not_tumor) <- Name
 
                                 FILTERED_RESULTS_not_tumor <- genes_transpo1_not_tumor
-                                assign(paste0("gene_not_tumor_not_normalized_selected_", Name), genes_transpo1_not_tumor, envir = get(envir_link))
+                                tmp <- "gene_not_tumor_not_normalized_selected_"
+                                assign(paste0(tmp, Name),
+                                        genes_transpo1_not_tumor,
+                                        envir = get(envir_link))
                             }
                         }
                     }
                 } else if (tolower(dataBase) == "gdc") {
                     DIR <- file.path(workDir, "DOAGDC", toupper(tumor),
                                     "gdc_gene_data")
-                    #selecting specific HTSeq data
-                    if (tolower(HTSeq) == "counts") {
-                        to_gunzip <- dir(path = DIR, pattern = "counts.gz$")
-                        unziped <- dir(path = DIR, pattern = "htseq.counts$")
-                    } else {
-                        to_gunzip <- dir(path = DIR,
-                                        pattern = paste0(toupper(HTSeq),
-                                                        ".txt.gz$"))
-                        unziped <- dir(path = DIR, paste0(toupper(HTSeq),
-                                                        ".txt$"))
-                    }
 
                     #open manifest
-                    codes <- dir(path = DIR, pattern = paste0(toupper(HTSeq), "_manifest.sdrf$"))
+                    codes <- dir(DIR, paste0(toupper(HTSeq), "_manifest.sdrf$"))
                     codigos <- read.table(file.path(DIR, codes[1]),
                                         stringsAsFactors = FALSE,
                                         header = TRUE, sep = "\t")
                     codigos <- codigos[, c("file_name", "cases")]
 
-                    if (length(to_gunzip) > 0) {
-                        message("Please wait, unziping files...")
-                        pb <- txtProgressBar(min = 0, max = length(to_gunzip), style = 3)
-                        count <- 0
-                        for (gz_file in file.path(DIR, to_gunzip)) {
-                            count <- count + 1
-                            tmp <- R.utils::gunzip(gz_file, remove = TRUE,
-                                                overwrite = TRUE)
-                            setTxtProgressBar(pb, count)
-                        }
-                        close(pb)
-
-                        codigos <- codigos[codigos$file_name %in% to_gunzip, ]
-                    } else {
-                        codigos <- codigos[codigos$file_name %in% paste0(unziped, ".gz"), ]
-                    }
-
                     tumor_regex <- paste(formatC(seq(1:9), width = 2,
                                                 flag = "0"),
                                         collapse = "[aAbB]-|-")
-
-                    #file names to concatenate
-                    codigos$file_name <- gsub(".gz", "", codigos$file_name)
 
                     # Search gene
                     if (tumorData) {
@@ -1178,9 +1178,6 @@ concatenate_files <- function(dataType,
                         rownames(codigos) <- codigos$file_name
                         patients <- codigos$cases
 
-                        #Getting and export the final results
-                        export()
-
                         #concatenate and finishing table
                         OPEN_genexpress(files = codigos, Var = "gene_files")
                         rownames(string_vars[["envir_link"]]$completed_table1) <- string_vars[["envir_link"]]$name_row
@@ -1190,6 +1187,10 @@ concatenate_files <- function(dataType,
                             paste(unlist(strsplit(w, "-"))[1:3],
                                                                 collapse = "-")
                         }))
+
+                        #Getting and export the final results
+                        export()
+
                         # duplicate fix
                         if (length(patients) != length(unique(patients_short))) {
                             coluns_2rename <- numeric()
@@ -1211,10 +1212,10 @@ concatenate_files <- function(dataType,
                         }
 
                         #saving completed_table
-                        write.table(string_vars[["envir_link"]]$completed_table1,
-                                    paste0(DIR, "/concatenate_",
-                                                                HTSeq, ".tsv"),
-                                    sep = "\t")
+                        # write.table(string_vars[["envir_link"]]$completed_table1,
+                        #             paste0(DIR, "/concatenate_",
+                        #                                         HTSeq, ".tsv"),
+                        #             sep = "\t")
 
 
                         if (!missing(Name)) {
@@ -1288,7 +1289,7 @@ concatenate_files <- function(dataType,
                                                         patients_short)[-1])
                                     names_2rename <- c(names_2rename,
                                                     paste0(Patients,
-                                                    seq((sum(selector)-  1))))
+                                                    seq((sum(selector) - 1))))
                                 }
                             }
                             colnames(completed_table1_not_tumor)[coluns_2rename] <- names_2rename
@@ -1297,9 +1298,6 @@ concatenate_files <- function(dataType,
                             colnames(completed_table1_not_tumor) <- patients_short
                         }
                     }
-                    #remove no longer need files
-                    suppressWarnings(file.remove(file.path(DIR,
-                                                        codigos$file_name)))
                     if (tolower(HTSeq) != "counts") {
                         assign("HTSeq_normalized", toupper(HTSeq),
                                                     envir = get(envir_link))
@@ -1348,6 +1346,7 @@ concatenate_files <- function(dataType,
                                 "\n\n")
                         stop()
                     }
+
                     OPEN_genexpress(files = string_vars[["envir_link"]]$isoform_files_not_tumor,
                                     Var = "isoform_files_not_tumor")
                     patients_not_tumor <- string_vars[["envir_link"]]$isoform_files_not_tumor$submitter_id
@@ -1639,7 +1638,6 @@ concatenate_files <- function(dataType,
                     }
                 }
             } else if (tolower(dataType) == "isoform") {
-
                 if (tumorData) {
                     if (normalization) {
                         completed_table1_tumor <- string_vars[["envir_link"]]$isoform_tumor_normalized
@@ -1690,7 +1688,8 @@ concatenate_files <- function(dataType,
                                                             "clinical_data")
             patient_file <- dir(path = DIR, pattern = "clinical_patient")
 
-            clinical_df <- data.table::fread(input = file.path(DIR, patient_file))
+            clinical_df <- data.table::fread(input = file.path(DIR,
+                                                                patient_file))
 
             clinical_df <- as.data.frame(clinical_df[-c(1,2),])
             rownames(clinical_df) <- clinical_df[, 2]
@@ -2016,7 +2015,9 @@ concatenate_files <- function(dataType,
     }
 
     # mirna ####
-    if ("mirna" %in% strsplit(tolower(dataType), split = " ")[[1]][1] || "isoform expression quantification" %in% tolower(dataType)) {
+    tmp1 <- "mirna" %in% strsplit(tolower(dataType), split = " ")[[1]][1]
+    tmp2 <- "isoform expression quantification" %in% tolower(dataType)
+    if (tmp1 || tmp2) {
         if (!onlyFilter) {
             if (tolower(dataBase) == "legacy") {
                 DIR <- file.path(workDir, "DOAGDC", toupper(tumor),
@@ -2041,13 +2042,17 @@ concatenate_files <- function(dataType,
                 #only mirna data!!
                 if (sum(tmp) > 0) {
                     if (tolower(Platform) %in% "illumina hiseq") {
-                        mirna_files <- manifest[manifest$platform == "Illumina HiSeq", ]
+                        tmp <- manifest$platform == "Illumina HiSeq"
+                        mirna_files <- manifest[tmp, ]
                     } else if (tolower(Platform) %in% "illumina ga") {
-                        mirna_files <- manifest[manifest$platform == "Illumina GA", ]
+                        tmp <- manifest$platform == "Illumina GA"
+                        mirna_files <- manifest[tmp, ]
                     } else if (tolower(Platform) %in% "h-mirna_8x15kv2") {
-                        mirna_files <- manifest[manifest$platform == "H-miRNA_8x15Kv2", ]
+                        tmp <- manifest$platform == "H-miRNA_8x15Kv2"
+                        mirna_files <- manifest[tmp, ]
                     } else if (tolower(Platform) %in% "h-mirna_8x15kv") {
-                        mirna_files <- manifest[manifest$platform == "H-miRNA_8x15Kv", ]
+                        tmp <- manifest$platform == "H-miRNA_8x15Kv"
+                        mirna_files <- manifest[tmp, ]
                     }
                 } else {
                     stop(message("No miRNA data was downloaded!"))
@@ -2064,7 +2069,8 @@ concatenate_files <- function(dataType,
                             x = dir(path = DIR))
 
                 mirna_files_downloaded <- dir(path = DIR)[tmp]
-                manifest <- manifest[manifest$file_name %in% mirna_files_downloaded, ]
+                tmp <- manifest$file_name %in% mirna_files_downloaded
+                manifest <- manifest[tmp, ]
                 mirna_files <- manifest
             }
 
@@ -2090,7 +2096,8 @@ concatenate_files <- function(dataType,
                 assign("patients", patients, envir = get(envir_link))
                 OPEN_miRNA(mirna_tumor_files)
                 #saving
-                # write.table(x = data_mirna_table, file = "./mirnaylation_table/mirna_table_completed.csv",
+                # write.table(x = data_mirna_table,
+                    # file = "./mirnaylation_table/mirna_table_completed.csv",
                 #           row.names = TRUE, quote = FALSE)
 
                 assign("mirna_tumor_cross_mapped", string_vars[["envir_link"]]$cross_mapped_mirna_table, envir = get(envir_link))
@@ -2253,11 +2260,17 @@ concatenate_files <- function(dataType,
                             stop(message("\nmiRNA not found!!!\n\n"))
                         }
 
-                        colnames(miRNA_exp_selected) <- paste0("hsa-", tolower(Name))
-                        colnames(cross_mapped_selected) <- paste0("hsa-", tolower(Name))
+                        colnames(miRNA_exp_selected) <- paste0("hsa-",
+                                                                tolower(Name))
+                        colnames(cross_mapped_selected) <- paste0("hsa-",
+                                                                tolower(Name))
                         Name <- gsub("-", "_", paste0("hsa-", tolower(Name)))
-                        assign(paste0("mirna_tumor_normalized_selected_", toupper(Name)), miRNA_exp_selected, envir = get(envir_link))
-                        assign(paste0("mirna_tumor_cross_mapped_selected_", toupper(Name)), cross_mapped_selected, envir = get(envir_link))
+                        assign(paste0("mirna_tumor_normalized_selected_",
+                                        toupper(Name)), miRNA_exp_selected,
+                                envir = get(envir_link))
+                        assign(paste0("mirna_tumor_cross_mapped_selected_",
+                                        toupper(Name)), cross_mapped_selected,
+                                envir = get(envir_link))
                     } else {
                         message("Only normalized data can be",
                                                 " used to separate patients!")
@@ -2510,8 +2523,8 @@ concatenate_files <- function(dataType,
             }
 
             exon_files <- dir(DIR, pattern = "unc.edu")
-
-            patient_code <- as.character(unlist(design_array[design_array[[2]] %in% exon_files, 1]))
+            tmp <- unlist(design_array[design_array[[2]] %in% exon_files, 1])
+            patient_code <- as.character(tmp)
 
             if (normalization) {
                 select_this_column <- 4 #RPKM
@@ -2602,9 +2615,7 @@ concatenate_files <- function(dataType,
                                 file = file.path(DIR, "exon_not_tumor.tsv"),
                                 row.names = TRUE, quote = FALSE, sep = "\t")
                 }
-
             }
-
         } else {
             if (normalization) {
                 protein_selector <- rownames(string_vars[["envir_link"]]$tumor_protein_table)

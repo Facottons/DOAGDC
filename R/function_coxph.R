@@ -92,18 +92,18 @@ groups_identification_coxHR <- function(Name,
     # PART B: CLINICAL EVALUATION
     # Add available files
 
-    MANIFEST <- data.frame(read.table(file=file.path(workDir, "DOAGDC",
+    MANIFEST <- data.frame(read.table(file = file.path(workDir, "DOAGDC",
                                                     toupper(tumor),
                                                     folder_name,
                                                     "manifest.sdrf"),
-                                        stringsAsFactors = FALSE, header=TRUE,
-                                        sep="\t"))
+                                        stringsAsFactors = FALSE, header = TRUE,
+                                        sep = "\t"))
 
     AvailableFiles <- MANIFEST$file_name
 
     # Create table to receive the relevant clinical points (for all tumors)
-    clinicalData_selected <- data.frame(matrix(ncol=0,
-                                                nrow=length(AvailableFiles)))
+    clinicalData_selected <- data.frame(matrix(ncol = 0,
+                                                nrow = length(AvailableFiles)))
 
     # Add empty values to the columns
     clinicalData_selected[, c("bcr_patient_barcode",

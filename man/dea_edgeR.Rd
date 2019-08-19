@@ -70,8 +70,33 @@ A matrix with DE genes in row and statistical values in columns.
 Run edgeR gene Differential Expression Analysis (DEA).
 }
 \examples{
-\dontrun{
+# data already downloaded using the 'download_gdc' function
+concatenate_files("gene",
+                   Name = "HIF3A",
+                   dataBase = "legacy",
+                   tumor = "CHOL",
+                   workDir = "~/Desktop")
+
+# separating gene HIF3A expression data patients in two groups
+groups_identification_mclust("gene", 2,
+                               Name = "HIF3A",
+                               modelName = "E",
+                               env = CHOL_LEGACY_gene_tumor_data,
+                               tumor = "CHOL")
+
+# load not normalized data
+concatenate_files("gene",
+                   normalization = FALSE,
+                   Name = "HIF3A",
+                   dataBase = "legacy",
+                   tumor = "CHOL",
+                   env = CHOL_LEGACY_gene_tumor_data,
+                   workDir = "~/Desktop")
+
+# start DE analysis
 #considering concatenate_files and groups_identification already runned
-dea_edgeR(pairName = "G2_over_G1", rounds = 7, Name = "HIF3A", env = "env_name")
-}
+dea_edgeR(pairName = "G2_over_G1",
+           rounds = 7,
+           Name = "HIF3A",
+           env = CHOL_LEGACY_gene_tumor_data)
 }

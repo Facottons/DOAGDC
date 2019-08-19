@@ -12,10 +12,11 @@ table2DOAGDC(table, dataType, normalization = TRUE, dataBase, tumor,
 isoform and protein expression, methylation and mutation data)}
 
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+   "clinical_supplement", "biospecimen", "gene", "clinical"(biotab)}.
+\itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-   quantification", "miRNA isoform quantification", "isoform", "image",
-   "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+   quantification", "miRNA isoform quantification", "isoform", "image"}.}
+\item{Only present in "GDC" database:}{\code{"miRNA
    Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
 }}
 
@@ -26,10 +27,10 @@ isoform expression data from GDC Legacy Archive. The default is
 \code{TRUE}.}
 
 \item{dataBase}{If the data was downloaded from GDC/Legacy data base, however
-not using DOAGDC, please specified which data base. If the data do not
-come from GDC/Legacy data base, and it is related with genome version GRCh
-37, please insert "legacy" in this argument. Otherwise, if it is related
-with genome version GRCh 38, please insert "GDC" in this argument.}
+not using DOAGDC, please specified which data base. If the data do not come
+from GDC/Legacy data base, and it is related with genome version GRCh 37,
+please insert "legacy" in this argument. Otherwise, if it is related with
+genome version GRCh 38, please insert "GDC" in this argument.}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
 the TCGA project. For instance, the \code{"BRCA"} stands for breast
@@ -48,20 +49,21 @@ environment following the standard criteria:
 in separated matrices).}}}
 }
 \value{
-the objects imported are stored inside the determined environment name.
+the objects imported are stored inside the determined environment
+name.
 }
 \description{
 From global to DOAGDC environment
 }
 \examples{
-\dontrun{
 patient <- paste0(paste0("patient_", LETTERS[1:4]))
 genes <- paste0("gene_", seq(1, 5))
 # generate a simulated gene expression matrix
-example_gene_table <- matrix(runif(20, 0.0, 90.5), 5, 4, TRUE, list(genes, patient))
+example_gene_table <- matrix(runif(20, 0.0, 90.5), 5, 4, TRUE,
+                         list(genes, patient))
 # without env created
-table2DOAGDC(example_gene_table, dataType = "gene", dataBase = "legacy", tumor = "UCS")
-# with env created
-table2DOAGDC(example_gene_table, env = "env name without quotes")
-}
+table2DOAGDC(example_gene_table,
+             dataType = "gene",
+             dataBase = "legacy",
+             tumor = "UCS")
 }

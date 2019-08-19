@@ -12,10 +12,11 @@ groups_identification_mclust(dataType, group.number = "",
 }
 \arguments{
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+   "clinical_supplement", "biospecimen", "gene", "clinical"(biotab)}.
+\itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-   quantification", "miRNA isoform quantification", "isoform", "image",
-   "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+   quantification", "miRNA isoform quantification", "isoform", "image"}.}
+\item{Only present in "GDC" database:}{\code{"miRNA
    Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
 }}
 
@@ -77,13 +78,14 @@ the groups generated after using the mclust analysis.
 patients in groups, powered by mclust.
 }
 \examples{
+# data already downloaded using the 'download_gdc' function
 concatenate_files("gene",
                    Name = "HIF3A",
                    dataBase = "legacy",
                    tumor = "CHOL",
                    workDir = "~/Desktop")
 
-#separating gene HIF3A expression data patients in two groups
+# separating gene HIF3A expression data patients in two groups
 groups_identification_mclust("gene", 2,
                                Name = "HIF3A",
                                modelName = "E",

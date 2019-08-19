@@ -342,8 +342,9 @@ clinical_terms <- function(Name,
                                                                 collapse = "-")
                                                         }))
             #box plot category X expresion
-            final_df <- as.data.frame(selected)[!duplicated(patient_partial_name), ,drop = FALSE]
-            final_df <- final_df[rownames(term_in_tumors),, drop = FALSE]
+            tmp <- !duplicated(patient_partial_name)
+            final_df <- as.data.frame(selected)[tmp, ,drop = FALSE]
+            final_df <- final_df[rownames(term_in_tumors), , drop = FALSE]
             final_df[term] <- "NA"
             # rownames(final_df) <- unique(patient_partial_name)
             #stacking the data

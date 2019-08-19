@@ -15,10 +15,11 @@ next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
 quantification matrix.}
 
 \item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-  "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+   "clinical_supplement", "biospecimen", "gene", "clinical"(biotab)}.
+\itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-   quantification", "miRNA isoform quantification", "isoform", "image",
-   "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+   quantification", "miRNA isoform quantification", "isoform", "image"}.}
+\item{Only present in "GDC" database:}{\code{"miRNA
    Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
 }}
 

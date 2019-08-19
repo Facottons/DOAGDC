@@ -6,10 +6,11 @@
 #' and GDC Legacy Archive.
 #'
 #' @param dataType Type of data. It could be \code{"methylation", "mutation",
-#'   "clinical_supplement", "biospecimen", "gene"}. \itemize{ \item{Only present
+#'    "clinical_supplement", "biospecimen", "gene", "clinical"(biotab)}.
+#'    \itemize{ \item{Only present
 #'    in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-#'    quantification", "miRNA isoform quantification", "isoform", "image",
-#'    "clinical"}.} \item{Only present in "GDC" database:}{\code{"miRNA
+#'    quantification", "miRNA isoform quantification", "isoform", "image"}.}
+#'    \item{Only present in "GDC" database:}{\code{"miRNA
 #'    Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
 #'    }
 #' @param tumor A character string contaning one of the 33 tumors available in
@@ -88,12 +89,12 @@ download_gdc <- function(dataType = "gene",
     # selecting the right API
 
     # code ####
-    if (tolower(dataBase) == "legacy"){
+    if (tolower(dataBase) == "legacy") {
         inicio <- "https://api.gdc.cancer.gov/legacy/data/"
         url.inicio <- "https://api.gdc.cancer.gov/legacy/files/"
         status <- "https://api.gdc.cancer.gov/legacy/status"
         folder.name <- paste0(tolower(dataType), "_data")
-    } else if (tolower(dataBase) == "gdc"){
+    } else if (tolower(dataBase) == "gdc") {
         inicio <- "https://api.gdc.cancer.gov/data/"
         url.inicio <- "https://api.gdc.cancer.gov/files/"
         status <- "https://api.gdc.cancer.gov/status"
@@ -115,11 +116,11 @@ download_gdc <- function(dataType = "gene",
             showWarnings = FALSE)
 
     # legacy ####
-    if(tolower(dataBase) == "legacy"){
+    if (tolower(dataBase) == "legacy") {
         # gene and isoform ####
-        if ("gene" %in% tolower(dataType) || "isoform" %in% tolower(dataType)){
+        if ("gene" %in% tolower(dataType) || "isoform" %in% tolower(dataType)) {
 
-            size.par.rsem <- function(tumor){
+            size.par.rsem <- function(tumor) {
                 url <- paste0("https://api.gdc.cancer.gov/legacy/",
                                 "projects/TCGA-", toupper(tumor),
                             "?expand=summary,summary.data_categories&",
@@ -261,7 +262,8 @@ download_gdc <- function(dataType = "gene",
                 jason <- jason$data
                 jason <- jason$summary
                 jason <- jason$data_categories
-                size <- subset(x = jason, subset = data_category == "Transcriptome Profiling", "file_count")
+                tmp <- jason$data_category == "Transcriptome Profiling"
+                size <- subset(x = jason, subset = tmp, "file_count")
                 return(as.numeric(size))
             }
 
@@ -364,7 +366,8 @@ download_gdc <- function(dataType = "gene",
             }
 
             message("\n\nDownloading manifest...\n")
-            suppressWarnings(json <- jsonlite::fromJSON(readLines(curl::curl(url))))
+            SW <- function(x) {suppressWarnings(x)}
+            SW(json <- jsonlite::fromJSON(readLines(curl::curl(url))))
 
             manifest.df <- json$data$hits
 
@@ -538,9 +541,10 @@ download_gdc <- function(dataType = "gene",
             tmp <- "Illumina Human Methylation 27"
         }
 
+        size <- size.par(typeOfData = "DNA Methylation", tumor = tumor,
+                         DB = tolower(dataBase))
+
         if (tolower(dataBase) == "legacy") {
-            size <- size.par(typeOfData = "DNA methylation", tumor = tumor,
-                            DB = tolower(dataBase))
             url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                         "portions.analytes.aliquots,cases.project,center,",
                         "analysis&size=", size,
@@ -562,9 +566,7 @@ download_gdc <- function(dataType = "gene",
                         ".project.project_id%22,%22value%22:%5B%22TCGA-",
                         toupper(tumor),
                         "%22%5D%7D%7D%5D%7D&format=JSON")
-        } else if(tolower(dataBase) == "gdc") {
-            size <- size.par(typeOfData = "DNA Methylation", tumor = tumor,
-                            DB = tolower(dataBase))
+        } else if (tolower(dataBase) == "gdc") {
             url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                         "portions.analytes.aliquots,cases.project,center,",
                         "analysis&size=",
@@ -635,7 +637,8 @@ download_gdc <- function(dataType = "gene",
     }
 
     # clinical and image ####
-    if ("clinical" == tolower(dataType) || "biospecimen" == tolower(dataType) || "clinical_supplement" == tolower(dataType) || "image" == tolower(dataType)) {
+    tmp <- c("clinical", "biospecimen", "clinical_supplement", "image")
+    if (tolower(dataType) %in% tmp) {
 
         dir.create(path = file.path(workDir, "DOAGDC", toupper(tumor),
                                     folder.name),
@@ -643,6 +646,8 @@ download_gdc <- function(dataType = "gene",
         DIR <- file.path(workDir, "DOAGDC", toupper(tumor), folder.name)
 
         if (tolower(dataBase) == "legacy") {
+            size <- size.par(tumor = tumor, typeOfData = "Clinical",
+                            DB = "legacy")
             if ("image" == tolower(dataType)) {
                 message("A lot of data are going to be downloaded,",
                         " please wait...")
@@ -666,8 +671,6 @@ download_gdc <- function(dataType = "gene",
                             ":%22files.data_format%22,%22value%22:%5B%22",
                             "SVS%22%5D%7D%7D%5D%7D&format=JSON")
             } else if ("clinical_supplement" == tolower(dataType)) {
-                size <- size.par(tumor = tumor, typeOfData = "Clinical",
-                                DB = "legacy")
                 url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                             "portions.analytes.aliquots,cases.project,",
                             "center,analysis&size=", size,"&filters=",
@@ -689,8 +692,6 @@ download_gdc <- function(dataType = "gene",
                             "%22,%22value%22:%5B%22Clinical%20Supplement",
                             "%22%5D%7D%7D%5D%7D&format=JSON")
             } else if ("clinical" == tolower(dataType)) {
-                size <- size.par(tumor = tumor, typeOfData = "Clinical",
-                                DB = "legacy")
                 url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                             "portions.analytes.aliquots,cases.project,",
                             "center,analysis&size=", size,"&filters=%7B%",
@@ -710,8 +711,6 @@ download_gdc <- function(dataType = "gene",
                             "field%22:%22files.data_format%22,%22value%",
                             "22:%5B%22Biotab%22%5D%7D%7D%5D%7D&format=JSON")
             } else if ("biospecimen" == tolower(dataType)) {
-                size <- size.par(tumor = tumor, typeOfData = "Clinical",
-                                DB = "legacy")
                 url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                             "portions.analytes.aliquots,cases.project,",
                             "center,analysis&size=", size,"&filters=%7B%22",
@@ -731,10 +730,11 @@ download_gdc <- function(dataType = "gene",
                             "files.data_type%22,%22value%22:%5B%22Biospeci",
                             "men%20Supplement%22%5D%7D%7D%5D%7D&format=JSON")
             }
-        } else if(tolower(dataBase) == "gdc"){
+        } else if (tolower(dataBase) == "gdc") {
+            size <- size.par(tumor = tumor, typeOfData = "Clinical",
+                            DB = "gdc")
+
             if ("clinical_supplement" == tolower(dataType)) {
-                size <- size.par(tumor = tumor, typeOfData = "Clinical",
-                                DB = "gdc")
                 url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                             "portions.analytes.aliquots,cases.project,",
                             "center,analysis&size=", size,
@@ -753,9 +753,29 @@ download_gdc <- function(dataType = "gene",
                             "%3A%22files.data_type%22%2C%22value%22%3A%5B%22",
                             "Clinical%20Supplement%22%5D%7D%7D%5D%7D&",
                             "format=JSON")
+            } else if ("clinical" == tolower(dataType)) {
+                url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
+                            "portions.analytes.aliquots,cases.project,",
+                            "center,analysis&size=", size, "&filters=",
+                            "%7B%22op%22%3A%22and%22%2C%22content%22",
+                            "%3A%5B%7B%22op%22%3A%22in%22%2C%22content",
+                            "%22%3A%7B%22field%22%3A%22cases.project.",
+                            "program.name%22%2C%22value%22%3A%5B%22",
+                            "TCGA%22%5D%7D%7D%2C%7B%22op%22%3A%22in%22",
+                            "%2C%22content%22%3A%7B%22field%22%3A%22",
+                            "cases.project.project_id%22%2C%22value%22%3A%5B",
+                            "%22TCGA-", toupper(tumor), "%22%5D%7D%7D%2C",
+                            "%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B",
+                            "%22field%22%3A%22files.access%22%2C%22value",
+                            "%22%3A%5B%22open%22%5D%7D%7D%2C%7B%22op%22",
+                            "%3A%22in%22%2C%22content%22%3A%7B%22field",
+                            "%22%3A%22files.data_category%22%2C%22value",
+                            "%22%3A%5B%22Clinical%22%5D%7D%7D%2C%7B%22",
+                            "op%22%3A%22in%22%2C%22content%22%3A%7B%22",
+                            "field%22%3A%22files.data_format%22%2C%22",
+                            "value%22%3A%5B%22BCR%20Biotab%22%5D%7D",
+                            "%7D%5D%7D&format=JSON")
             } else if ("biospecimen" == tolower(dataType)) {
-                size <- size.par(tumor = tumor, typeOfData = "Clinical",
-                                DB = "gdc")
                 url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                             "portions.analytes.aliquots,cases.proje",
                             "ct,center,analysis&size=", size,
@@ -805,7 +825,7 @@ download_gdc <- function(dataType = "gene",
     }
 
     # protein ####
-    if ("protein" == tolower(dataType)){
+    if ("protein" == tolower(dataType)) {
         if (tolower(dataBase) == "gdc") {
             stop(message("\nThrere is no protein expression data in",
                         " GDC data base!!",
@@ -916,7 +936,9 @@ download_gdc <- function(dataType = "gene",
     }
 
     # mirna ####
-    if ("mirna" %in% strsplit(tolower(dataType), split = " ")[[1]][1] || "isoform expression quantification" %in% tolower(dataType)) {
+    is_mirna <- "mirna" %in% strsplit(tolower(dataType), split = " ")[[1]][1]
+    is_isoform <- "isoform expression quantification" %in% tolower(dataType)
+    if (is_mirna || is_isoform) {
         dir.create(path = file.path(workDir, "DOAGDC", toupper(tumor),
                                     folder.name),
                 showWarnings = FALSE)
@@ -1008,7 +1030,7 @@ download_gdc <- function(dataType = "gene",
                             "files.data_type%22%2C%22value%22%3A%5B%22",
                             "miRNA%20Expression%20Quan",
                             "tification%22%5D%7D%7D%5D%7D&format=JSON")
-            } else if ("isoform expression quantification" %in% tolower(dataType)) {
+            } else if (is_isoform) {
                 url <- paste0(url.inicio, "?pretty=true&expand=cases.samples.",
                             "portions.analytes.aliquots,cases.project,",
                             "center,analysis&size=",
@@ -1162,11 +1184,11 @@ download_gdc <- function(dataType = "gene",
     # Download PPD ####
     if (length(dir(DIR)) > 1) {
         #verifying if the data is already downloaded
+        pattern <- paste(".sdrf", "Data_access_time.txt", sep = "|")
         already.downloaded <- dir(path = DIR, include.dirs = FALSE,
                                 recursive = FALSE,
-                                full.names = TRUE)[!grepl(pattern = paste(".sdrf", "Data_access_time.txt",
-                                                                                    sep = "|"),
-                                                                    x = dir(path = DIR))]
+                                full.names = TRUE)[!grepl(pattern,
+                                                            dir(path = DIR))]
         message("Checking md5 from downloaded files\n")
         already.downloaded.md5 <- as.vector(tools::md5sum(already.downloaded))
         selector <- manifest.df[, "md5"] %in% already.downloaded.md5
@@ -1177,27 +1199,22 @@ download_gdc <- function(dataType = "gene",
         ###download data
         url <- paste0(inicio, id.matrix)
         pb <- txtProgressBar(min = 0, max = length(url), style = 3)
-        contador <- 0
+        cont <- 0
         for (id in url) {
-            contador <- contador + 1
-            message(paste("\nDownloading", tumor, dataType, contador, "of",
+            cont <- cont + 1
+            message(paste("\nDownloading", tumor, dataType, cont, "of",
                             length(url), sep = " "))
-            setTxtProgressBar(pb, contador)
-            download.httr(URL = id,
-                                    destfile = paste0(DIR, "/",
-                                                    manifest.df[manifest.df$id == id.matrix[contador], "filename"]))
-            md5 <- tools::md5sum(dir(path = DIR, pattern = manifest.df[manifest.df$id == id.matrix[contador],
-                                                                "filename"],
+            setTxtProgressBar(pb, cont)
+            tmp <- manifest.df[manifest.df$id == id.matrix[cont], "filename"]
+            download.httr(URL = id, destfile = paste0(DIR, "/", tmp))
+            md5 <- tools::md5sum(dir(path = DIR, pattern = tmp,
                                     full.names = TRUE))
-            while (md5[[1]] != manifest.df[manifest.df$id == id.matrix[contador], "md5"]) {
-                message(paste0("The md5 of file '", manifest.df[manifest.df$id == id.matrix[contador],
-                                                            "filename"], "' differs from the original file. Downloading again...\n"))
-                download.httr(URL = id,
-                            destfile = paste0(DIR, "/",
-                                            manifest.df[manifest.df$id == id.matrix[contador],
-                                                        "filename"]))
-                md5 <- tools::md5sum(dir(path = DIR, pattern = manifest.df[manifest.df$id == id.matrix[contador],
-                                                                    "filename"], full.names = TRUE))
+            tmp_md5 <- manifest.df[manifest.df$id == id.matrix[cont], "md5"]
+            while (md5[[1]] != tmp_md5) {
+                message(paste0("The md5 of file '", tmp,
+                                "' is wrong. Downloading again...\n"))
+                download.httr(URL = id, destfile = paste0(DIR, "/", tmp))
+                md5 <- tools::md5sum(dir(DIR, tmp, full.names = TRUE))
             }
         }
         close(pb)
