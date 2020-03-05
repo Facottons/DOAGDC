@@ -258,12 +258,11 @@ concatenate_expression <- function(data_type,
         codigos_t <- codigos_t[!remove_duplicated, ]
         rownames(codigos_t) <- codigos_t$file_name
 
-        files <- gene_isoform()
-
         completed_table <- open_genexpress(files = codigos_t)
         colnames(completed_table) <- patients
-        name_row <- gsub("\\.{1}\\d+$", "", rownames(completed_table))
-        rownames(completed_table) <- name_row
+        rownames(completed_table) <- gsub(
+            "\\.{1}\\d+$", "", rownames(completed_table)
+        )
 
         patients_short <- unname(sapply(patients, function(w) {
             paste(unlist(strsplit(w, "-"))[1:3], collapse = "-")
@@ -335,10 +334,8 @@ concatenate_expression <- function(data_type,
             codigos_nt <- codigos_nt[!remove_duplicated_nt, ]
             rownames(codigos_nt) <- codigos_nt$file_name
 
-            files <- gene_isoform()
-
             stop_caller(
-                length(files),
+                nrow(codigos_nt),
                 paste0(
                     "There is no 'Normal' data in ",
                     tumor,
@@ -347,9 +344,11 @@ concatenate_expression <- function(data_type,
                 )
             )
 
-            completed_nt_table <- open_genexpress(files)
-            patients_nt <- files$submitter_id
+            completed_nt_table <- open_genexpress(codigos_nt)
             colnames(completed_nt_table) <- patients_nt
+            rownames(completed_nt_table) <- gsub(
+                "\\.{1}\\d+$", "", rownames(completed_nt_table)
+            )
 
             patients_short <- unname(sapply(
                 patients_nt,
@@ -414,6 +413,12 @@ concatenate_expression <- function(data_type,
                 )
             }
             assign("patients_nt", patients_nt, envir = get(ev))
+
+            # export TPM values
+            if (normalization) {
+                completed_nt_table <- apply(completed_nt_table, 2, fpkm2_tpm)
+            }
+
             assign(paste0(
                 tolower(data_type), "_nt_",
                 ifelse(
@@ -464,12 +469,6 @@ concatenate_expression <- function(data_type,
         )
 
         assign("work_dir", work_dir, envir = get(ev))
-
-        if (tolower(htseq) != "counts" && !data_base_boo) {
-            assign("HTSeq_normalized", toupper(htseq),
-                envir = get(ev)
-            )
-        }
 
         if (!missing(name)) {
 
