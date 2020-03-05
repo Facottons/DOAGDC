@@ -1,27 +1,28 @@
 #' Venn diagram of differential expression genes list
 #'
-#' @param FinalData A character string indicating the name of which diferential
+#' @param final_data A character string indicating the name of which diferential
 #'    expression package should be used to get the statistical values in the
 #'    final list. The default is "EBSeq".
 #' @param n_pack A numerical value indicating the number of expression analysis
 #'    to be used in venn diagram. It is expected the number 2 or 3. The default
 #'    is 3.
-#' @param packageNames A character vector indicating the names of at least two
+#' @param package_names A character vector indicating the names of at least two
 #'    diferential expression packages used in previous steps: "DESeq2", "edgeR",
 #'    "DESeq2, or "All".
-#' @param pairName
-#' @param Width,Height,Res,Unit
-#' @param Colors A character vector indicating the colors to be used in the
+#' @param pair_name
+#' @param width,height,res,unit
+#' @param colors A character vector indicating the colors to be used in the
 #'    venn diagram. The default is c('green', 'blue', "red").
-#' @param VennDiagram_imagetype A character string indicating the
-#'    VennDiagram_imagetype (e.g. "tiff", "png" or "svg"). The default is "png".
-#' @param workDir
-#' @param FC_cutoff
-#' @param FDR_cutoff
+#' @param venn_diagram_imagetype A character string indicating the
+#'    venn_diagram_imagetype (e.g. "tiff", "png" or "svg").
+#'    The default is "png".
+#' @param work_dir
+#' @param fc_cutoff
+#' @param fdr_cutoff
 #' @param env
-#' @inheritParams concatenate_files
+#' @inheritParams dea_ebseq
 #' @inheritParams groups_identification_mclust
-#' @inheritParams dea_EBSeq
+#' @inheritParams concatenate_exon
 #'
 #' @return a list of differentially expressed genes in common between two or
 #'    three differential expression analysis packages.
@@ -29,269 +30,422 @@
 #' @importFrom VennDiagram venn.diagram
 #' @export
 #'
-venn_diagram <- function(FinalData,
-                        n_pack = 3,
-                        packageNames,
-                        pairName = "G2_over_G1",
-                        Width = 2000,
-                        Height = 2000,
-                        Res = 300,
-                        Unit = "px",
-                        Colors = c('green', 'blue', "red"),
-                        VennDiagram_imagetype = "png",
-                        workDir,
-                        FC_cutoff = 2,
-                        FDR_cutoff = 0.05,
-                        env) {
+#' @examples
+#' library(DOAGDC)
+#'
+#' # data already downloaded using the 'download_gdc' function
+#' concatenate_expression("gene",
+#'     name = "HIF3A",
+#'     data_base = "legacy",
+#'     tumor = "CHOL",
+#'     work_dir = "~/Desktop"
+#' )
+#'
+#' # separating gene HIF3A expression data patients in two groups
+#' groups_identification_mclust("gene", 2,
+#'     name = "HIF3A",
+#'     modelName = "E",
+#'     env = CHOL_LEGACY_gene_tumor_data,
+#'     tumor = "CHOL"
+#' )
+#'
+#' # load not normalized data
+#' concatenate_expression("gene",
+#'     normalization = FALSE,
+#'     name = "HIF3A",
+#'     data_base = "legacy",
+#'     tumor = "CHOL",
+#'     env = CHOL_LEGACY_gene_tumor_data,
+#'     work_dir = "~/Desktop"
+#' )
+#'
+#' # start DE analysis
+#' dea_edger(
+#'     name = "HIF3A",
+#'     group_gen = "mclust",
+#'     env = CHOL_LEGACY_gene_tumor_data
+#' )
+#'
+#' dea_ebseq(
+#'     pair_name = "G2_over_G1",
+#'     rounds = 2,
+#'     name = "HIF3A",
+#'     group_gen = "mclust",
+#'     env = CHOL_LEGACY_gene_tumor_data
+#' )
+#'
+#' # run the Venn diagram
+#' venn_diagram(
+#'     final_data = "edgeR",
+#'     n_pack = 2,
+#'     package_names = c("EBSeq", "edgeR"),
+#'     env = CHOL_LEGACY_gene_tumor_data
+#' )
+venn_diagram <- function(final_data,
+                         n_pack = 3,
+                         package_names,
+                         pair_name = "G2_over_G1",
+                         width = 2000,
+                         height = 2000,
+                         res = 300,
+                         unit = "px",
+                         colors = c("green", "blue", "red"),
+                         venn_diagram_imagetype = "png",
+                         work_dir,
+                         fc_cutoff = 2,
+                         fdr_cutoff = 0.05,
+                         env) {
 
 
     # local functions ####
-    volcano <- function(Results_Completed_local){
+    volcano <- function(results_completed_local) {
 
         # START VOLCANO PLOT
-        Results_Completed_local$Colour = rgb(100, 100, 100, 50,
-                                            maxColorValue = 255)
+        results_completed_local$colour <- hsv(0, 0, .39, .2)
 
         # Set new column values to appropriate colours
-        FC_UP <- Results_Completed_local$log2FC >= log2(FC_cutoff)
-        FDR_OK <- Results_Completed_local$FDR <= FDR_cutoff
-        Results_Completed_local$Colour[FC_UP & FDR_OK] <- rgb(222, 22, 22, 50,
-                                                        maxColorValue = 255)
-        FC_DOWN <- Results_Completed_local$log2FC < -log2(FC_cutoff)
-        Results_Completed_local$Colour[FC_DOWN & FDR_OK] <- rgb(56, 50, 237,
-                                                                50,
-                                                        maxColorValue = 255)
-        ####Volcano Plot
-        axislimits_x <- ceiling(max(c(-min(Results_Completed_local$log2FC,
-                                            na.rm = TRUE) - 1,
-                                        max(Results_Completed_local$log2FC,
-                                            na.rm = TRUE) + 1)))
+        fc_up <- results_completed_local$log2FC >= log2(fc_cutoff)
+        fdr_ok <- results_completed_local$fdr <= fdr_cutoff
+        results_completed_local$colour[fc_up & fdr_ok] <- hsv(0, .9, .87, .5)
+        fc_down <- results_completed_local$log2FC < -log2(fc_cutoff)
+        tmp <- hsv(.67, .79, .93, .2)
+        results_completed_local$colour[fc_down & fdr_ok] <- tmp
+        #### Volcano Plot
+        axislimits_x <- ceiling(max(c(
+            -min(results_completed_local$log2FC,
+                na.rm = TRUE
+            ) - 1,
+            max(results_completed_local$log2FC,
+                na.rm = TRUE
+            ) + 1
+        )))
 
-        log_10_FDR <- -log10(Results_Completed_local$FDR)
-        new_inf <- log_10_FDR[order(log_10_FDR, decreasing = TRUE)]
-        log_10_FDR[log_10_FDR == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
+        log_10_fdr <- -log10(results_completed_local$fdr)
+        new_inf <- log_10_fdr[order(log_10_fdr, decreasing = TRUE)]
+        log_10_fdr[log_10_fdr == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
 
-        axislimits_y <- ceiling(max(log_10_FDR, na.rm = TRUE)) + 1
+        axislimits_y <- ceiling(max(log_10_fdr, na.rm = TRUE)) + 1
 
         message("Start volcano plot...")
-        #Volcano Plot
-        if (tolower(VennDiagram_imagetype) == "png") {
-            png(filename = file.path(DIR, paste0("VolcanoPlot_Basic_",
-                                                comb_name, ".png")),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(VennDiagram_imagetype) == "svg") {
-            svg(filename = file.path(DIR, paste0("VolcanoPlot_Basic_",
-                                                comb_name, ".svg")),
-                width = Width, height = Height, onefile = TRUE)
+        # Volcano Plot
+        if (tolower(venn_diagram_imagetype) == "png") {
+            png(
+                filename = file.path(dir, paste0(
+                    "VolcanoPlot_Basic_",
+                    comb_name, ".png"
+                )),
+                width = width, height = height, res = res, units = unit
+            )
+        } else if (tolower(venn_diagram_imagetype) == "svg") {
+            svg(
+                filename = file.path(dir, paste0(
+                    "VolcanoPlot_Basic_",
+                    comb_name, ".svg"
+                )),
+                width = width, height = height, onefile = TRUE
+            )
         } else {
-            stop(message("Insert a valid VennDiagram_imagetype! ('png' or 'svg')"))
+            tmp <- "Insert a valid venn_diagram_imagetype! ('png' or 'svg')"
+            stop(message(tmp))
         }
-        par(mar = c(4,6,3,2), mgp = c(2,.7,0), tck = -0.01)
-        plot(Results_Completed_local$log2FC, log_10_FDR, axes = FALSE,
+        par(mar = c(4, 6, 3, 2), mgp = c(2, .7, 0), tck = -0.01)
+        plot(results_completed_local$log2FC, log_10_fdr,
+            axes = FALSE,
             xlim = c(-axislimits_x, axislimits_x), ylim = c(0, axislimits_y),
-            xlab = expression('log'[2]*'(FC)'),
+            xlab = expression("log"[2] * "(FC)"),
             ylab = "",
             # main = "Volcano Plot",
             cex.lab = 1.5, cex.main = 2,
             cex.sub = 2,
-            pch = 16, col = Results_Completed_local$Colour,
-            cex = 2.5, las = 1)
-        title(ylab = "-log(FDR)", line = 4, cex.lab = 1.5,
-                family = "Calibri Light")
+            pch = 16, col = results_completed_local$colour,
+            cex = 2.5, las = 1
+        )
+        title(
+            ylab = "-log(FDR)", line = 4, cex.lab = 1.5,
+            family = "Calibri Light"
+        )
         axis(1, cex.axis = 1.5)
         axis(2, cex.axis = 1.5, las = 1)
-        abline(v = log2(FC_cutoff), col = "black", lty = 6, cex = 0.8,
-                lwd = 4)
-        abline(v = -log2(FC_cutoff), col = "black", lty = 6, cex = 0.8,
-                lwd = 4)
-        abline(h = -log10(FDR_cutoff), col = "black", lwd = 4, lty = 3)
-        text(x = -axislimits_x + 0.3, y = axislimits_y/10, labels =
-                length(Results_Completed_local$Colour[FC_DOWN & FDR_OK]),
-            cex = 1, col = "blue")
-        text(x = axislimits_x - 0.4, y = axislimits_y/10, labels =
-                length(Results_Completed_local$Colour[FC_UP & FDR_OK]),
-            cex = 1, col = "red")
-        par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0),
-            new = TRUE)
+        abline(
+            v = log2(fc_cutoff), col = "black", lty = 6, cex = 0.8,
+            lwd = 4
+        )
+        abline(
+            v = -log2(fc_cutoff), col = "black", lty = 6, cex = 0.8,
+            lwd = 4
+        )
+        abline(h = -log10(fdr_cutoff), col = "black", lwd = 4, lty = 3)
+        text(
+            x = -axislimits_x + 0.3, y = axislimits_y / 10, labels =
+                length(results_completed_local$colour[fc_down & fdr_ok]),
+            cex = 1, col = "blue"
+        )
+        text(
+            x = axislimits_x - 0.4, y = axislimits_y / 10, labels =
+                length(results_completed_local$colour[fc_up & fdr_ok]),
+            cex = 1, col = "red"
+        )
+        par(
+            fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0),
+            new = TRUE
+        )
         plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 
-        legend("topright", border = FALSE, bty = "n",
-                legend = c(paste0("-log(", FDR_cutoff, ") = ",
-                                round(-log10(FDR_cutoff), 2)),
-                        paste0("\u00B1", " log", "\u2082","(",
-                                FC_cutoff, ") = ",log2(FC_cutoff)),
-                        "UP", "DOWN"), pt.cex = c(0, 0, 1.8, 1.8),
-                lty = c(3, 6, 0, 0), pch = c(-1, -1, 16, 16),
-                cex = c(0.8, 0.8, 0.8, 0.8), lwd = c(2, 2, 5, 5),
-                col = c("Black", "Black", "red3", "blue3"))
+        legend("topright",
+            border = FALSE, bty = "n",
+            legend = c(
+                paste0(
+                    "-log(", fdr_cutoff, ") = ",
+                    round(-log10(fdr_cutoff), 2)
+                ),
+                paste0(
+                    "\u00B1", " log", "\u2082", "(",
+                    fc_cutoff, ") = ", log2(fc_cutoff)
+                ),
+                "UP", "DOWN"
+            ), pt.cex = c(0, 0, 1.8, 1.8),
+            lty = c(3, 6, 0, 0), pch = c(-1, -1, 16, 16),
+            cex = c(0.8, 0.8, 0.8, 0.8), lwd = c(2, 2, 5, 5),
+            col = c("Black", "Black", "red3", "blue3")
+        )
         dev.off()
     }
 
 
     # code ####
+
+    comb_name <- paste0(tolower(package_names), collapse = "_")
+
     if (missing(env)) {
-        stop(message("The 'env' argument is missing, please",
-                        " insert the 'env' name and try again!"))}
+        stop(message(
+            "The 'env' argument is missing, please",
+            " insert the 'env' name and try again!"
+        ))
+    }
 
-    envir_link <- deparse(substitute(env))
-    string_vars <- list(envir_link = get(envir_link))
+    ev <- deparse(substitute(env))
+    sv <- list(ev = get(ev))
 
-    if (exists("Name.e", envir = get(envir_link))) {
-        PATH <- file.path(string_vars[["envir_link"]]$PATH,
-                            string_vars[["envir_link"]]$Name.e)
+    if (exists("name_e", envir = get(ev))) {
+        path <- file.path(
+            sv[["ev"]]$path,
+            sv[["ev"]]$name_e
+        )
     } else {
-        PATH <- string_vars[["envir_link"]]$PATH
+        path <- sv[["ev"]]$path
     }
 
-    dir.create(path = paste0(PATH, "/CrossData_", tolower(FinalData)),
-                showWarnings = FALSE)
-    DIR <- paste0(PATH, "/CrossData_", tolower(FinalData))
+    dir.create(
+        path = paste0(path, "/CrossData_", tolower(final_data)),
+        showWarnings = FALSE
+    )
+    dir <- paste0(path, "/CrossData_", tolower(final_data))
 
-    if (is.null(FinalData)) {
-        stop("Please insert which DE method is going",
-            " to be used in result!! (EBSEq, DESeq2 or edgeR?)")
+    if (is.null(final_data)) {
+        stop(
+            "Please insert which DE method is going",
+            " to be used in result!! (EBSEq, DESeq2 or edgeR?)"
+        )
     }
 
-    if (tolower(FinalData) == "ebseq") {
-        DEcross <- string_vars[["envir_link"]]$resultadosDE_EBSeq[[pairName]]
-        complete_cross <- string_vars[["envir_link"]]$Results_Completed_EBSeq[[pairName]]
-    } else if (tolower(FinalData) == "edger") {
-        DEcross <- string_vars[["envir_link"]]$resultadosDE_edgeR[[pairName]]
-        complete_cross <- string_vars[["envir_link"]]$Results_Completed_edgeR[[pairName]]
-    } else if (tolower(FinalData) == "deseq2") {
-        DEcross <- string_vars[["envir_link"]]$resultadosDE_DESeq2[[pairName]]
-        complete_cross <- string_vars[["envir_link"]]$Results_Completed_DESeq2[[pairName]]
+    if (tolower(final_data) == "ebseq") {
+        de_cross <- sv[["ev"]]$resultados_de_ebseq[[pair_name]]
+        complete_cross <- sv[["ev"]]$results_completed_ebseq[[pair_name]]
+    } else if (tolower(final_data) == "edger") {
+        de_cross <- sv[["ev"]]$resultados_de_edger[[pair_name]]
+        complete_cross <- sv[["ev"]]$results_completed_edger[[pair_name]]
+    } else if (tolower(final_data) == "deseq2") {
+        de_cross <- sv[["ev"]]$resultados_de_deseq2[[pair_name]]
+        complete_cross <- sv[["ev"]]$results_completed_deseq2[[pair_name]]
     }
 
-    if (tolower(packageNames) == "all") {
-        packageNames <- c("edgeR", "DESeq2", "EBSeq")
+    if ("all" %in% tolower(package_names)) {
+        package_names <- c("edger", "deseq2", "ebseq")
+    } else {
+        package_names <- tolower(package_names)
     }
 
     if (n_pack == 3) {
-        p1 <- paste0("string_vars[['envir_link']]",
-                    "$resultadosDE_",
-                    packageNames[tolower(packageNames) == tolower(FinalData)],
-                    "[[pairName]]")
-        p2 <- paste0("string_vars[['envir_link']]",
-                        "$resultadosDE_",
-                        packageNames[tolower(packageNames) != tolower(FinalData)][1], "[[pairName]]")
-        p3 <- paste0("string_vars[['envir_link']]",
-                    "$resultadosDE_",
-                    packageNames[tolower(packageNames) != tolower(FinalData)][2], "[[pairName]]")
-        p1completed <- paste0("string_vars[['envir_link']]",
-                                "$Results_Completed_",
-                                packageNames[tolower(packageNames) == tolower(FinalData)], "[[pairName]]")
-        p2completed <- paste0("string_vars[['envir_link']]",
-                                "$Results_Completed_",
-                                packageNames[tolower(packageNames) != tolower(FinalData)][1], "[[pairName]]")
-        p3completed <- paste0("string_vars[['envir_link']]",
-                                "$Results_Completed_",
-                                packageNames[tolower(packageNames) != tolower(FinalData)][2], "[[pairName]]")
-        DEcross <- DEcross[which(rownames(eval(parse(text = p1))) %in% rownames(eval(parse(text = p2)))), ]
-        DEcross <- DEcross[which(rownames(DEcross) %in% rownames(eval(parse(text = p3)))), ]
-        complete_cross <- complete_cross[which(rownames(eval(parse(text = p1completed))) %in% rownames(eval(parse(text = p2completed)))), ]
-        complete_cross <- complete_cross[which(rownames(complete_cross) %in% rownames(eval(parse(text = p3completed)))), ]
-        write.csv(x = DEcross, file = file.path(DIR,
-                                                "DE_crossData.csv"))
-        write.csv(x = complete_cross, file = file.path(DIR,
-                                                    "complete_crossData.csv"))
+        p1 <- paste0(
+            "sv[['ev']]",
+            "$resultados_de_",
+            package_names[tolower(package_names) == tolower(final_data)],
+            "[[pair_name]]"
+        )
+        p2 <- paste0(
+            "sv[['ev']]",
+            "$resultados_de_",
+            package_names[tolower(package_names) != tolower(final_data)][1],
+            "[[pair_name]]"
+        )
+        p3 <- paste0(
+            "sv[['ev']]",
+            "$resultados_de_",
+            package_names[tolower(package_names) != tolower(final_data)][2],
+            "[[pair_name]]"
+        )
+        p1completed <- paste0(
+            "sv[['ev']]",
+            "$results_completed_",
+            package_names[tolower(package_names) == tolower(final_data)],
+            "[[pair_name]]"
+        )
+        p2completed <- paste0(
+            "sv[['ev']]",
+            "$results_completed_",
+            package_names[tolower(package_names) != tolower(final_data)][1],
+            "[[pair_name]]"
+        )
+        p3completed <- paste0(
+            "sv[['ev']]",
+            "$results_completed_",
+            package_names[tolower(package_names) != tolower(final_data)][2],
+            "[[pair_name]]"
+        )
 
-        tmp <- paste0(tolower(packageNames), c(rep("_Vs_", 2), ""),
-                        collapse = "")
+        tmp1 <- rownames(eval(parse(text = p1)))
+        tmp2 <- rownames(eval(parse(text = p2)))
+        tmp3 <- rownames(eval(parse(text = p3)))
 
-        #ploting venn diagram
+        de_cross <- de_cross[which(tmp1 %in% tmp2), ]
+        de_cross <- de_cross[which(rownames(de_cross) %in% tmp3), ]
+        tmp4 <- rownames(eval(parse(text = p1completed)))
+        tmp5 <- rownames(eval(parse(text = p2completed)))
+        complete_cross <- complete_cross[which(tmp4 %in% tmp5), ]
+        tmp4 <- rownames(complete_cross)
+        tmp5 <- rownames(eval(parse(text = p3completed)))
+        complete_cross <- complete_cross[which(tmp4 %in% tmp5), ]
+        write.csv(x = de_cross, file = file.path(
+            dir,
+            "DE_crossData.csv"
+        ))
+        write.csv(x = complete_cross, file = file.path(
+            dir,
+            "complete_crossData.csv"
+        ))
+
+        tmp <- paste0(tolower(package_names), c(rep("_Vs_", 2), ""),
+            collapse = ""
+        )
+
+        # ploting venn diagram
         VennDiagram::venn.diagram(
-            x = list(rownames(eval(parse(text = p1))),
-                    rownames(eval(parse(text = p2))),
-                    rownames(eval(parse(text = p3)))),
-            category.names = c(packageNames[tolower(packageNames) == tolower(FinalData)],
-                                packageNames[tolower(packageNames) != tolower(FinalData)][1],
-                                packageNames[tolower(packageNames) != tolower(FinalData)][2]),
-            filename = file.path(DIR, paste0("venn_diagramm_",
-                                            pairName, "_",
-                                            tmp,".",
-                                            tolower(VennDiagram_imagetype))),
-            resolution = Res,
-            output = TRUE, imagetype = VennDiagram_imagetype,
-            height = Height, width = Width,
-            units = Unit,
+            x = list(tmp1, tmp2, tmp3),
+            category.names = c(
+                package_names[tolower(package_names) == tolower(final_data)],
+                package_names[tolower(package_names) != tolower(final_data)][1],
+                package_names[tolower(package_names) != tolower(final_data)][2]
+            ),
+            filename = file.path(dir, paste0(
+                "venn_diagramm_",
+                pair_name, "_",
+                tmp, ".",
+                tolower(venn_diagram_imagetype)
+            )),
+            resolution = res,
+            output = TRUE, imagetype = venn_diagram_imagetype,
+            height = height, width = width,
+            units = unit,
             compression = "lzw",
-            lwd = 2, lty = 'blank',
-            fill = Colors,
+            lwd = 2, lty = "blank",
+            fill = colors,
             cex = 1.2, print.mode = c("raw", "percent"), sigdigs = 2,
             fontface = "bold", fontfamily = "sans",
             cat.cex = 1.6, cat.fontface = "bold", cat.default.pos = "outer",
             cat.pos = c(-40, 40, 135), cat.dist = c(0.07, 0.07, 0.07),
-            cat.fontfamily = "sans")
+            cat.fontfamily = "sans"
+        )
     }
     else if (n_pack == 2) {
-        p1 <- paste0("string_vars[['envir_link']]",
-                    "$resultadosDE_",
-                    packageNames[tolower(packageNames) == tolower(FinalData)],
-                    "[[pairName]]")
-        p2 <- paste0("string_vars[['envir_link']]",
-                    "$resultadosDE_",
-                    packageNames[tolower(packageNames) != tolower(FinalData)][1],
-                    "[[pairName]]")
-        p1completed <- paste0("string_vars[['envir_link']]",
-                                "$Results_Completed_",
-                                packageNames[tolower(packageNames) == tolower(FinalData)],
-                                "[[pairName]]")
-        p2completed <- paste0("string_vars[['envir_link']]",
-                                "$Results_Completed_",
-                                packageNames[tolower(packageNames) != tolower(FinalData)],
-                                "[[pairName]]")
-        DEcross <- DEcross[which(rownames(eval(parse(text = p1))) %in% rownames(eval(parse(text = p2)))), ]
-        complete_cross <- complete_cross[which(rownames(eval(parse(text = p1completed))) %in% rownames(eval(parse(text = p2completed)))), ]
-        write.csv(x = DEcross, file = file.path(DIR,
-                                                "DE_crossData.csv"))
-        write.csv(x = complete_cross, file = file.path(DIR,
-                                                    "complete_crossData.csv"))
+        p1 <- paste0(
+            "sv[['ev']]",
+            "$resultados_de_",
+            package_names[tolower(package_names) == tolower(final_data)],
+            "[[pair_name]]"
+        )
+        p2 <- paste0(
+            "sv[['ev']]",
+            "$resultados_de_",
+            package_names[tolower(package_names) != tolower(final_data)][1],
+            "[[pair_name]]"
+        )
+        p1completed <- paste0(
+            "sv[['ev']]",
+            "$results_completed_",
+            package_names[tolower(package_names) == tolower(final_data)],
+            "[[pair_name]]"
+        )
+        p2completed <- paste0(
+            "sv[['ev']]",
+            "$results_completed_",
+            package_names[tolower(package_names) != tolower(final_data)],
+            "[[pair_name]]"
+        )
+        tmp1 <- rownames(eval(parse(text = p1)))
+        tmp2 <- rownames(eval(parse(text = p2)))
+        de_cross <- de_cross[which(tmp1 %in% tmp2), ]
+        tmp1 <- rownames(eval(parse(text = p1completed)))
+        tmp2 <- rownames(eval(parse(text = p2completed)))
+        complete_cross <- complete_cross[which(tmp1 %in% tmp2), ]
+        write.csv(x = de_cross, file = file.path(
+            dir,
+            "DE_crossData.csv"
+        ))
+        write.csv(x = complete_cross, file = file.path(
+            dir,
+            "complete_crossData.csv"
+        ))
 
-        tmp <- paste0(tolower(packageNames), c("_Vs_", ""), collapse = "")
+        tmp <- paste0(tolower(package_names), c("_Vs_", ""), collapse = "")
 
-        #ploting venn diagram
+        # ploting venn diagram
         VennDiagram::venn.diagram(
-            x = list(rownames(eval(parse(text = p1))), rownames(eval(parse(text = p2)))),
-            category.names = c(packageNames[tolower(packageNames) == tolower(FinalData)],
-                                packageNames[tolower(packageNames) != tolower(FinalData)]),
-            filename = file.path(DIR, paste0("venn_diagramm_",
-                                            pairName, "_",
-                                            tmp,".",
-                                            tolower(VennDiagram_imagetype))),
-            resolution = Res,
-            output = TRUE, imagetype = VennDiagram_imagetype,
-            height = Height, width = Width,
-            units = Unit,
+            x = list(rownames(eval(parse(text = p1))),
+                        rownames(eval(parse(text = p2)))),
+            category.names = c(
+                package_names[tolower(package_names) == tolower(final_data)],
+                package_names[tolower(package_names) != tolower(final_data)]
+            ),
+            filename = file.path(dir, paste0(
+                "venn_diagramm_",
+                pair_name, "_",
+                tmp, ".",
+                tolower(venn_diagram_imagetype)
+            )),
+            resolution = res,
+            output = TRUE, imagetype = venn_diagram_imagetype,
+            height = height, width = width,
+            units = unit,
             compression = "lzw",
-            lwd = 2, lty = 'blank',
-            fill = Colors,
+            lwd = 2, lty = "blank",
+            fill = colors[1:2],
             cex = 1.2, print.mode = c("raw", "percent"), sigdigs = 2,
             fontface = "bold", fontfamily = "sans",
             cat.cex = 1.6, cat.fontface = "bold", cat.default.pos = "outer",
             cat.pos = c(-35, 30), cat.dist = c(0.055, -0.05),
-            cat.fontfamily = "sans")
+            cat.fontfamily = "sans"
+        )
     }
 
     tested1 <- vector("list", 1)
-    names(tested1) <- pairName
-    tested1[[pairName]] <- DEcross
+    names(tested1) <- pair_name
+    tested1[[pair_name]] <- de_cross
 
     tested2 <- vector("list", 1)
-    names(tested2) <- pairName
-    tested2[[pairName]] <- complete_cross
+    names(tested2) <- pair_name
+    tested2[[pair_name]] <- complete_cross
 
     suppressWarnings(volcano(complete_cross))
 
-    assign("FinalData", FinalData, envir = get(envir_link))
-    assign("Results_Completed_crossed", tested2, envir = get(envir_link))
-    assign("resultadosDE_crossed", tested1, envir = get(envir_link))
-    if (tolower(FinalData) == "ebseq") {
-        string_vars[["envir_link"]]$Tool <- "CrossTable_EBSeq"
-    } else if (tolower(FinalData) == "edger") {
-        string_vars[["envir_link"]]$Tool <- "CrossTable_edgeR"
-    } else if (tolower(FinalData) == "deseq2") {
-        string_vars[["envir_link"]]$Tool <- "CrossTable_DESeq2"
+    assign("final_data", final_data, envir = get(ev))
+    assign("results_completed_crossed", tested2, envir = get(ev))
+    assign("resultados_de_crossed", tested1, envir = get(ev))
+    if (tolower(final_data) == "ebseq") {
+        sv[["ev"]]$tool <- "crosstable_ebseq"
+    } else if (tolower(final_data) == "edger") {
+        sv[["ev"]]$tool <- "crosstable_edger"
+    } else if (tolower(final_data) == "deseq2") {
+        sv[["ev"]]$tool <- "crosstable_deseq2"
     }
 
     message("Done!\n")

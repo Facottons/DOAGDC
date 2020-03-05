@@ -1,34 +1,53 @@
 #' Convert beta values to mvalues
 #'
-#' @param probeName A character string containing the probe name desired from
-#'    the selected \code{'Name'} probes.
+#' @param probe_name A character string containing the probe name desired from
+#'    the selected \code{'name'} probes.
 #' @param env
-#' @param saveData Logical value where \code{TRUE} indicates that the
+#' @param save_data Logical value where \code{TRUE} indicates that the
 #'    concatenate and filtered matrix should be saved in local storage. The
 #'    default is FALSE.
 #'
-#' @inheritParams download_gdc
-#' @inheritParams concatenate_files
+#' @inheritParams concatenate_exon
 #'
 #' @return the beta values converted in mValues stored inside the determined
 #'    environment name.
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' beta2mValues(probeName = "cg16672562", saveData = TRUE, env = "env name without quotes")
-#' }
-beta2mValues <- function(probeName,
-                        env,
-                        saveData = FALSE) {
+#' library(DOAGDC)
+#'
+#' download_gdc(
+#'    data_type = "methylation",
+#'    data_base = "legacy", work_dir = "~/Desktop", tumor = "CHOL",
+#'    platform = "Illumina Human Methylation 450"
+#' )
+#'
+#' concatenate_methylation(
+#'     name = "HIF3A",
+#'     data_base = "legacy",
+#'     platform = "Illumina Human Methylation 450",
+#'     tumor = "CHOL",
+#'     work_dir = "~/Desktop"
+#' )
+#'
+#' beta2m_values(
+#'    probe_name = "cg16672562",
+#'    save_data = TRUE,
+#'    env = CHOL_LEGACY_methylation_tumor_data
+#' )
+beta2m_values <- function(probe_name,
+                            env,
+                            save_data = FALSE) {
 
-    ##from beta to mValues (already filtered data!) Comparison of Beta-value
-    #and M-value methods for quantifying methylation levels by microarray
-    #analysis Pan Du1,3*, Xiao Zhang2, Chiang-Ching Huang2,
+    ## from beta to mValues (already filtered data!) Comparison of Beta-value
+    # and M-value methods for quantifying methylation levels by microarray
+    # analysis Pan Du1,3*, Xiao Zhang2, Chiang-Ching Huang2,
 
     if (missing(env)) {
-        message("Please, before using this function, ",
-                "insert the Environment name.")
+        message(
+            "Please, before using this function, ",
+            "insert the Environment name."
+        )
     } else {
         envir_link <- deparse(substitute(env))
     }
@@ -36,43 +55,57 @@ beta2mValues <- function(probeName,
 
     message("Converting the data \nPlease wait...")
 
-    Name <- string_vars[["envir_link"]]$Name
+    name <- string_vars[["envir_link"]]$name
     patients <- string_vars[["envir_link"]]$patients
-    workDir <- string_vars[["envir_link"]]$workDir
+    work_dir <- string_vars[["envir_link"]]$work_dir
+    tumor <- string_vars[["envir_link"]]$tumor
 
-    meth.table <- eval(parse(text = paste0("string_vars[['envir_link']]",
-                                        "$methylation",
-                                        "_tumor_filtered_selected_",
-                                        toupper(Name))))
+    meth_table <- eval(parse(text = paste0(
+        "string_vars[['envir_link']]",
+        "$methylation",
+        "_tumor_filtered_selected_",
+        toupper(name)
+    )))
 
-    meth.matrix <- meth.table[probeName,, drop = FALSE]
-    assign(paste0("methylation_tumor_filtered_selected_", toupper(probeName)),
-        t(meth.matrix), envir = get(envir_link))
-    mValues.vec <- sapply(meth.matrix, function(x) {
+    meth_matrix <- meth_table[probe_name, , drop = FALSE]
+    assign(paste0("methylation_tumor_filtered_selected_", toupper(probe_name)),
+        t(meth_matrix),
+        envir = get(envir_link)
+    )
+    m_values_vec <- sapply(meth_matrix, function(x) {
         if (is.na(x)) {
             x <- NA
         } else {
             x <- log2(x / (1 - x))
         }
     })
-    mValues.matrix <- as.matrix(mValues.vec)
-    dimnames(mValues.matrix) <- list(patients, tolower(probeName))
+    m_values_matrix <- as.matrix(m_values_vec)
+    dimnames(m_values_matrix) <- list(patients, tolower(probe_name))
 
     # saving
-    if (saveData) {
+    if (save_data) {
         message("\nSaving your data...\n")
-        #saving
-        write.csv(x = mValues.matrix,
-                    file = file.path(workDir, paste0(tolower(probeName),
-                                                    "_mValues.tsv")),
-                    row.names = TRUE, quote = FALSE, sep = "\t")
+        # saving
+        write.csv(
+            x = m_values_matrix,
+            file = file.path(
+                work_dir, "DOAGDC",
+                toupper(tumor), "Analyses", name, "Methylation",
+                paste0(tolower(probe_name), "_mValues.csv")
+            ),
+            row.names = TRUE, quote = FALSE
+        )
     }
 
-    assign(paste0("methylation_tumor_filtered_selected_", toupper(probeName),
-                "_mValues"),
-            mValues.matrix, envir = get(envir_link))
-    assign("probeName", probeName, envir = get(envir_link))
-    assign("Name.e", probeName, envir = get(envir_link))
+    assign(paste0(
+        "methylation_tumor_filtered_selected_", toupper(probe_name),
+        "_mValues"
+    ),
+    m_values_matrix,
+    envir = get(envir_link)
+    )
+    assign("probe_name", probe_name, envir = get(envir_link))
+    assign("name_e", probe_name, envir = get(envir_link))
 
     message("\nDone!")
 }

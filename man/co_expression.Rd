@@ -4,28 +4,28 @@
 \alias{co_expression}
 \title{Co-Expression Analyses}
 \usage{
-co_expression(Data = NULL, Name, dataBase, workDir, tumor,
-  normalization = TRUE, tumorData = TRUE, traitData = NULL,
-  networkType = "unsigned", minModuleSize = 15, max_softpower = 20,
-  nthreads = 1, MEDissThres = 0.25, Width = 2000, Height = 1500,
-  Res = 300, Unit = "px", image_format = "png", env,
-  saveCheckpoints = FALSE, loadCheckpoint = NULL,
-  pearsonCutoff = 0.5)
+co_expression(data = NULL, name, data_base, work_dir, tumor,
+  normalization = TRUE, tumor_data = TRUE, trait_data = NULL,
+  network_type = "unsigned", min_module_size = 15,
+  max_softpower = 20, nthreads = 1, me_diss_thres = 0.25,
+  width = 2000, height = 1500, res = 300, unit = "px",
+  image_format = "png", env, save_checkpoints = FALSE,
+  load_checkpoint = NULL, pearson_cutoff = 0.5)
 }
 \arguments{
-\item{Data}{Used for external non-log expression data. Matrix or data frame.
-This \code{Data} must have patients/sample code as \code{colnames} and
+\item{data}{Used for external non-log expression data. Matrix or data frame.
+This \code{data} must have patients/sample code as \code{colnames} and
 genes as \code{rownames}.}
 
-\item{Name}{A character string indicating the desired values to be used in
+\item{name}{A character string indicating the desired values to be used in
 next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
 "mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
 quantification matrix.}
 
-\item{dataBase}{A character string specifying \code{"GDC"} for GDC Data
+\item{data_base}{A character string specifying \code{"GDC"} for GDC Data
 Portal or \code{"legacy"} for GDC Legacy Archive.}
 
-\item{workDir}{A character string specifying the path to work directory.}
+\item{work_dir}{A character string specifying the path to work directory.}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
 the TCGA project. For instance, the \code{"BRCA"} stands for breast
@@ -37,12 +37,13 @@ forget to set env argument. This argument is only applyable to gene and
 isoform expression data from GDC Legacy Archive. The default is
 \code{TRUE}.}
 
-\item{tumorData}{Logical value where \code{TRUE} specifies the desire to work
+\item{tumor_data}{Logical value where \code{TRUE} specifies the desire to
+work
 with tumor tissue files only. When set to FALSE, it creates two matrices,
 one containing tumor data and other containing data from not-tumor tissue.
 The default is \code{TRUE}.}
 
-\item{traitData}{A character string where "default" indicates that the trait
+\item{trait_data}{A character string where "default" indicates that the trait
 data to be used is provide by the output of \code{check_clinical_terms}
 function. Use "custom" for data inserted by the user after the
 \code{table2DOAGDC} function and with the table object named as
@@ -50,11 +51,11 @@ function. Use "custom" for data inserted by the user after the
 \code{rownames} and the trait categories as \code{colnames}. By default
 trait data is not used.}
 
-\item{networkType}{A character string indicating which network type should
+\item{network_type}{A character string indicating which network type should
 be used. WGCNA allows: "unsigned", "signed", and "signed hybrid". The
 default is "unsigned".}
 
-\item{minModuleSize}{Numerical value specifying the minimum cluster size.
+\item{min_module_size}{Numerical value specifying the minimum cluster size.
 The default is 15.}
 
 \item{max_softpower}{Numerical value indicating the maximum soft
@@ -65,25 +66,25 @@ calculated. The default is 20.}
 number of threads should not be more than the number of actual
 processors/cores. The default is 1.}
 
-\item{MEDissThres}{Numerical value specifying the maximum dendrogram cut
+\item{me_diss_thres}{Numerical value specifying the maximum dendrogram cut
 height for module merging qualified by dissimilarity (i.e.,
 1-correlation). The default is 0.25.}
 
-\item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{width}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{height}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{res}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{unit}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -92,19 +93,20 @@ inches ('in'). The default is "png".}
 \item{env}{A character string containing the environment name that should be
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
-\itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+\itemize{\item{'tumor_data_base_data_type_tumor_data'}{ or}
+\item{'tumor_data_base_data_type_both_data'}{ (for tumor and not tumor
+data
 in separated matrices).}}}
 
-\item{saveCheckpoints}{Logical value where TRUE indicates that an external
+\item{save_checkpoints}{Logical value where TRUE indicates that an external
 representation of analysis' objects will be saved to file in disk. The
 default is FALSE.}
 
-\item{loadCheckpoint}{Logical value where TRUE indicates that the saved
+\item{load_checkpoint}{Logical value where TRUE indicates that the saved
 checkpoint will be loaded and the analysis is going to continue from that
 point. The default is FALSE.}
 
-\item{pearsonCutoff}{Numerical value specifying the minimum Pearson
+\item{pearson_cutoff}{Numerical value specifying the minimum Pearson
 correlation value. The default is 0.5.}
 }
 \value{

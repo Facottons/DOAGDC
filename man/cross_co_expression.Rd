@@ -4,54 +4,55 @@
 \alias{cross_co_expression}
 \title{Cross co-expression gene list against differential expression genes list}
 \usage{
-cross_co_expression(pairName = "G2_over_G1", FinalData, Width = 2000,
-  Height = 2000, Res = 300, Unit = "px", Colors = c("green",
-  "blue", "red"), VennDiagram_imagetype = "png", workDir,
-  FC_cutoff = 2, FDR_cutoff = 0.05, env)
+cross_co_expression(pair_name = "G2_over_G1", final_data, width = 2000,
+  height = 2000, res = 300, unit = "px", colors = c("green",
+  "blue", "red"), venn_diagram_imagetype = "png", work_dir,
+  fc_cutoff = 2, fdr_cutoff = 0.05, env)
 }
 \arguments{
-\item{pairName}{A character string indicating which condition name should be
+\item{pair_name}{A character string indicating which condition name should be
 used. When there are only two groups the default is \code{"G2_over_G1"}.}
 
-\item{FinalData}{A character string indicating the name of which diferential
+\item{final_data}{A character string indicating the name of which diferential
 expression package should be used to get the statistical values in the
 final list. The default is "EBSeq".}
 
-\item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{width}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{height}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{res}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{unit}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Colors}{A character vector indicating the colors to be used in the
+\item{colors}{A character vector indicating the colors to be used in the
 venn diagram. The default is c('green', 'blue', "red").}
 
-\item{VennDiagram_imagetype}{A character string indicating the image_format
+\item{venn_diagram_imagetype}{A character string indicating the image_format
 (e.g. "tiff", "png" or "svg"). The default is "png".}
 
-\item{workDir}{A character string specifying the path to work directory.}
+\item{work_dir}{A character string specifying the path to work directory.}
 
-\item{FC_cutoff}{Numerical value indicating the maximum value for Fold
+\item{fc_cutoff}{Numerical value indicating the maximum value for Fold
 Change '(FC). The default is \code{2}.}
 
-\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
+\item{fdr_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
 \item{env}{A character string containing the environment name that should be
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
-\itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+\itemize{\item{'tumor_data_base_data_type_tumor_data'}{ or}
+\item{'tumor_data_base_data_type_both_data'}{ (for tumor and not tumor
+data
 in separated matrices).}}}
 }
 \value{
@@ -60,8 +61,4 @@ inside the determined environment name for further use.
 }
 \description{
 Cross co-expression gene list against differential expression genes list
-}
-\examples{
-cross_co_expression(pairName = "G2_over_G1", env = "env name without quotes")
-
 }

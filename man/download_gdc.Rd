@@ -4,44 +4,44 @@
 \alias{download_gdc}
 \title{Download data from GDC Data Portal and GDC Legacy Archive}
 \usage{
-download_gdc(dataType = "gene", tumor, dataBase = "legacy",
-  HTSeq = "", workDir, all.files = FALSE, Platform = "all")
+download_gdc(data_type = "gene", tumor, data_base = "legacy",
+  htseq = "", work_dir, all_files = FALSE, platform = "all")
 }
 \arguments{
-\item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-   "clinical_supplement", "biospecimen", "gene", "clinical"(biotab)}.
+\item{data_type}{Type of data. It could be \code{"methylation", "mutation",
+   "clinical_supplement", "biospecimen", "gene", or "clinical"(biotab)}.
 \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-   quantification", "miRNA isoform quantification", "isoform", "image"}.}
+   quantification", "miRNA isoform quantification", "isoform", and "image"}.}
 \item{Only present in "GDC" database:}{\code{"miRNA
-   Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
-}}
+   Expression Quantification", and "Isoform Expression Quantification"
+   (miRNA)}.}}}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
 the TCGA project. For instance, the \code{"BRCA"} stands for breast
 cancer.}
 
-\item{dataBase}{A character string specifying \code{"GDC"} for GDC Data
+\item{data_base}{A character string specifying \code{"GDC"} for GDC Data
 Portal or \code{"legacy"} for GDC Legacy Archive.}
 
-\item{HTSeq}{A character string indicating which HTSeq workflow data should
-be downloaded: \code{"Counts", "FPKM", "FPKM-UQ" or "all"}. The default is
+\item{htseq}{A character string indicating which HTSeq workflow data should
+be downloaded: \code{"Counts", "FPKM", or "all"}. The default is
 \code{"all"}.}
 
-\item{workDir}{A character string specifying the path to work directory.}
+\item{work_dir}{A character string specifying the path to work directory.}
 
-\item{all.files}{A logical value. Set \code{FALSE} to avoid the download of
+\item{all_files}{A logical value. Set \code{FALSE} to avoid the download of
 not used data to reduce download size, e.g. quantification files. The
 default is \code{FALSE}.}
 
-\item{Platform}{A character string indicating the platform name for
+\item{platform}{A character string indicating the platform name for
 methylation, exon quantificaton, miRNA, and mutation data. \itemize{
 \item{For mutation and exon quantificaton data:}{\code{"Illumina GA",
    "Illumina HiSeq" or "all"}.} \item{For methylation data}{\code{"Illumina
    Human Methylation 450", "Illumina Human Methylation 27" or "all"}.}
 \item{For miRNA data:}{\code{"Illumina GA", "Illumina HiSeq",
    "H-miRNA_8x15K" (for GBM tumor), "H-miRNA_8x15Kv2" (for OV tumor), or
-   "all"}.} }The default for all dataType cited is \code{"all"} (when
+   "all"}.} }The default for all data_type cited is \code{"all"} (when
 downloading data).}
 }
 \value{
@@ -55,7 +55,8 @@ expression, miRNA expression and clinical images data from GDC Data Portal
 and GDC Legacy Archive.
 }
 \examples{
-# Downloading gene expression data from GDC Legacy Archive
-download_gdc("gene", "CHOL", "legacy", workDir = "~/Desktop")
+library(DOAGDC)
 
+# Downloading gene expression data from GDC Legacy Archive
+download_gdc("gene", "CHOL", "legacy", work_dir = "~/Desktop")
 }

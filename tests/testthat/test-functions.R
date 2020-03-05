@@ -5,7 +5,7 @@ context("Test Download and Concatenate functions")
 test_that("Parse metadata automatically", {
 
     # testDownload function
-    download_gdc("gene", "CHOL", "legacy", workDir = "~/Desktop")
+    download_gdc("gene", "CHOL", "legacy", work_dir = "~/Desktop")
 
     path_2_check <- "~/Desktop/DOAGDC/CHOL/gene_data/"
 
@@ -17,10 +17,10 @@ test_that("Parse metadata automatically", {
 
     # testConcatenate function
     concatenate_files("gene",
-                        Name = "HIF3A",
-                        dataBase = "legacy",
+                        name = "HIF3A",
+                        data_base = "legacy",
                         tumor = "CHOL",
-                        workDir = "~/Desktop")
+                        work_dir = "~/Desktop")
 
     # test3
     data <- CHOL_LEGACY_gene_tumor_data$gene_tumor_normalized

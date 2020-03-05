@@ -3,20 +3,16 @@
 #' \code{groups_identification_cox} is a function designed to separate patients
 #' in groups, based in clinical data, and coxHR.
 #'
-#' @param dataType
-#' @param Width
-#' @param Height
-#' @param Res
-#' @param Unit
-#' @param image_format
-#' @param saveData
+#' @param name
+#' @param data_type
+#' @param width,height,res,unit,image_format
+#' @param save_data
 #' @param env
 #' @param tumor
-#' @param dataBase
-#' @param workDir
-#' @param Name
+#' @param data_base
+#' @param work_dir
+#' @inheritParams concatenate_exon
 #' @inheritParams download_gdc
-#' @inheritParams concatenate_files
 #' @inheritParams groups_identification_mclust
 #'
 #' @return the groups generated after using the coxHR analysis.
@@ -29,2293 +25,1683 @@
 #' @importFrom XML xmlParse
 #' @importFrom XML xmlToList
 #' @importFrom yarrr pirateplot
+#' @importFrom pROC roc
+#' @importFrom pROC plot.roc
 #'
 #' @examples
-#' \dontrun{
-#' groups_identification_coxHR("HIF3A", "gene", tumor = "UCS", dataBase = "legacy")
-#' }
-groups_identification_coxHR <- function(Name,
-                                        dataType,
-                                        Width = 3000,
-                                        Height = 2000,
-                                        Res = 400,
-                                        Unit = "px",
-                                        image_format = "png",
-                                        saveData = TRUE, env,
-                                        tumor, dataBase,
-                                        workDir) {
+#' library(DOAGDC)
+#'
+#' concatenate_expression("gene",
+#'     name = "HIF3A",
+#'     data_base = "legacy",
+#'     tumor = "CHOL",
+#'     work_dir = "~/Desktop"
+#' )
+#'
+#' groups_identification_cox_hr("HIF3A", "gene",
+#'     tumor = "CHOL",
+#'     work_dir = "~/Desktop",
+#'     data_base = "legacy",
+#'     env = CHOL_LEGACY_gene_tumor_data
+#' )
+groups_identification_cox_hr <- function(name,
+                                         data_type,
+                                         width = 3000,
+                                         height = 2000,
+                                         res = 400,
+                                         unit = "px",
+                                         image_format = "png",
+                                         save_data = TRUE, env,
+                                         tumor, data_base,
+                                         work_dir) {
 
     # Library load (xlsx tools httr jsonlite data.table XML ggplot2 survival
     # survminer ggthemes grid yarrr reshape extrafont scales cgdsr) (plyr png)
 
+    # localFUN
+    expander <- function(big_list) {
+        tmp_list <- vector("list")
 
-    dataType <- gsub(" ", "_", dataType)
-    Name <- gsub("-", "_", Name)
+        for (j in seq_len(length(big_list))) {
+            name <- as.character(names(big_list[j]))
+            tmp_list <- append(tmp_list, name)
+        }
 
-    PATH <- file.path(workDir, "DOAGDC", toupper(tumor), "Analyses",
-                        tolower(Name))
+        return(tmp_list)
+    }
 
-    dir.create(path = file.path(workDir, "DOAGDC", toupper(tumor), "Analyses"),
-                showWarnings = FALSE)
+    ty <- function(a) {
+        ifelse(is.null(a), "", a)
+    }
 
-    dir.create(path = file.path(workDir, "DOAGDC", toupper(tumor), "Analyses",
-                                tolower(Name)),
-                showWarnings = FALSE)
+    open_xml <- function() {
+        message("Extracting clinical data from XML...")
+        pb <- txtProgressBar(min = 0, max = length(clinical), style = 3)
+        for (i in seq_len(length(clinical))) {
+            if (i > 1) {
+                list[[i]] <- XML::xmlToDataFrame(
+                    clinical[i],
+                    stringsAsFactors = FALSE
+                )
+            } else {
+                list <- list(XML::xmlToDataFrame(
+                    clinical[i],
+                    stringsAsFactors = FALSE
+                ))
+            }
+            setTxtProgressBar(pb, i)
+        }
+        close(pb)
 
-    dir.create(file.path(PATH,
-                        paste0("/survival_Results_", toupper(Name))),
-                showWarnings = FALSE)
-    DIR <- paste0(PATH, "/survival_Results_", toupper(Name))
-    #1-cutoff_finder
-    dir.create(file.path(DIR, "coxHR"), showWarnings = FALSE)
-    #2-splitting_n_clinical
-    dir.create(file.path(DIR, "kaplan_maier"), showWarnings = FALSE)
+        fds <- as.data.frame(matrix(nrow = length(clinical), ncol = 90))
+        fd <- as.data.frame(matrix(nrow = 1, ncol = 74))
+
+        message("Exporting to csv...")
+        pb <- txtProgressBar(min = 0, max = length(clinical), style = 3)
+        for (patient in seq_len(length(clinical))) {
+            for (col in seq_len(74)) {
+                fd[1, col] <- na.omit(list[[patient]][col])
+            }
+
+            # stage_event
+            data <- XML::xmlParse(clinical[patient])
+            xml_data <- XML::xmlToList(data)$patient
+            stage_event <- xml_data$stage_event
+            tnm <- stage_event$tnm_categories$pathologic_categories
+            fd$system_version <- ty(stage_event$system_version[[1]])
+            fd$pathologic_stage <- ty(stage_event$pathologic_stage[[1]])
+            fd$pathologic_t <- ty(tnm$pathologic_t[[1]])
+            fd$pathologic_n <- ty(tnm$pathologic_n[[1]])
+            fd$pathologic_m <- ty(tnm$pathologic_m[[1]])
+
+            # follow_ups
+            follow_ups <- xml_data$follow_ups$follow_up
+            fd$days_to_death_followup <- ty(follow_ups$days_to_death[[1]])
+            fd$days_to_last_followup_followup <- ty(
+                follow_ups$days_to_last_followup[[1]]
+            )
+
+            if (ty(
+                follow_ups$days_to_new_tumor_event_after_initial_treatment[[1]]
+            ) == "") {
+                fd$days_to_new_tumor_event_after_initial_treatment_followup <- ty(
+                    follow_ups[["new_tumor_events"]][["new_tumor_event"]][["days_to_new_tumor_event_after_initial_treatment"]][[1]]
+                )
+            } else {
+                fd$days_to_new_tumor_event_after_initial_treatment_followup <- ty(
+                    follow_ups$days_to_new_tumor_event_after_initial_treatment[[1]]
+                )
+            }
+
+            fd$day_of_form_completion2 <- ty(
+                follow_ups$day_of_form_completion[[1]]
+            )
+            fd$month_of_form_completion2 <- ty(
+                follow_ups$month_of_form_completion[[1]]
+            )
+            fd$year_of_form_completion2 <- ty(
+                follow_ups$year_of_form_completion[[1]]
+            )
+
+            if (ty(follow_ups$new_neoplasm_occurrence_anatomic_site_text[[1]]) == "") {
+                fd$new_neoplasm_event_occurrence_anatomic_site_followup <- ty(
+                    follow_ups[["new_tumor_events"]][["new_tumor_event"]][["new_neoplasm_event_occurrence_anatomic_site"]][[1]]
+                )
+            } else {
+                fd$new_neoplasm_event_occurrence_anatomic_site_followup <- ty(
+                    follow_ups$new_neoplasm_occurrence_anatomic_site_text[[1]]
+                )
+            }
+
+            fd$new_neoplasm_event_type_followup <- ty(
+                follow_ups[["new_tumor_events"]][["new_tumor_event"]][["new_neoplasm_event_type"]][[1]]
+            )
+
+            if (ty(follow_ups$new_tumor_event_after_initial_treatment[[1]]) == "") {
+                fd$new_tumor_event_after_initial_treatment_followup <- ty(
+                    follow_ups$new_tumor_events$new_tumor_event_after_initial_treatment[[1]]
+                )
+            } else {
+                fd$new_tumor_event_after_initial_treatment_followup <- ty(
+                    follow_ups$new_tumor_event_after_initial_treatment[[1]]
+                )
+            }
+            fd$person_neoplasm_cancer_status_followup <- ty(
+                follow_ups$person_neoplasm_cancer_status[[1]]
+            )
+            fd$vital_status_followup <- ty(follow_ups$vital_status[[1]])
+
+            fds[patient, ] <- fd
+
+            setTxtProgressBar(pb, patient)
+        }
+        close(pb)
+
+        colnames(fds)[1:74] <- names(list[[1]])
+        colnames(fds)[75:90] <- colnames(fd)[75:90]
+        rownames(fds) <- fds$bcr_patient_barcode
+
+        fds$form_completion_ymd <- paste(fds$year_of_form_completion,
+            fds$month_of_form_completion, fds$day_of_form_completion,
+            sep = "/"
+        )
+
+        fds$form_completion_ymd_followup <- paste(
+            fds$day_of_form_completion2,
+            fds$month_of_form_completion2,
+            fds$day_of_form_completion2,
+            sep = "/"
+        )
+
+        fds$new_tumor_event_after_initial_treatment_initial <- fds$new_tumor_events
+        fds$days_to_new_tumor_event_after_initial_treatment_initial <- NA
+        for (patient in seq_len(nrow(fds))) {
+            if (!(fds$new_tumor_events[patient] %in% c("", "NO"))) {
+                tmp <- stringr::str_extract_all(
+                    fds$new_tumor_events[patient],
+                    "^(YES)\\d+"
+                )[[1]][1]
+                fds[patient, 93] <- "YES"
+                fds[patient, 94] <- as.numeric(gsub("YES", "", tmp))
+            }
+        }
+
+        # final fix
+        tmp <- fds$days_to_new_tumor_event_after_initial_treatment_followup == "day"
+        fds$days_to_new_tumor_event_after_initial_treatment_followup[tmp] <- ""
+        tmp <- fds$days_to_new_tumor_event_after_initial_treatment_followup == "false"
+        fds$days_to_new_tumor_event_after_initial_treatment_followup[tmp] <- ""
+
+        fds$final_vital_status <- fds$vital_status
+        tmp <- !(fds$vital_status_followup %in% c("", "vital_status"))
+        fds$final_vital_status[tmp] <- fds$vital_status_followup[tmp]
+
+        fds$final_vital_status_times <- ifelse(
+            fds$final_vital_status == "Dead",
+            ifelse(
+                fds$days_to_death == "",
+                fds$days_to_death_followup,
+                fds$days_to_death
+            ),
+            fds$days_to_last_followup
+        )
+
+        fds$final_vital_status_times <- as.numeric(
+            fds$final_vital_status_times
+        )
+        fds$final_vital_status_times[is.na(
+            fds$final_vital_status_times
+        )] <- 0
+
+        fds$final_rfs_status <- ifelse(
+            fds$new_tumor_event_after_initial_treatment_initial == "YES",
+            "relapse",
+            ifelse(
+                fds$new_tumor_event_after_initial_treatment_followup == "YES",
+                "relapse",
+                "censored"
+            )
+        )
+
+        tmp <- is.na(
+            fds$days_to_new_tumor_event_after_initial_treatment_initial
+        )
+        fds$days_to_new_tumor_event_after_initial_treatment_initial[tmp] <- ""
+
+        fds$final_rfs_status_times <- ifelse(
+            fds$days_to_new_tumor_event_after_initial_treatment_initial == "",
+            fds$days_to_new_tumor_event_after_initial_treatment_followup, ""
+        )
+
+        fds$final_rfs_status_times <- as.numeric(
+            fds$final_rfs_status_times
+        )
+        fds$final_rfs_status_times[is.na(fds$final_rfs_status_times)] <- 0
+
+        # sort before save
+        fds <- fds[, order(colnames(fds))]
+
+        return(fds)
+    }
+
+    roc_auc <- function(dir, name, width, height, res, unit, image_format) {
+        values <- framel[, "log2p1"]
+        groups <- framel[, "group"]
+
+        # area under the curve...
+        save_plot("coxHR", "_AUC_LR")
+        par(pty = "s")
+        pROC::roc(groups, glm_fit$fitted.values,
+            plot = TRUE, legacy.axes = TRUE, percent = TRUE, quiet = TRUE,
+            xlab = "False Positive Percentage",
+            ylab = "True Postive Percentage",
+            col = "#377eb8", lwd = 4, print.auc = TRUE
+        )
+        dev.off()
+
+        rf_model <- randomForest::randomForest(groups ~ values)
+
+        # ROC for random forest
+        save_plot("coxHR", "_AUC_RF")
+        par(pty = "s")
+        pROC::roc(groups, rf_model$votes[, 1],
+            plot = TRUE, legacy.axes = TRUE, percent = TRUE, quiet = TRUE,
+            xlab = "False Positive Percentage",
+            ylab = "True Postive Percentage",
+            col = "#4daf4a", lwd = 4, print.auc = TRUE
+        )
+        dev.off()
+
+        save_plot("coxHR", "_LR_RF")
+        par(pty = "s")
+        pROC::roc(groups, glm_fit$fitted.values,
+            plot = TRUE, legacy.axes = TRUE, percent = TRUE, quiet = TRUE,
+            xlab = "False Positive Percentage",
+            ylab = "True Postive Percentage",
+            col = "#377eb8", lwd = 4, print.auc = TRUE
+        )
+        pROC::plot.roc(groups, rf_model$votes[, 1],
+            percent = TRUE, col = "#4daf4a", lwd = 4,
+            print.auc = TRUE, add = TRUE, print.auc.y = 40
+        )
+        par(
+            fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0),
+            new = TRUE
+        )
+        plot(0, 0,
+            type = "n", bty = "n", xaxt = "n", yaxt = "n",
+            ylab = "", xlab = ""
+        )
+        legend("top",
+            legend = c("Logisitic Regression", "Random Forest"),
+            col = c("#377eb8", "#4daf4a"), lwd = 4,
+            xpd = TRUE, horiz = TRUE, inset = c(0, 0), bty = "n",
+            cex = 1, lty = 1
+        )
+        dev.off()
+    }
+
+    save_plot <- function(dir_name, file_name) {
+        if (tolower(image_format) == "png") {
+            png(
+                filename = file.path(
+                    dir, dir_name,
+                    paste0(
+                        name,
+                        file_name, ".png"
+                    )
+                ),
+                width = width, height = height, res = res, units = unit
+            )
+        } else if (tolower(image_format) == "svg") {
+            svg(
+                filename = file.path(
+                    dir, dir_name,
+                    paste0(
+                        name,
+                        file_name, ".svg"
+                    )
+                ),
+                width = width, height = height, onefile = TRUE
+            )
+        } else {
+            stop(message(
+                "Please, Insert a valid image_format! ('png' or 'svg')"
+            ))
+        }
+    }
+
+    cox_ph <- function(step) {
+        path_capture <- file.path(
+            dir, "kaplan_meier", paste(
+                name, toupper(step), "coxHR_summary.txt",
+                sep = "_"
+            )
+        )
+
+        if (step == "overall") {
+            coxmodel <- summary(survival::coxph(survival::Surv(
+                final_vital_status_times,
+                final_vital_status
+            ) ~ group_factor,
+            data = kaplan_now
+            ))
+
+            surv <- summary(survival::Surv(
+                final_vital_status_times,
+                final_vital_status
+            ) ~ group_factor,
+            data = kaplan_now
+            )
+        } else if (step == "rfs") {
+            coxmodel <- summary(survival::coxph(survival::Surv(
+                final_rfs_status_times,
+                final_rfs_status
+            ) ~ group_factor,
+            data = kaplan_now
+            ))
+
+            surv <- summary(survival::Surv(
+                final_rfs_status_times,
+                final_rfs_status
+            ) ~ group_factor,
+            data = kaplan_now
+            )
+        } else {
+            coxmodel <- summary(survival::coxph(survival::Surv(
+                final_dmfs_status_times,
+                final_dmfs_status
+            ) ~ group_factor,
+            data = kaplan_now
+            ))
+
+            surv <- summary(survival::Surv(
+                final_dmfs_status_times,
+                final_dmfs_status
+            ) ~ group_factor,
+            data = kaplan_now
+            )
+        }
+
+        cat("CoxHR summary\n", file = path_capture)
+        capture.output(print(coxmodel), file = path_capture, append = TRUE)
+
+        cat("\n********************\n\n", file = path_capture, append = TRUE)
+        cat("CoxHR value\n", file = path_capture, append = TRUE)
+        capture.output(print(coxmodel$conf.int[1]),
+            file = path_capture,
+            append = TRUE
+        )
+
+        # logrank pvalue
+        cat("\n********************\n\n", file = path_capture, append = TRUE)
+        cat("logrank pvalue\n", file = path_capture, append = TRUE)
+        capture.output(print(coxmodel$logtest[3]),
+            file = path_capture,
+            append = TRUE
+        )
+
+        cat("\n\nSurv only\n", file = path_capture, append = TRUE)
+        capture.output(print(surv), file = path_capture, append = TRUE)
+        cat("\n\nlogrank_p\n", file = path_capture, append = TRUE)
+        capture.output(as.numeric(surv$sctest["pvalue"]))
+    }
+
+    surv_plot <- function(dir, name, step,
+                                    width, height, res, unit, image_format) {
+        amount <- table(kaplan_now$group_factor)
+        percent <- amount / nrow(kaplan_now)
+
+        if (step == "overall") {
+            fit <- survival::survfit(survival::Surv(
+                final_vital_status_times,
+                final_vital_status
+            ) ~ group_factor,
+            data = kaplan_now
+            )
+        } else if (step == "rfs") {
+            fit <- survival::survfit(survival::Surv(
+                final_rfs_status_times,
+                final_rfs_status
+            ) ~ group_factor,
+            data = kaplan_now
+            )
+        } else {
+            fit <- survival::survfit(survival::Surv(
+                final_dmfs_status_times,
+                final_dmfs_status
+            ) ~ group_factor,
+            data = kaplan_now
+            )
+        }
+
+        # Plot data
+        color <- RColorBrewer::brewer.pal(
+            length(levels(kaplan_now$group_factor)), "Set2"
+        )
+
+        save_plot("kaplan_meier", paste0("Kaplan_", step))
+        par(mar = c(3, 3, 3, 6))
+        print(survminer::ggsurvplot(fit,
+            data = kaplan_now, risk.table = TRUE,
+            linetype = rep(1, length(color)),
+            # conf.int = TRUE,
+            palette = color, xlab = "Days",
+            ggtheme = ggplot2::theme_bw(),
+            size = 2,
+            font.main = 30,
+            font.x = 26,
+            font.y = 26,
+            font.tickslab = 24
+        ))
+        dev.off()
+
+        # Create 5yr status
+        kaplan_now$yr5_status <- "unknown"
+        tmp <- kaplan_now$final_vital_status_times >= (365 * 5)
+        kaplan_now$yr5_status[tmp] <- "alive_5yr"
+        tmp1 <- kaplan_now$final_vital_status_times < (365 * 5)
+        tmp2 <- kaplan_now$final_vital_status == 1
+        kaplan_now$yr5_status[tmp1 & tmp2] <- "dead_5yr"
+        kaplan_now$yr5_status <- as.factor(kaplan_now$yr5_status)
+
+        # define the formula now
+        pirate_formula <- formula(expression ~ yr5_status)
+
+        message("Pirate plotting \n")
+        if (nrow(kaplan_now) > 0) {
+            save_plot(
+                "kaplan_meier", paste0("PiratePlot_log2_expression_5yr_", step)
+            )
+            par(mar = c(3, 4.8, 4, 2))
+            yarrr::pirateplot(
+                formula = pirate_formula,
+                data = kaplan_now,
+                ylab = expression("Log"[2] * "(Expression + 1)"),
+                inf.method = "iqr", cex.lab = 1.2, cex.axis = 1.8,
+                inf.disp = "rect", jitter.val = 0.08, theme = 2,
+                cex.names = 1.5,
+                pal = "pony", avg.line.fun = median, point.cex = 1.3,
+                inf.f.col = "#969696", xlab = ""
+            )
+            dev.off()
+        }
+
+        # stats
+        path_capture <- file.path(
+            dir, "kaplan_meier",
+            paste0(
+                name, "PiratePlot_log2Expression_5yr_", step, "_stats.txt"
+            )
+        )
+
+        fit <- aov(pirate_formula, data = kaplan_now)
+
+        cat("********************\n", file = path_capture, append = TRUE)
+        cat("A - ANOVA\n", file = path_capture, append = TRUE)
+        capture.output(summary(fit), file = path_capture, append = TRUE)
+
+        cat("\n********************\n", file = path_capture, append = TRUE)
+        cat("B - Shapiro Test for Normality\n\n",
+            file = path_capture,
+            append = TRUE
+        )
+        cat("*B1 - all values test\n", file = path_capture, append = TRUE)
+        tmp <- shapiro.test(kaplan_now$expression)
+        capture.output(print(tmp), file = path_capture, append = TRUE)
+
+        cat("\n*B2 - fit residuals test\n", file = path_capture, append = TRUE)
+        tmp <- shapiro.test(residuals(fit))
+        capture.output(print(tmp), file = path_capture, append = TRUE)
+
+        cat("\n********************\n\n", file = path_capture, append = TRUE)
+        cat("C - Tukey Honest Significant Differences post-test\n",
+            file = path_capture, append = TRUE
+        )
+        tmp <- TukeyHSD(fit)
+        capture.output(print(tmp), file = path_capture, append = TRUE)
+
+        if (length(levels(kaplan_now$group_factor)) == 2) {
+            cat("\n********************\n", file = path_capture, append = TRUE)
+            cat("D - unpaired t-test\n", file = path_capture, append = TRUE)
+            test <- var.test(expression ~ yr5_status, kaplan_now,
+                alternative = "two.sided"
+            )
+            tmp <- t.test(pirate_formula,
+                data = kaplan_now, alternative = "two.sided",
+                mu = 0, paired = FALSE, var.equal = as.numeric(test[3]) <= 0.05,
+                conf.level = 0.95
+            )
+            capture.output(print(tmp), file = path_capture, append = TRUE)
+        }
+
+        cat("\n********************\n", file = path_capture, append = TRUE)
+        cat("non-parametric assumption:\n", file = path_capture, append = TRUE)
+        cat("********************\n", file = path_capture, append = TRUE)
+        cat("A - Kruskal-Wallis test\n", file = path_capture, append = TRUE)
+        tmp <- kruskal.test(data = kaplan_now, pirate_formula)
+        capture.output(print(tmp), file = path_capture, append = TRUE)
+
+        cat("\n********************\n", file = path_capture, append = TRUE)
+        cat("B - Non-adjusted Wilcoxon (Mann-Whitney U)\n",
+            file = path_capture,
+            append = TRUE
+        )
+        tmp <- pairwise.wilcox.test(
+            x = kaplan_now$expression,
+            g = kaplan_now$yr5_status,
+            p.adjust.method = "none",
+            paired = FALSE,
+            exact = TRUE,
+            correct = TRUE,
+            alternative = "two.sided"
+        )
+        capture.output(print(tmp), file = path_capture, append = TRUE)
+
+        cat("\n********************\n\n", file = path_capture, append = TRUE)
+        cat("C - Benjamini FDR adjusted Wilcoxon (Mann-Whitney U)\n",
+            file = path_capture, append = TRUE
+        )
+        tmp <- pairwise.wilcox.test(
+            x = kaplan_now$expression,
+            g = kaplan_now$yr5_status,
+            p.adjust.method = "fdr",
+            paired = FALSE,
+            exact = TRUE,
+            correct = TRUE,
+            alternative = "two.sided"
+        )
+        capture.output(print(tmp), file = path_capture, append = TRUE)
+    }
+
+    # code
+    data_type <- gsub(" ", "_", data_type)
+    name <- gsub("-", "_", name)
+
+    data_base_boo <- tolower(data_base) == "legacy"
+
+    path <- file.path(
+        work_dir, "DOAGDC", toupper(tumor), "Analyses",
+        toupper(name)
+    )
+
+    dir.create(
+        path = file.path(work_dir, "DOAGDC", toupper(tumor), "Analyses"),
+        showWarnings = FALSE
+    )
+
+    dir.create(
+        path = file.path(
+            work_dir, "DOAGDC", toupper(tumor), "Analyses",
+            toupper(name)
+        ),
+        showWarnings = FALSE
+    )
+
+    dir.create(file.path(
+        path,
+        paste0("/survival_Results_", toupper(name))
+    ),
+    showWarnings = FALSE
+    )
+    dir <- paste0(path, "/survival_Results_", toupper(name))
+    dir.create(file.path(dir, "coxHR"), showWarnings = FALSE)
+    dir.create(file.path(dir, "kaplan_meier"), showWarnings = FALSE)
 
     # Download clinical
-    if (tolower(dataBase) == "legacy") {
-        download_gdc(dataType = "clinical_supplement", tumor = tumor,
-                    dataBase = "legacy", workDir = workDir)
-        folder_name <- "clinical_supplement_data"
-    } else if (tolower(dataBase) == "gdc") {
-        download_gdc(dataType = "clinical_supplement", tumor = tumor,
-                    dataBase = "gdc", workDir = workDir)
-        folder_name <- "gdc_clinical_supplement_data"
-    }
-
-    # local functions ####
-    # geomSeries <- function(base, max) {
-    #        base^(0:floor(log(max, base)))
-    # }
-
-    # part1 ####
-
-    # PART B: CLINICAL EVALUATION
-    # Add available files
-
-    MANIFEST <- data.frame(read.table(file = file.path(workDir, "DOAGDC",
-                                                    toupper(tumor),
-                                                    folder_name,
-                                                    "manifest.sdrf"),
-                                        stringsAsFactors = FALSE, header = TRUE,
-                                        sep = "\t"))
-
-    AvailableFiles <- MANIFEST$file_name
-
-    # Create table to receive the relevant clinical points (for all tumors)
-    clinicalData_selected <- data.frame(matrix(ncol = 0,
-                                                nrow = length(AvailableFiles)))
-
-    # Add empty values to the columns
-    clinicalData_selected[, c("bcr_patient_barcode",
-                            "gender",
-                            "race",
-                            "ethnicity",
-                            "days_to_birth",
-                            "age_at_initial_pathologic_diagnosis",
-                            "tissue_source_site",
-                            "icd_o_3_site",
-                            "icd_o_3_histology",
-                            "vital_status_initial",
-                            "days_to_last_followup_initial",
-                            "days_to_death_initial",
-                            "person_neoplasm_cancer_status_initial",
-                            "system_version",
-                            "pathologic_stage",
-                            "pathologic_T",
-                            "pathologic_N",
-                            "pathologic_M",
-                            "new_tumor_event_after_initial_treatment_initial",
-                            "days_to_new_tumor_event_after_initial_treatment_initial",
-                            "new_neoplasm_event_type_initial",
-                            "new_neoplasm_event_occurrence_anatomic_site_initial",
-                            "form_completion_YYYMMDD_initial",
-                            "followups",
-                            "form_completion_YY_followup",
-                            "form_completion_MM_followup",
-                            "form_completion_DD_followup",
-                            "person_neoplasm_cancer_status_followup",
-                            "vital_status_followup",
-                            "days_to_last_followup_followup",
-                            "new_tumor_event_after_initial_treatment_followup",
-                            "new_tumor_event_after_initial_treatment_number_followup",
-                            "days_to_new_tumor_event_after_initial_treatment_followup",
-                            "new_neoplasm_event_type_followup",
-                            "new_neoplasm_event_occurrence_anatomic_site_followup",
-                            "days_to_death_followup"
-    )] <- "unknown"
-
-
-    # Loop to fill the general info data
-    for (fileNow in 1:length(AvailableFiles)) {
-
-        data <- XML::xmlParse(file.path(workDir, "DOAGDC", toupper(tumor),
-                                        folder_name, AvailableFiles[fileNow]))
-        xml_data <- XML::xmlToList(data)
-
-
-        #### data-to-collect
-        # Patient barcode
-        clinicalData_selected$bcr_patient_barcode[fileNow] <- xml_data$patient$bcr_patient_barcode$text
-        # Gender
-        clinicalData_selected$gender[fileNow] <- xml_data$patient$gender$text
-        # Race
-        clinicalData_selected$race[fileNow] <- xml_data$patient$race[[1]][[1]]
-        #Etnicidade
-        clinicalData_selected$ethnicity[fileNow] <- xml_data$patient$ethnicity[[1]]
-        # Days to birth
-        clinicalData_selected$days_to_birth[fileNow]  <- xml_data$patient$days_to_birth[[1]]
-
-        # https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/tissue-source-site-codes
-        # Place where tissuewere collected
-        clinicalData_selected$tissue_source_site[fileNow] <- xml_data$patient$tissue_source_site[[1]]
-
-        # exact icd location site
-        # https://training.seer.cancer.gov/breast/abstract-code-stage/codes.html
-        clinicalData_selected$icd_o_3_site[fileNow] <- xml_data$patient$icd_o_3_site[[1]]
-
-        # Histological definition
-        #http://codes.iarc.fr/codegroup/2
-        clinicalData_selected$icd_o_3_histology[fileNow] <- xml_data$patient$icd_o_3_histology[[1]]
-
-        # Vital status at first report
-        clinicalData_selected$vital_status_initial[fileNow] <- xml_data$patient$vital_status[[1]]
-        # days_to_last_followup_initial
-        clinicalData_selected$days_to_last_followup_initial[fileNow] <- xml_data$patient$days_to_last_followup[[1]]
-        # days_to_death_initial
-        clinicalData_selected$days_to_death_initial[fileNow] <- xml_data$patient$days_to_death[[1]]
-
-        # actual neoplasm status
-        if (is.null(xml_data$patient$person_neoplasm_cancer_status[[1]])) {
-        } else {
-            clinicalData_selected$person_neoplasm_cancer_status_initial[fileNow] <- xml_data$patient$person_neoplasm_cancer_status[[1]]
-        }
-
-        #Stage check
-        if (is.list(xml_data$patient$stage_event)) {
-            # Staging system
-            clinicalData_selected$system_version[fileNow] <- xml_data$patient$stage_event$system_version[[1]]
-            # Staging system
-            clinicalData_selected$pathologic_stage[fileNow] <- xml_data$patient$stage_event$pathologic_stage[[1]]
-            # pathologic_T
-            clinicalData_selected$pathologic_T[fileNow] <- xml_data$patient$stage_event$tnm_categories$pathologic_categories$pathologic_T[[1]]
-            # pathologic_N
-            clinicalData_selected$pathologic_N[fileNow] <- xml_data$patient$stage_event$tnm_categories$pathologic_categories$pathologic_N[[1]]
-            # pathologic_M
-            clinicalData_selected$pathologic_M[fileNow] <- xml_data$patient$stage_event$tnm_categories$pathologic_categories$pathologic_M[[1]]
-        }
-
-        # (NTE)
-        if (is.list(xml_data$patient$new_tumor_events$new_tumor_event)) {
-
-            # New tumors events (NTE)
-            clinicalData_selected$new_tumor_event_after_initial_treatment_initial[fileNow] <- xml_data$patient$new_tumor_events$new_tumor_event_after_initial_treatment[[1]]
-
-            if (is.null(xml_data$patient$new_tumor_events$new_tumor_event$days_to_new_tumor_event_after_initial_treatment[[1]])) {
-                clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_initial[fileNow] <- "unknown"
-            } else {
-                #  days to New tumors events (NTE)
-                clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_initial[fileNow] <- xml_data$patient$new_tumor_events$new_tumor_event$days_to_new_tumor_event_after_initial_treatment[[1]]
-
-            }
-
-            if (is.null(xml_data$patient$new_tumor_events$new_tumor_event$new_neoplasm_event_type[[1]])) {
-                clinicalData_selected$new_neoplasm_event_type_initial[fileNow] <- "unknown"
-            } else {
-                if (length(xml_data$patient$new_tumor_events$new_tumor_event$new_neoplasm_event_type[[1]]) == 1) {
-                    # new_tumor_event_type ***
-                    clinicalData_selected$new_neoplasm_event_type_initial[fileNow] <- xml_data$patient$new_tumor_events$new_tumor_event$new_neoplasm_event_type[[1]]
-                }
-            }
-
-            if (is.null(xml_data$patient$new_tumor_events$new_tumor_event$new_neoplasm_event_occurrence_anatomic_site[[1]])) {
-                clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_initial[fileNow] <- "unknown"
-            } else {
-                # new_tumor_event_site ***
-                clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_initial[fileNow] <- xml_data$patient$new_tumor_events$new_tumor_event$new_neoplasm_event_occurrence_anatomic_site[[1]]
-            }
-        }
-
-
-        # FORM COMPLETION
-        if (is.list(xml_data$patient$day_of_form_completion)) {
-            if (length((xml_data$patient$day_of_form_completion)) == 1) {
-                clinicalData_selected$form_completion_YYYMMDD_initial[fileNow] <- paste(xml_data$patient$year_of_form_completion$text,
-                                                                                        xml_data$patient$month_of_form_completion$text,
-                                                                                        xml_data$patient$day_of_form_completion$text,
-                                                                                        sep = "_")
-            }
-        } else {
-            if (length((xml_data$patient$month_of_form_completion)) == 1) {
-                clinicalData_selected$form_completion_YYYMMDD_initial[fileNow] <- paste(xml_data$patient$year_of_form_completion$text,
-                                                                                        xml_data$patient$month_of_form_completion$text,
-                                                                                        "unknown",
-                                                                                        sep = "_")
-            }
-        }
-
-        # IF THERE ARE FOLLOW UPS
-        clinicalData_selected$followups[fileNow] <- 0
-
-        if (is.list(xml_data$patient$follow_ups)) {
-
-            #Collect number of followups
-            clinicalData_selected$followups[fileNow] <- length(xml_data$patient$follow_ups)
-
-            # Collect year
-            clinicalData_selected$form_completion_YY_followup[fileNow] <- paste(sapply(1:length(xml_data$patient$follow_ups),
-                            function(w) {
-                                xml_data$patient$follow_ups[[w]]$year_of_form_completion$text
-                            }), collapse = "_")
-
-            # Collect month
-            clinicalData_selected$form_completion_MM_followup[fileNow] <-
-                paste(sapply(1:length(xml_data$patient$follow_ups),
-                            function(w) {
-                                xml_data$patient$follow_ups[[w]]$month_of_form_completion$text
-                            }), collapse = "_")
-
-            # Collect day
-            clinicalData_selected$form_completion_DD_followup[fileNow] <-
-                paste(sapply(1:length(xml_data$patient$follow_ups),
-                            function(w) {
-                                xml_data$patient$follow_ups[[w]]$day_of_form_completion[[1]]
-                            }), collapse = "_")
-            #
-            clinicalData_selected$form_completion_DD_followup[fileNow] <- gsub("form_completion_day", "unknown", clinicalData_selected$form_completion_DD_followup[fileNow])
-
-
-            # New tumors events (NTE)
-            clinicalData_selected$person_neoplasm_cancer_status_followup[fileNow] <- "_"
-            clinicalData_selected$vital_status_followup[fileNow] <- "_"
-            clinicalData_selected$days_to_last_followup_followup[fileNow] <- "_"
-            clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow] <- "_"
-            clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup[fileNow] <- "_"
-            clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[fileNow] <- "_"
-            clinicalData_selected$new_neoplasm_event_type_followup[fileNow] <- "_"
-            clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup[fileNow] <- "_"
-            clinicalData_selected$days_to_death_followup[fileNow] <- "_"
-
-            ##### GO FOR FOLLOWUPS
-            for (followupnow in 1:length(xml_data$patient$follow_ups)) {
-
-                #
-                clinicalData_selected$person_neoplasm_cancer_status_followup[fileNow] <- paste(clinicalData_selected$person_neoplasm_cancer_status_followup[fileNow],
-                                                                                                xml_data$patient$follow_ups[[followupnow]]$person_neoplasm_cancer_status[[1]],
-                                                                                                sep = "_")
-
-                clinicalData_selected$vital_status_followup[fileNow] <-
-                    paste(clinicalData_selected$vital_status_followup[fileNow],
-                            xml_data$patient$follow_ups[[followupnow]]$vital_status[[1]],
-                            sep = "_")
-
-                clinicalData_selected$days_to_last_followup_followup[fileNow] <-
-                    paste(clinicalData_selected$days_to_last_followup_followup[fileNow],
-                            xml_data$patient$follow_ups[[followupnow]]$days_to_last_followup[[1]],
-                            sep = "_")
-
-                clinicalData_selected$days_to_death_followup[fileNow] <-
-                    paste(clinicalData_selected$days_to_death_followup[fileNow],
-                            xml_data$patient$follow_ups[[followupnow]]$days_to_death[[1]],
-                            sep = "_")
-
-
-                if (xml_data$patient$follow_ups[[followupnow]]$.attrs[1] == "4.0") {
-                    if (xml_data$patient$follow_ups[[followupnow]]$new_tumor_events[[1]][[1]] == "YES") {
-
-                        # Add yes
-                        clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                            paste(clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow],
-                                    xml_data$patient$follow_ups[[followupnow]]$new_tumor_events[[1]][[1]],
-                                    sep = "_")
-
-                        # Add NTE number
-                        clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup[fileNow] <-
-                            paste(clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup[fileNow],
-                                    (length(xml_data$patient$follow_ups[[followupnow]]$new_tumor_events) - 1),
-                                    sep = "_")
-
-                        for (newtumoreventsnow in 2:length(xml_data$patient$follow_ups[[followupnow]]$new_tumor_events)) {
-                            clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                                paste(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[fileNow],
-                                        xml_data$patient$follow_ups[[followupnow]]$new_tumor_events[[newtumoreventsnow]]$days_to_new_tumor_event_after_initial_treatment[[1]],
-                                        sep = "_")
-
-                            clinicalData_selected$new_neoplasm_event_type_followup[fileNow] <-
-                                paste(clinicalData_selected$new_neoplasm_event_type_followup[fileNow],
-                                        xml_data$patient$follow_ups[[followupnow]]$new_tumor_events[[newtumoreventsnow]]$new_neoplasm_event_type[[1]],
-                                        sep="_")
-
-                            clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup[fileNow] <-
-                                paste(clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup[fileNow],
-                                        xml_data$patient$follow_ups[[followupnow]]$new_tumor_events[[newtumoreventsnow]]$new_neoplasm_event_occurrence_anatomic_site[[1]],
-                                        sep = "_")
-                        }
-                    } else {
-                        # Add NO as NTE
-                        clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                            paste(clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow],
-                                    xml_data$patient$follow_ups[[followupnow]]$new_tumor_events[[1]][[1]],
-                                    sep = "_")
-                    }
-                }
-
-                # Version check 2.1
-                if (xml_data$patient$follow_ups[[followupnow]]$.attrs[1] == "2.1") {
-                    if (xml_data$patient$follow_ups[[followupnow]]$new_tumor_event_after_initial_treatment[[1]] == "YES") {
-
-                        # Add yes
-                        clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                            paste(clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow],
-                                    xml_data$patient$follow_ups[[followupnow]]$new_tumor_event_after_initial_treatment[[1]],
-                                    sep = "_")
-
-                        # Add NTE number
-                        clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup[fileNow] <-
-                            paste(clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup[fileNow],
-                                    1, sep = "_")
-
-                        # day to new tumor event
-                        clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                            paste(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[fileNow],
-                                    xml_data$patient$follow_ups[[followupnow]]$days_to_new_tumor_event_after_initial_treatment[[1]],
-                                    sep = "_")
-
-                        # NTE type
-                        clinicalData_selected$new_neoplasm_event_type_followup[fileNow] <-
-                            paste(clinicalData_selected$new_neoplasm_event_type_followup[fileNow],
-                                    xml_data$patient$follow_ups[[followupnow]]$new_neoplasm_event_type[[1]],
-                                    sep = "_")
-
-                        # NTE site
-                        clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup[fileNow] <-
-                            paste(clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup[fileNow],
-                                    xml_data$patient$follow_ups[[followupnow]]$new_neoplasm_event_occurrence_anatomic_site[[1]],
-                                    sep = "_")
-                    } else {
-                        # Add NO as NTE
-                        clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                            paste(clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow],
-                                    xml_data$patient$follow_ups[[followupnow]]$new_tumor_event_after_initial_treatment[[1]],
-                                    sep = "_")
-                    }
-                }
-
-
-                # Version check 1.5
-                if (xml_data$patient$follow_ups[[followupnow]]$.attrs[1] == "1.5") {
-
-                    # Add yes
-                    if (is.numeric(xml_data$patient$follow_ups[[followupnow]]$days_to_new_tumor_event_after_initial_treatment[[1]])) {
-                        clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                            paste(clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow],
-                                    "YES",
-                                    sep = "_")
-                    } else {
-                        clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                            paste(clinicalData_selected$new_tumor_event_after_initial_treatment_followup[fileNow],
-                                    "NO",
-                                    sep = "_")
-                    }
-
-                    # Add NTE number
-                    clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup[fileNow] <-
-                        paste(clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup[fileNow],
-                                "unknown",
-                                sep = "_")
-
-                    # day to new tumor event
-                    clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[fileNow] <-
-                        paste(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[fileNow],
-                                xml_data$patient$follow_ups[[followupnow]]$days_to_new_tumor_event_after_initial_treatment[[1]],
-                                sep = "_")
-
-                    # NTE type
-                    clinicalData_selected$new_neoplasm_event_type_followup[fileNow] <-
-                        paste(clinicalData_selected$new_neoplasm_event_type_followup[fileNow],
-                                "unknown",
-                                sep = "_")
-
-                    # NTE site
-                    clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup[fileNow] <-
-                        paste(clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup[fileNow],
-                                "unknown",
-                                sep = "_")
-                }
-            }
-        }
-    }
-
-    # ADD IMPORTANT COLUMNS
-    # for overall survival, relapse free and distant metastasis free survival
-
-    # Table fixing
-    clinicalData_selected$days_to_death_initial <- gsub("day", "unknown",
-                                                        clinicalData_selected$days_to_death_initial)
-    clinicalData_selected$days_to_death_initial <- gsub("false", "unknown",
-                                                        clinicalData_selected$days_to_death_initial)
-
-    clinicalData_selected$person_neoplasm_cancer_status_followup <- gsub("__", "",
-                                                                        clinicalData_selected$person_neoplasm_cancer_status_followup)
-    clinicalData_selected$person_neoplasm_cancer_status_followup <- gsub("tumor_status", "unknown",
-                                                                        clinicalData_selected$person_neoplasm_cancer_status_followup)
-
-    clinicalData_selected$vital_status_followup <- gsub("__", "", clinicalData_selected$vital_status_followup)
-
-    clinicalData_selected$days_to_last_followup_followup <- gsub("__", "",
-                                                                clinicalData_selected$days_to_last_followup_followup)
-    clinicalData_selected$days_to_last_followup_followup <- gsub("day", "unknown",
-                                                                clinicalData_selected$days_to_last_followup_followup)
-    clinicalData_selected$days_to_last_followup_followup <- gsub("false", "unknown",
-                                                                clinicalData_selected$days_to_last_followup_followup)
-
-    clinicalData_selected$new_tumor_event_after_initial_treatment_followup <- gsub("__", "",
-                                                                                    clinicalData_selected$new_tumor_event_after_initial_treatment_followup)
-    clinicalData_selected$new_tumor_event_after_initial_treatment_followup <- gsub("new_tumor_event_dx_indicator",
-                                                                                    "unknown",
-                                                                                    clinicalData_selected$new_tumor_event_after_initial_treatment_followup)
-
-    clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup <- gsub("__", "",
-                                                                                            clinicalData_selected$new_tumor_event_after_initial_treatment_number_followup)
-
-    clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup <- gsub("__", "",
-                                                                                            clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup)
-    clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup <- gsub("false",
-                                                                                            "unknown",
-                                                                                            clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup)
-
-    clinicalData_selected$new_neoplasm_event_type_followup <- gsub("__", "",
-                                                                    clinicalData_selected$new_neoplasm_event_type_followup)
-    clinicalData_selected$new_neoplasm_event_type_followup <- gsub("new_tumor_event_type",
-                                                                    "unknown",
-                                                                    clinicalData_selected$new_neoplasm_event_type_followup)
-
-    clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup <- gsub("__", "",
-                                                                                        clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup)
-    clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup <- gsub("new_tumor_event_site",
-                                                                                        "unknown",
-                                                                                        clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup)
-    clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup <- gsub("Other, specify",
-                                                                                        "Other",
-                                                                                        clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup)
-
-    clinicalData_selected$days_to_death_followup <- gsub("__", "", clinicalData_selected$days_to_death_followup)
-    clinicalData_selected$days_to_death_followup <- gsub("false", "unknown", clinicalData_selected$days_to_death_followup)
-    clinicalData_selected$days_to_death_followup <- gsub("day", "unknown", clinicalData_selected$days_to_death_followup)
-
-    # Some random list error
-    clinicalData_selected$new_neoplasm_event_type_initial <- unlist(clinicalData_selected$new_neoplasm_event_type_initial)
-
-    # OVERALL SURVIVAL
-    clinicalData_selected$final_vital_status <- "NA"
-    clinicalData_selected$final_vital_status_times <- "NA"
-
-    for (lineNow in 1:dim(clinicalData_selected)[1]) {
-        # If there are no followup
-        if (clinicalData_selected[lineNow,"followups"] == 0) {
-            # put vital status
-            clinicalData_selected$final_vital_status[lineNow] <- clinicalData_selected[lineNow,"vital_status_initial"]
-            #
-            if (clinicalData_selected$final_vital_status[lineNow] == "Dead") {
-                # put dead time
-                clinicalData_selected$final_vital_status_times[lineNow] <- clinicalData_selected[lineNow,"days_to_death_initial"]
-            } else {
-                # put alive until now
-                clinicalData_selected$final_vital_status_times[lineNow] <- clinicalData_selected[lineNow,"days_to_last_followup_initial"]
-            }
-            # if there are follow ups
-        } else {
-
-            # check if dead
-            if (("Dead" %in% unlist(strsplit(clinicalData_selected[lineNow,"vital_status_followup"], "_")))) {
-                # Put dead
-                clinicalData_selected$final_vital_status[lineNow] <- "Dead"
-                # collect times
-                clinicalData_selected$final_vital_status_times[lineNow] <- unlist(strsplit(clinicalData_selected[lineNow,"days_to_death_followup"],
-                                                                                            "_"))[match("Dead",
-                                                                                                        unlist(strsplit(clinicalData_selected[lineNow,
-                                                                                                                                                "vital_status_followup"],
-                                                                                                                        "_")))]
-            } else {
-                # alive
-                clinicalData_selected$final_vital_status[lineNow] <- "Alive"
-
-                # collect times
-                # check if there are any number
-                if (grepl("\\d", clinicalData_selected[lineNow,"days_to_last_followup_followup"])) {
-                    timenow <- unlist(strsplit(clinicalData_selected[lineNow,"days_to_last_followup_followup"],
-                                                "_"))[max(which(unlist(strsplit(clinicalData_selected[lineNow,
-                                                                                                        "vital_status_followup"],
-                                                            "_")) == "Alive"))]
-                } else {
-                    timenow <- "unknown"
-                }
-
-                # Check to access if timenow is unknown
-                if (timenow %in% c("unknown", NA)) {
-                    clinicalData_selected$final_vital_status_times[lineNow] <- "unknown"
-                } else {
-                    # check first if original is unknown
-                    if (clinicalData_selected[lineNow,"days_to_last_followup_initial"] == "unknown") {
-                        clinicalData_selected$final_vital_status_times[lineNow] <- "unknown"
-                    } else {
-                        if (is.na(as.numeric(clinicalData_selected[lineNow,"days_to_last_followup_initial"]))) {
-                            clinicalData_selected$final_vital_status_times[lineNow] <- timenow
-                        } else {
-                            if (as.numeric(timenow) > as.numeric(clinicalData_selected[lineNow,"days_to_last_followup_initial"])) {
-                                clinicalData_selected$final_vital_status_times[lineNow] <- timenow
-                            } else {
-                                clinicalData_selected$final_vital_status_times[lineNow] <- clinicalData_selected[lineNow,"days_to_last_followup_initial"]
-                            }
-                        }
-                    }}
-            }
-        }
-    }
-
-    # FINAL RFS (RELAPSE FREE SURVIVAL)
-    clinicalData_selected$final_rfs_status <- "NA"
-    clinicalData_selected$final_rfs_status_times <- "NA"
-
-    for (lineNow in 1:dim(clinicalData_selected)[1]) {
-
-        # If there are no followup
-        if (clinicalData_selected[lineNow,"followups"] == 0) {
-
-            # Check if dead on begin
-            if (clinicalData_selected[lineNow,"vital_status_initial"] == "Dead") {
-                # check if it had tumor
-                if (clinicalData_selected[lineNow,"person_neoplasm_cancer_status_initial"] == "WITH TUMOR") {
-                    #ok
-                    clinicalData_selected$final_rfs_status[lineNow] <- "relapse"
-                    clinicalData_selected$final_rfs_status_times[lineNow] <- clinicalData_selected[lineNow,"days_to_new_tumor_event_after_initial_treatment_initial"]
-                } else {
-                    # Discard
-                    clinicalData_selected$final_rfs_status[lineNow] <- "dead_other_cause_before_relapse"
-                    clinicalData_selected$final_rfs_status_times[lineNow] <- "dead_other_cause_before_relapse"
-                }
-
-
-            } else {
-
-                # No follow up but not dead at begin
-                if (clinicalData_selected$person_neoplasm_cancer_status_initial[lineNow] == "TUMOR FREE") {
-                    clinicalData_selected$final_rfs_status[lineNow] <- "censored"
-                    clinicalData_selected$final_rfs_status_times[lineNow] <- clinicalData_selected$days_to_last_followup_initial[lineNow]
-                } else {
-                    # if is unknown
-                    if (clinicalData_selected$person_neoplasm_cancer_status_initial[lineNow] == "unknown") {
-                        clinicalData_selected$final_rfs_status[lineNow] <- "unknown"
-                        clinicalData_selected$final_rfs_status_times[lineNow] <- "unknown"
-                    } else {
-                        # If initial NTE is present
-                        if (clinicalData_selected$new_tumor_event_after_initial_treatment_initial[lineNow] == "YES") {
-                            clinicalData_selected$final_rfs_status[lineNow] <- "relapse"
-                            clinicalData_selected$final_rfs_status_times[lineNow] <- clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_initial[lineNow]
-                        } else {
-                            clinicalData_selected$final_rfs_status[lineNow] <- "censored"
-                            clinicalData_selected$final_rfs_status_times[lineNow] <- clinicalData_selected$days_to_last_followup_initial[lineNow]
-                        }
-                    }
-                }
-            }
-        } else {
-
-            # NTE vector creation
-            nte_status_vector <-
-                c(clinicalData_selected$new_tumor_event_after_initial_treatment_initial[lineNow],
-                unlist(strsplit(clinicalData_selected$new_tumor_event_after_initial_treatment_followup[lineNow], "_")))
-
-            tumor_status_vector <-
-                c(clinicalData_selected$person_neoplasm_cancer_status_initial[lineNow],
-                unlist(strsplit(clinicalData_selected$person_neoplasm_cancer_status_followup[lineNow], "_")))
-
-            life_status_vector <-
-                c(clinicalData_selected$vital_status_initial[lineNow],
-                unlist(strsplit(clinicalData_selected$vital_status_followup[lineNow], "_")))
-
-            nte_timing_vector <-
-                c(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_initial[lineNow],
-                unlist(strsplit(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[lineNow], "_")))
-
-            followup_timing_vector <-
-                c(clinicalData_selected$days_to_last_followup_initial[lineNow],
-                unlist(strsplit(clinicalData_selected$days_to_last_followup_followup[lineNow], "_")))
-
-            dead_timing_vector <-
-                c(clinicalData_selected$days_to_death_initial[lineNow],
-                unlist(strsplit(clinicalData_selected$days_to_death_followup[lineNow], "_")))
-
-            # If there are any NTE
-            if ("YES" %in% nte_status_vector) {
-                # add relapse
-                clinicalData_selected$final_rfs_status[lineNow] <- "relapse"
-                # Check for times
-                # Collect the smaller one
-                clinicalData_selected$final_rfs_status_times[lineNow] <-
-                    min(as.numeric(nte_timing_vector),
-                        as.numeric(dead_timing_vector),
-                        as.numeric(followup_timing_vector[match("YES", nte_status_vector)]),
-                        na.rm = TRUE)
-            } else {
-                # If there are anything in nte_timing_vector
-                if (TRUE %in% (as.numeric(nte_timing_vector) > 0)) {
-
-                    clinicalData_selected$final_rfs_status[lineNow] <- "relapse"
-                    # Add this date
-                    clinicalData_selected$final_rfs_status_times[lineNow] <- min(as.numeric(nte_timing_vector), na.rm = TRUE)
-                } else {
-                    if ("TUMOR FREE" %in% tumor_status_vector) {
-                        clinicalData_selected$final_rfs_status[lineNow] <- "censored"
-                        # collect the maximum position with TUMOR FREE
-                        clinicalData_selected$final_rfs_status_times[lineNow] <- followup_timing_vector[max(which(match(tumor_status_vector, "TUMOR FREE") == 1))]
-                    } else {
-                        if (TRUE %in% (followup_timing_vector > -100)) {
-                            clinicalData_selected$final_rfs_status[lineNow] <- "censored"
-                            # collect the maximum position with values
-                            clinicalData_selected$final_rfs_status_times[lineNow] <- followup_timing_vector[max(which(followup_timing_vector > 0))]
-                        } else {
-                            if ("unknown" %in% tumor_status_vector) {
-                                clinicalData_selected$final_rfs_status[lineNow] <- "unknown"
-                                # Check for times
-                                clinicalData_selected$final_rfs_status_times[lineNow] <- "unknown"
-                            } else {
-                                clinicalData_selected$final_rfs_status[lineNow] <- "censored"
-                                clinicalData_selected$final_rfs_status_times[lineNow] <-
-                                    max(as.numeric(dead_timing_vector),
-                                        as.numeric(followup_timing_vector), na.rm = TRUE)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    # DMFS DISTANT METASTASIS FREE SURVIVAL
-    clinicalData_selected$final_dmfs_status <- "unknown"
-    clinicalData_selected$final_dmfs_status_times <- "unknown"
-
-    for (lineNow in 1:dim(clinicalData_selected)[1]) {
-
-        # If there are no relapse, no metastasis, just copy
-        if (clinicalData_selected$final_rfs_status[lineNow] == "censored") {
-            # copy
-            clinicalData_selected$final_dmfs_status[lineNow] <- clinicalData_selected$final_rfs_status[lineNow]
-            #
-            clinicalData_selected$final_dmfs_status_times[lineNow] <- clinicalData_selected$final_rfs_status_times[lineNow]
-
-            # if there was relapse, check if it was metastatic
-        } else {
-            if (clinicalData_selected$final_rfs_status[lineNow] == "relapse") {
-
-                # If there are metastasis in first form, just copy
-                if (clinicalData_selected$new_neoplasm_event_type_initial[lineNow] == "Distant Metastasis") {
-
-                    # copy
-                    clinicalData_selected$final_dmfs_status[lineNow] <- "metastasis"
-                    clinicalData_selected$final_dmfs_status_times[lineNow] <- clinicalData_selected$final_rfs_status_times[lineNow]
-
-                    # Check for further metastasis
-                }
-
-                # Create some vectors
-                nte_type_vector <-
-                    c(clinicalData_selected$new_neoplasm_event_type_initial[lineNow],
-                    unlist(strsplit(clinicalData_selected$new_neoplasm_event_type_followup[lineNow], "_")))
-
-                nte_timing_vector <-
-                    c(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_initial[lineNow],
-                    unlist(strsplit(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[lineNow], "_")))
-
-
-                clinicalData_selected$new_neoplasm_event_type_followup
-                clinicalData_selected$new_neoplasm_event_occurrence_anatomic_site_followup
-
-                # There are any metastasis on vector
-                if ("Distant Metastasis" %in% nte_type_vector) {
-                    # copy
-                    clinicalData_selected$final_dmfs_status[lineNow] <- "metastasis"
-                    #
-                    clinicalData_selected$final_dmfs_status_times[lineNow] <- nte_timing_vector[match("Distant Metastasis", nte_type_vector)]
-
-                    # if there are NO metastasis in vector, put the highest available date
-                    # even with other kind of relapses
-                } else {
-
-                    dead_timing_vector <-
-                        c(clinicalData_selected$days_to_death_initial[lineNow],
-                        unlist(strsplit(clinicalData_selected$days_to_death_followup[lineNow], "_")))
-
-                    followup_timing_vector <-
-                        c(clinicalData_selected$days_to_last_followup_initial[lineNow],
-                        unlist(strsplit(clinicalData_selected$days_to_last_followup_followup[lineNow], "_")))
-
-                    nte_timing_vector <-
-                        c(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_initial[lineNow],
-                        unlist(strsplit(clinicalData_selected$days_to_new_tumor_event_after_initial_treatment_followup[lineNow], "_")))
-
-                    # copy
-                    clinicalData_selected$final_dmfs_status[lineNow] <- "censored"
-                    #
-                    clinicalData_selected$final_dmfs_status_times[lineNow] <- max(as.numeric(c(dead_timing_vector, followup_timing_vector, nte_timing_vector)), na.rm = TRUE)
-                }
-            }
-        }
-    }
+    download_gdc(
+        data_type = "clinical_supplement", tumor = tumor,
+        data_base = ifelse(
+            data_base_boo, "legacy", "gdc"
+        ), work_dir = work_dir
+    )
+
+    folder_name <- ifelse(
+        data_base_boo,
+        "clinical_supplement_data",
+        "gdc_clinical_supplement_data"
+    )
+
+    manifest <- data.frame(read.table(
+        file = file.path(
+            work_dir, "DOAGDC",
+            toupper(tumor),
+            folder_name,
+            "manifest.sdrf"
+        ),
+        stringsAsFactors = FALSE, header = TRUE,
+        sep = "\t"
+    ))
+
+    available_files <- manifest$file_name
+
+    clinical <- file.path(
+        workDir, "DOAGDC", tumor, folder_name, available_files
+    )
+
+    final_df  <- open_xml()
 
     # Save table
-    write.csv(clinicalData_selected, file.path(DIR, paste0(tumor, "_clinical_xml", ".csv")))
-
-    # part2 ####
+    write.csv(final_df, file.path(dir, paste0(tumor, "_clinical_xml", ".csv")))
 
     # Table File position
     if (missing(env)) {
         stop(message("Insert the Environment name as 'env' argument!"))
     } else {
-        envir_link <- deparse(substitute(env))
+        ev <- deparse(substitute(env))
     }
 
-    string_vars <- list(envir_link = get(envir_link))
+    assign("clinical_xml", final_df, envir = get(ev))
 
-    assign("clinical_xml", clinicalData_selected, envir = get(envir_link))
-
-    #get expression values
-    if (tolower(dataType) == "methylation") {
-        # all <- string_vars[["envir_link"]]$gene_tumor_normalized
-        tmp <- paste0("methylation_tumor_filtered_selected_", Name)
+    # get expression values
+    if (tolower(data_type) == "methylation") {
+        tmp <- paste0("methylation_tumor_filtered_selected_", name)
     } else {
-        tmp <- paste0(tolower(dataType), "_tumor_normalized_selected_",
-                    toupper(Name))
+        tmp <- paste0(
+            tolower(data_type), "_tumor_normalized_selected_",
+            toupper(name)
+        )
     }
 
-    framesList <- eval(parse(text = paste0('string_vars[["envir_link"]]$',
-                                        paste0(tmp))))
+    string_vars <- list(ev = get(ev))
+    framel <- eval(parse(text = paste0(
+        'string_vars[["ev"]]$',
+        paste0(tmp)
+    )))
 
-    framesList <- as.data.frame(framesList)
+    framel <- as.data.frame(framel)
 
-    # duplicate fix
-    # tmp <- unname(sapply(rownames(PRAD_LEGACY_isoform_tumor_data$isoform_tumor_normalized_selected_Name), function(w) {
-    #     paste(unlist(strsplit(w, "-"))[1:3], collapse="-")
-    # }))
-    # tmp2 <- cbind(PRAD_LEGACY_isoform_tumor_data$isoform_tumor_normalized_selected_Name, tmp)
-    # tmp2$tmp <- as.character(unlist(tmp2$tmp))
-    # tmp3 <- as.data.frame(matrix(nrow = length(unique(tmp2$tmp)), ncol = 2))
-    # count <- 0
-    # for (patients in unique(tmp2$tmp)) {
-    #     count <- count + 1
-    #     selector <- patients == tmp2$tmp
-    #     tmp3[count, ] <- tmp2[selector, ][1, ]
-    # }
-    # rownames(tmp3) <- tmp3[, 2]
-    # colnames(tmp3)[1] <- Name
-    # framesList <- tmp3[, -2, drop = FALSE]
-    # remove(tmp2, tmp3)
+    # remove undisered tissues
+    tmp <- c("Hypopharynx", "Larynx", "Lip")
+    boolean_tmp <- final_df$anatomic_neoplasm_subdivision %in% tmp
+    final_df <- final_df[!boolean_tmp, ]
+
+    # NOTE Start Cutoff Finder
+    # https://www.ncbi.nlm.nih.gov/pubmed/23251644
 
     # clinical
-    clinicalList <- clinicalData_selected
-    rownames(clinicalList) <- clinicalList$bcr_patient_barcode
-
-
-    # PATIENT SPLITTING METRICS
-
-    # create empty table for filling
-    # best_z_table <- matrix(ncol=1, nrow=length(framesList))
-    # colnames(best_z_table) <- Name
-    # rownames(best_z_table) <- names(framesList)
-    # best_z_table <- as.data.frame(best_z_table)
+    rownames(final_df) <- final_df$bcr_patient_barcode
 
     best_z_table <- NULL
 
     # add patient code
-    framesList$PatientCode <- rownames(framesList)
+    framel$patient_code <- rownames(framel)
 
     # collect ordering
-    matchingOrdering <- match(framesList[,"PatientCode"],
-                            rownames(clinicalList))
+    matching_ordering <- match(
+        framel[, "patient_code"],
+        rownames(final_df)
+    )
 
     # Add clinical values to the frames list
-    framesList <- cbind(framesList, clinicalList[matchingOrdering,
-                                                c("race", "gender",
-                                                "pathologic_stage",
-                                                "pathologic_T",
-                                                "pathologic_N",
-                                                "pathologic_M",
-                                                "final_vital_status",
-                                                "final_vital_status_times",
-                                                "final_rfs_status",
-                                                "final_rfs_status_times",
-                                                "final_dmfs_status",
-                                                "final_dmfs_status_times")])
-    #
-    remove(matchingOrdering)
+    framel <- cbind(framel, final_df[
+        matching_ordering,
+        c(
+            "race", "gender",
+            "pathologic_stage",
+            "pathologic_t",
+            "pathologic_n",
+            "pathologic_m",
+            "final_vital_status",
+            "final_vital_status_times",
+            "final_rfs_status",
+            "final_rfs_status_times",
+            "final_dmfs_status",
+            "final_dmfs_status_times"
+        )
+    ])
 
-    # Loop for each gene
-    # Collect geneNow name
-
-    TissueTypeSimple <- unname(sapply(rownames(framesList), function(w) {
-        paste(unlist(strsplit(w, "-"))[4], collapse = "-")}))
-    TissueTypeSimple <- unname(sapply(TissueTypeSimple, function(w) {
-        paste(unlist(strsplit(w, ""))[1:2], collapse = "")}))
-    framesList[,"TissueTypeSimple"] <- TissueTypeSimple
+    tissue_type_simple <- unname(sapply(rownames(framel), function(w) {
+        paste(unlist(strsplit(w, "-"))[4], collapse = "-")
+    }))
+    tissue_type_simple <- unname(sapply(tissue_type_simple, function(w) {
+        paste(unlist(strsplit(w, ""))[1:2], collapse = "")
+    }))
+    framel[, "tissue_type_simple"] <- tissue_type_simple
 
     # Calculate z-scores
-    tumorValueszscore <- as.numeric(scale(framesList[, Name]))
+    tumor_valueszscore <- as.numeric(scale(framel[, name]))
 
     # Save values to table
-    framesList[, "log2p1"] <- log2(framesList[, Name] + 1)
-    framesList[, "zscore"] <- NA
-    framesList[, "zscore"] <- tumorValueszscore
+    framel[, "log2p1"] <- log2(framel[, name] + 1)
+    framel[, "zscore"] <- NA
+    framel[, "zscore"] <- tumor_valueszscore
 
     # Collect gene with
-    TableNow <- framesList
+    table <- framel
 
     # Sort by expression level
-    TableNow <- TableNow[order(TableNow[, "zscore"]), ]
+    table <- table[order(table[, "zscore"]), ]
 
     ### Remove missing data
-    TableNow <- TableNow[(!TableNow$final_rfs_status == "unknown"),]
-    TableNow <- TableNow[(!TableNow$final_rfs_status == "dead_other_cause_before_relapse"), ]
-    TableNow <- TableNow[(!TableNow$final_rfs_status == "vital_status"), ]
-    TableNow <- TableNow[!is.na(TableNow$final_rfs_status),]
-    TableNow <- TableNow[!is.nan(TableNow$final_rfs_status),]
-    TableNow <- TableNow[(!TableNow$final_rfs_status_times == "unknown"), ]
-    TableNow <- TableNow[(!TableNow$final_rfs_status_times == "dead_other_cause_before_relapse"), ]
-    TableNow <- TableNow[(!TableNow$final_rfs_status_times == "day"), ]
-    TableNow <- TableNow[!is.na(TableNow$final_rfs_status_times), ]
-    TableNow <- TableNow[!is.nan(TableNow$final_rfs_status_times), ]
-    TableNow$final_rfs_status_times <- as.numeric(TableNow$final_rfs_status_times)
+    table <- table[(!table$final_rfs_status == "unknown"), ]
+    tmp <- table$final_rfs_status == "dead_other_cause_before_relapse"
+    table <- table[!tmp, ]
+    table <- table[(!table$final_rfs_status == "vital_status"), ]
+    table <- table[!is.na(table$final_rfs_status), ]
+    table <- table[!is.nan(table$final_rfs_status), ]
+    table <- table[(!table$final_rfs_status_times == "unknown"), ]
+    tmp <- table$final_rfs_status_times == "dead_other_cause_before_relapse"
+    table <- table[!tmp, ]
+    table <- table[(!table$final_rfs_status_times == "day"), ]
+    table <- table[!is.na(table$final_rfs_status_times), ]
+    table <- table[!is.nan(table$final_rfs_status_times), ]
+    table$final_rfs_status_times <- as.numeric(
+        table$final_rfs_status_times
+    )
 
     # remove patients without relapse information
-    TableNow$final_rfs_status <- as.integer(gsub("relapse", 1,
-                                                gsub("censored", 0,
-                                                TableNow$final_rfs_status)))
+    table$final_rfs_status <- ifelse(
+        table$final_rfs_status == "relapse", 1, 0
+    )
 
-
-    #
-    # Start optimization
-    # as Cutoff Finder: A Comprehensive and Straightforward Web Application
-    #            Enabling Rapid Biomarker Cutoff Optimization
-    #
-
-    # define optimization ranges using at least 4% of the patients
-    # or 10
-    nmin <- round(0.04*dim(TableNow)[1])
+    nmin <- round(0.04 * dim(table)[1])
     if (nmin < 10) {
         nmin <- 10
     }
-    nmax <- dim(TableNow)[1] - nmin
+    nmax <- dim(table)[1] - nmin
     patient_cuts_sequence <- nmin:nmax
 
     # create matrix to receive the results
-    cutoff_optimization <- matrix(nrow = length(patient_cuts_sequence),
-                                ncol = 6)
-    colnames(cutoff_optimization) <- c("patientNo", "zscorecut", "HR",
-                                    "HR_min95", "HR_max95", "logrank_p")
-    cutoff_optimization <- as.data.frame(cutoff_optimization)
-    cutoff_optimization$patientNo <- patient_cuts_sequence
+    cutoff_opt <- matrix(
+        nrow = length(patient_cuts_sequence),
+        ncol = 6
+    )
+    colnames(cutoff_opt) <- c(
+        "patient_no", "zscorecut", "HR",
+        "HR_min95", "HR_max95", "logrank_p"
+    )
+    cutoff_opt <- as.data.frame(cutoff_opt)
+    cutoff_opt$patient_no <- patient_cuts_sequence
 
-    for (patientcutnow in patient_cuts_sequence) {
-        if (TableNow[, 1][patientcutnow] == 0) {
+    for (cut in patient_cuts_sequence) {
+        if (table[, 1][cut] == 0) {
             # check if it isnt the last zero
-            if (TableNow[, 1][patientcutnow + 1] == 0) {
+            if (table[, 1][cut + 1] == 0) {
                 # CoxHR
-                cutoff_optimization[patientcutnow,"HR"] <- Inf
+                cutoff_opt[cut, "HR"] <- Inf
 
                 # CoxHR min .95
-                cutoff_optimization[patientcutnow,"HRmin95"] <- Inf
+                cutoff_opt[cut, "HRmin95"] <- Inf
 
                 # CoxHR max .95
-                cutoff_optimization[patientcutnow,"HRmax95"] <- Inf
+                cutoff_opt[cut, "HRmax95"] <- Inf
 
                 # logrank pvalue
-                cutoff_optimization[patientcutnow,"logrank_p"] <- 1
+                cutoff_opt[cut, "logrank_p"] <- 1
 
                 # if is the last zero, do normally
             } else {
                 # Create the classification vector for now
-                classification_vector <- c(rep("low", patientcutnow),
-                                        rep("high",
-                                            dim(TableNow)[1]-patientcutnow))
+                classification_vector <- c(
+                    rep("low", cut),
+                    rep(
+                        "high",
+                        dim(table)[1] - cut
+                    )
+                )
                 classification_vector <- factor(classification_vector,
-                                                levels = c("low", "high"))
+                    levels = c("low", "high")
+                )
 
                 # create the model summary
-                coxmodel <- suppressWarnings(summary(survival::coxph(survival::Surv(final_rfs_status_times, final_rfs_status) ~ classification_vector,
-                                                    data = TableNow)))
+                coxmodel <- suppressWarnings(summary(
+                    survival::coxph(survival::Surv(
+                        final_rfs_status_times, final_rfs_status
+                    ) ~ classification_vector,
+                    data = table
+                    )
+                ))
 
                 # collect line now for table
-                lineNow <- match(patientcutnow, cutoff_optimization[,"patientNo"])
+                line_now <- match(cut, cutoff_opt[, "patient_no"])
 
-                cutoff_optimization[lineNow,"zscorecut"] <- TableNow[patientcutnow, "zscore"]
+                cutoff_opt[line_now, "zscorecut"] <- table[cut, "zscore"]
 
                 # CoxHR
-                cutoff_optimization[lineNow,"HR"] <- coxmodel$conf.int[1]
+                cutoff_opt[line_now, "HR"] <- coxmodel$conf.int[1]
 
                 # CoxHR min .95
-                cutoff_optimization[lineNow,"HR_min95"] <- coxmodel$conf.int[3]
+                cutoff_opt[line_now, "HR_min95"] <- coxmodel$conf.int[3]
 
                 # CoxHR max .95
-                cutoff_optimization[lineNow,"HR_max95"] <- coxmodel$conf.int[4]
+                cutoff_opt[line_now, "HR_max95"] <- coxmodel$conf.int[4]
 
                 # logrank pvalue
-                cutoff_optimization[lineNow,"logrank_p"] <- coxmodel$logtest[3]
+                cutoff_opt[line_now, "logrank_p"] <- coxmodel$logtest[3]
             }
         } else {
 
             # Create the classification vector for now
-            classification_vector <- c(rep("low", patientcutnow),
-                                    rep("high",
-                                        dim(TableNow)[1] - patientcutnow))
+            classification_vector <- c(
+                rep("low", cut),
+                rep(
+                    "high",
+                    dim(table)[1] - cut
+                )
+            )
             classification_vector <- factor(classification_vector,
-                                            levels = c("low", "high"))
+                levels = c("low", "high")
+            )
 
             # create the model summary
-            coxmodel <- suppressWarnings(summary(survival::coxph(survival::Surv(final_rfs_status_times, final_rfs_status) ~ classification_vector,
-                                    data = TableNow)))
+            coxmodel <- suppressWarnings(
+                summary(
+                    survival::coxph(survival::Surv(
+                        final_rfs_status_times, final_rfs_status
+                    ) ~ classification_vector,
+                    data = table
+                    )
+                )
+            )
 
             # collect line now for table
-            lineNow <- match(patientcutnow, cutoff_optimization[, "patientNo"])
+            line_now <- match(cut, cutoff_opt[, "patient_no"])
 
-            cutoff_optimization[lineNow,"zscorecut"] <- TableNow[patientcutnow,
-                                                                "zscore"]
+            cutoff_opt[line_now, "zscorecut"] <- table[
+                cut,
+                "zscore"
+            ]
 
             # CoxHR
-            cutoff_optimization[lineNow,"HR"] <- coxmodel$conf.int[1]
+            cutoff_opt[line_now, "HR"] <- coxmodel$conf.int[1]
             # CoxHR min .95
-            cutoff_optimization[lineNow,"HR_min95"] <- coxmodel$conf.int[3]
+            cutoff_opt[line_now, "HR_min95"] <- coxmodel$conf.int[3]
             # CoxHR max .95
-            cutoff_optimization[lineNow,"HR_max95"] <- coxmodel$conf.int[4]
+            cutoff_opt[line_now, "HR_max95"] <- coxmodel$conf.int[4]
             # logrank pvalue
-            cutoff_optimization[lineNow,"logrank_p"] <- coxmodel$logtest[3]
+            cutoff_opt[line_now, "logrank_p"] <- coxmodel$logtest[3]
         }
     }
 
     # remove infinite rows
     # pick infinite rows
-    removeRows <- -sort(unique(c(which(is.infinite(cutoff_optimization$HR)),
-                                which(is.infinite(cutoff_optimization$HR_min95)),
-                                which(is.infinite(cutoff_optimization$HR_max95)),
-                                which(is.na(cutoff_optimization$logrank_p)))))
+    remove_rows <- -sort(unique(c(
+        which(is.infinite(cutoff_opt$HR)),
+        which(is.infinite(cutoff_opt$HR_min95)),
+        which(is.infinite(cutoff_opt$HR_max95)),
+        which(is.na(cutoff_opt$logrank_p))
+    )))
 
-    cutoff_optimization <- cutoff_optimization[!is.na(cutoff_optimization$HR_min95), ]
+    cutoff_opt <- cutoff_opt[!is.na(cutoff_opt$HR_min95), ]
 
     # save optim table
-    write.csv(cutoff_optimization,
-            file = file.path(DIR, "coxHR", paste0("Optimization_",
-                                                Name, ".csv")))
+    write.csv(cutoff_opt,
+        file = file.path(dir, "coxHR", paste0(
+            "Optimization_",
+            name, ".csv"
+        ))
+    )
 
-    if (nrow(cutoff_optimization) == 0) {
-        stop(message("\nLow expression values. Please, ",
-                    "try another expression data!\n"))
+    if (nrow(cutoff_opt) == 0) {
+        stop(message(
+            "\nLow expression values. Please, ",
+            "try another expression data!\n"
+        ))
     }
 
     # Collect best z score
-    best_z_table <- suppressWarnings(cutoff_optimization$zscorecut[which(min(cutoff_optimization$logrank_p,
-                                                                            na.rm = TRUE) == cutoff_optimization$logrank_p)][1])
+    best_z_table <- suppressWarnings(
+        cutoff_opt$zscorecut[which(min(cutoff_opt$logrank_p,
+            na.rm = TRUE
+        ) == cutoff_opt$logrank_p)][1]
+    )
 
-    if (nrow(cutoff_optimization[removeRows, ]) > 0) {
-        # plot
-        if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "coxHR",
-                                    paste0("with_confidence_interval_", Name, ".png")),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "coxHR",
-                                    paste0("with_confidence_interval_", Name, ".svg")),
-                width = Width, height = Height, onefile = TRUE)
-        } else {
-            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
-        }
-        par(mar = c(5,5,3,5))
-        plot(x = cutoff_optimization$zscorecut,
-            y = cutoff_optimization$HR, type = "l",
-            ylim = c(min(cutoff_optimization$HR_min95, na.rm = TRUE),
-                    max(cutoff_optimization$HR_max95, na.rm = TRUE)),
-            xlim = c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                    max(cutoff_optimization$zscorecut, na.rm = TRUE)),
+    if (nrow(cutoff_opt[remove_rows, ]) > 0) {
+        save_plot("coxHR", "_with_confidence_interval")
+        par(mar = c(5, 5, 3, 5))
+        plot(
+            x = cutoff_opt$zscorecut,
+            y = cutoff_opt$HR, type = "l",
+            ylim = c(
+                min(cutoff_opt$HR_min95, na.rm = TRUE),
+                max(cutoff_opt$HR_max95, na.rm = TRUE)
+            ),
+            xlim = c(
+                min(cutoff_opt$zscorecut, na.rm = TRUE),
+                max(cutoff_opt$zscorecut, na.rm = TRUE)
+            ),
             lwd = 2, lty = 1, xlab = "Expression z-score",
             ylab = "Cox HR RFS", axes = FALSE,
-            col = rgb(8, 88, 158, 240))
+            col = hsv(.58, .95, .62)
+        )
 
-        axis(side = 1, lwd = 2, cex.axis = 1.5, cex = 1.5,
-            at = round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                        max(cutoff_optimization$zscorecut, na.rm = TRUE),
-                        by = 0.1), 2))
-        axis(side = 2, lwd = 2, cex.axis = 1.5, cex = 1.5,
-            col = rgb(8,88,158, 255), las = 1)
+        axis(
+            side = 1, lwd = 2, cex.axis = 1.5, cex = 1.5,
+            at = round(seq(min(cutoff_opt$zscorecut, na.rm = TRUE),
+                max(cutoff_opt$zscorecut, na.rm = TRUE),
+                by = 0.1
+            ), 2)
+        )
+        axis(
+            side = 2, lwd = 2, cex.axis = 1.5, cex = 1.5,
+            col = hsv(.58, .95, .62), las = 1
+        )
 
-        lines(x = cutoff_optimization$zscorecut,
-            y = cutoff_optimization$HR_min95,
-            lwd = 1, lty = 3, col = rgb(19, 153, 24, 200))
-        lines(x = cutoff_optimization$zscorecut,
-            y = cutoff_optimization$HR_max95,
-            lwd = 1, lty = 3, col = rgb(19, 153, 24, 200))
+        lines(
+            x = cutoff_opt$zscorecut,
+            y = cutoff_opt$HR_min95,
+            lwd = 1, lty = 3, col = hsv(.34, .88, .60, 0.78)
+        )
+        lines(
+            x = cutoff_opt$zscorecut,
+            y = cutoff_opt$HR_max95,
+            lwd = 1, lty = 3, col = hsv(.34, .88, .60, 0.78)
+        )
 
-        text(best_z_table, max(cutoff_optimization$HR, na.rm = TRUE) + 0.12,
-            paste0("z-score = ", round(best_z_table, 2)), cex = 0.8)
-        points(best_z_table, max(cutoff_optimization$HR, na.rm = TRUE))
+        text(best_z_table, max(cutoff_opt$HR, na.rm = TRUE) + 0.12,
+            paste0("z-score = ", round(best_z_table, 2)),
+            cex = 0.8
+        )
+        points(best_z_table, max(cutoff_opt$HR, na.rm = TRUE))
 
-        points(TableNow[, "zscore"],
-            rep(min(cutoff_optimization$HR_min95, na.rm = TRUE),
-                length(TableNow[, "zscore"])),
-            pch = "|", col = rgb(37,37,37, 90))
+        points(table[, "zscore"],
+            rep(
+                min(cutoff_opt$HR_min95, na.rm = TRUE),
+                length(table[, "zscore"])
+            ),
+            pch = "|", col = hsv(.0, .0, .15, .35)
+        )
 
         par(new = TRUE)
-        plot(x = cutoff_optimization$zscorecut,
-            y = cutoff_optimization$logrank_p, type = "l",
-            ylim = c(max(cutoff_optimization$logrank_p, na.rm = TRUE),
-                    min(cutoff_optimization$logrank_p, na.rm = TRUE) - 0.1),
-            xlim = c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                    max(cutoff_optimization$zscorecut, na.rm = TRUE)),
+        plot(
+            x = cutoff_opt$zscorecut,
+            y = cutoff_opt$logrank_p, type = "l",
+            ylim = c(
+                max(cutoff_opt$logrank_p, na.rm = TRUE),
+                min(cutoff_opt$logrank_p, na.rm = TRUE) - 0.1
+            ),
+            xlim = c(
+                min(cutoff_opt$zscorecut, na.rm = TRUE),
+                max(cutoff_opt$zscorecut, na.rm = TRUE)
+            ),
             lwd = 2, lty = 1, xlab = NA, ylab = NA,
-            axes = FALSE, cex = 1.5, col = rgb(252,78,42, 150))
-        axis(side = 4, lwd = 2, cex.axis = 1.5, cex = 1.5,
-            col = rgb(252,78,42, 255), las = 1)
+            axes = FALSE, cex = 1.5, col = hsv(.028, .83, .99, .59)
+        )
+        axis(
+            side = 4, lwd = 2, cex.axis = 1.5, cex = 1.5,
+            col = hsv(.028, .83, .99), las = 1
+        )
         mtext(side = 4, line = 3.8, "p logrank", cex = 1.2)
 
-        min_p <- min(cutoff_optimization$logrank_p , na.rm = TRUE)
+        min_p <- min(cutoff_opt$logrank_p, na.rm = TRUE)
 
-        # abline(h = min_p, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
-        text(best_z_table, min_p - 0.01, paste0("p logrank = ",
-                                                round(min_p, 4)), cex=0.8)
+        text(best_z_table, min_p - 0.01, paste0(
+            "p logrank = ",
+            round(min_p, 4)
+        ), cex = 0.8)
         points(best_z_table, min_p)
         dev.off()
 
-        # plot HR log2
-        if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "coxHR",
-                                    paste0("Log2_with_confidence_interval_",
-                                                        Name, ".png")),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "coxHR",
-                                    paste0("Log2_with_confidence_interval_",
-                                                        Name, ".svg")),
-                width = Width, height = Height, onefile = TRUE)
-        } else {
-            stop(message("Insert a valid image_format! ('png' or 'svg')"))
-        }
-        par(mar = c(5,5,3,5))
-        plot(x = cutoff_optimization$zscorecut,
-            y = log2(cutoff_optimization$HR), type = "l",
-            ylim = c(min(log2(cutoff_optimization$HR_min95), na.rm = TRUE),
-                    max(log2(cutoff_optimization$HR_max95), na.rm = TRUE)),
-            xlim = c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                    max(cutoff_optimization$zscorecut, na.rm = TRUE)),
-            lwd = 2, lty = 1, xlab="Expression z-score",
-            ylab = expression('Log'[2]*'(Cox HR RFS)'), axes = FALSE,
-            col = rgb(8, 88, 158, 240))
+        save_plot("coxHR", "_log2_with_confidence_interval")
+        par(mar = c(5, 5, 3, 5))
+        plot(
+            x = cutoff_opt$zscorecut,
+            y = log2(cutoff_opt$HR), type = "l",
+            ylim = c(
+                min(log2(cutoff_opt$HR_min95), na.rm = TRUE),
+                max(log2(cutoff_opt$HR_max95), na.rm = TRUE)
+            ),
+            xlim = c(
+                min(cutoff_opt$zscorecut, na.rm = TRUE),
+                max(cutoff_opt$zscorecut, na.rm = TRUE)
+            ),
+            lwd = 2, lty = 1, xlab = "Expression z-score",
+            ylab = expression("Log"[2] * "(Cox HR RFS)"), axes = FALSE,
+            col = hsv(.58, .95, .62)
+        )
 
-        axis(side = 1, lwd = 2, cex.axis = 1.5, cex = 1.5,
-            at = round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                        max(cutoff_optimization$zscorecut, na.rm = TRUE),
-                        by = 0.1), 2))
-        axis(side = 2, lwd = 2, cex.axis = 1.5, cex = 1.5,
-            col = rgb(8, 88, 158, 255), las = 1)
+        axis(
+            side = 1, lwd = 2, cex.axis = 1.5, cex = 1.5,
+            at = round(seq(min(cutoff_opt$zscorecut, na.rm = TRUE),
+                max(cutoff_opt$zscorecut, na.rm = TRUE),
+                by = 0.1
+            ), 2)
+        )
+        axis(
+            side = 2, lwd = 2, cex.axis = 1.5, cex = 1.5,
+            col = hsv(.58, .95, .62), las = 1
+        )
 
-        lines(x = cutoff_optimization$zscorecut,
-            y = log2(cutoff_optimization$HR_min95),
-            lwd = 1, lty = 3, col = rgb(19, 153, 24, 200))
-        lines(x = cutoff_optimization$zscorecut,
-            y = log2(cutoff_optimization$HR_max95),
-            lwd = 1, lty = 3, col = rgb(19, 153, 24, 200))
+        lines(
+            x = cutoff_opt$zscorecut,
+            y = log2(cutoff_opt$HR_min95),
+            lwd = 1, lty = 3, col = hsv(.34, .88, .60, 0.78)
+        )
+        lines(
+            x = cutoff_opt$zscorecut,
+            y = log2(cutoff_opt$HR_max95),
+            lwd = 1, lty = 3, col = hsv(.34, .88, .60, 0.78)
+        )
 
-        text(best_z_table, max(log2(cutoff_optimization$HR),
-                            na.rm = TRUE) + 0.105,
-            paste0("z-score = ", round(best_z_table, 2)), cex = 0.8)
-        points(best_z_table, max(log2(cutoff_optimization$HR), na.rm = TRUE))
+        text(best_z_table, max(log2(cutoff_opt$HR),
+            na.rm = TRUE
+        ) + 0.105,
+        paste0("z-score = ", round(best_z_table, 2)),
+        cex = 0.8
+        )
+        points(best_z_table, max(log2(cutoff_opt$HR), na.rm = TRUE))
 
-        points(TableNow[, "zscore"],
-            rep(min(log2(cutoff_optimization$HR_min95), na.rm = TRUE),
-                length(TableNow[, "zscore"])),
-            pch = "|", col = rgb(37, 37, 37, 90))
+        points(table[, "zscore"],
+            rep(
+                min(log2(cutoff_opt$HR_min95), na.rm = TRUE),
+                length(table[, "zscore"])
+            ),
+            pch = "|", col = hsv(.0, .0, .15, .35)
+        )
         par(new = TRUE)
 
-        plot(x = cutoff_optimization$zscorecut,
-            y = cutoff_optimization$logrank_p, type = "l",
-            ylim = c(max(cutoff_optimization$logrank_p, na.rm = TRUE),
-                    min(cutoff_optimization$logrank_p, na.rm = TRUE)),
-            xlim = c(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                    max(cutoff_optimization$zscorecut, na.rm = TRUE)),
+        plot(
+            x = cutoff_opt$zscorecut,
+            y = cutoff_opt$logrank_p, type = "l",
+            ylim = c(
+                max(cutoff_opt$logrank_p, na.rm = TRUE),
+                min(cutoff_opt$logrank_p, na.rm = TRUE)
+            ),
+            xlim = c(
+                min(cutoff_opt$zscorecut, na.rm = TRUE),
+                max(cutoff_opt$zscorecut, na.rm = TRUE)
+            ),
             lwd = 2, lty = 1, xlab = NA, ylab = NA,
-            axes = FALSE, cex = 1.5, col = rgb(252,78,42, 150))
-        axis(side = 4, lwd = 2, cex.axis = 1.5, cex = 1.5,
-            col = rgb(252, 78, 42, 255), las = 1)
+            axes = FALSE, cex = 1.5, col = hsv(.028, .83, .99, .59)
+        )
+        axis(
+            side = 4, lwd = 2, cex.axis = 1.5, cex = 1.5,
+            col = hsv(.028, .83, .99), las = 1
+        )
         mtext(side = 4, line = 3.8, "p logrank", cex = 1.2)
 
-        min_p <- min(cutoff_optimization$logrank_p , na.rm = TRUE)
+        min_p <- min(cutoff_opt$logrank_p, na.rm = TRUE)
 
-        text(best_z_table, min_p - 0.015, paste0("p logrank = ",
-                                                round(min_p, 4)), cex = 0.8)
+        text(best_z_table, min_p - 0.015, paste0(
+            "p logrank = ",
+            round(min_p, 4)
+        ), cex = 0.8)
         points(best_z_table, min_p)
 
         dev.off()
-
     }
 
-    # hide outliers
-    # plot
-    if (tolower(image_format) == "png") {
-        png(filename = file.path(DIR, "coxHR",
-                                paste0("hide_confidence_interval",
-                                        Name, ".png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image_format) == "svg") {
-        svg(filename = file.path(DIR, "coxHR",
-                                paste0("hide_confidence_interval",
-                                        Name, ".svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
-    }
-    par(mar = c(5,5,3,5))
-    plot(x = cutoff_optimization$zscorecut,
-        y = cutoff_optimization$HR, type = "l",
+    save_plot("coxHR", "_hide_confidence_interval")
+    par(mar = c(5, 5, 3, 5))
+    plot(
+        x = cutoff_opt$zscorecut,
+        y = cutoff_opt$HR, type = "l",
         lwd = 2, lty = 1, xlab = "Expression z-score", ylab = "Cox HR RFS",
         axes = FALSE,
-        col = rgb(8, 88, 158, 100))
+        col = hsv(.58, .95, .62, .39)
+    )
 
-    axis(side = 1, lwd = 2, cex.axis = 1.5, cex = 1.5,
-        at = round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                    max(cutoff_optimization$zscorecut, na.rm = TRUE),
-                    by = 0.1), 2))
-    axis(side = 2, lwd = 2, cex.axis = 1.5, cex = 1.5,
-        col = rgb(8, 88, 158, 255), las = 1)
-    text(best_z_table, max(cutoff_optimization$HR, na.rm = TRUE) + 0.12,
-        paste0("z-score = ", round(best_z_table, 2)), cex = 0.8)
-    points(best_z_table, max(cutoff_optimization$HR, na.rm = TRUE))
+    axis(
+        side = 1, lwd = 2, cex.axis = 1.5, cex = 1.5,
+        at = round(seq(min(cutoff_opt$zscorecut, na.rm = TRUE),
+            max(cutoff_opt$zscorecut, na.rm = TRUE),
+            by = 0.1
+        ), 2)
+    )
+    axis(
+        side = 2, lwd = 2, cex.axis = 1.5, cex = 1.5,
+        col = hsv(.58, .95, .62), las = 1
+    )
+    text(best_z_table, max(cutoff_opt$HR, na.rm = TRUE) + 0.12,
+        paste0("z-score = ", round(best_z_table, 2)),
+        cex = 0.8
+    )
+    points(best_z_table, max(cutoff_opt$HR, na.rm = TRUE))
 
-    points(cutoff_optimization$zscorecut,
-        rep(min(cutoff_optimization$HR, na.rm = TRUE),
-            length(cutoff_optimization$zscorecut)),
-        pch = "|", col = rgb(37,37,37, 90))
+    points(cutoff_opt$zscorecut,
+        rep(
+            min(cutoff_opt$HR, na.rm = TRUE),
+            length(cutoff_opt$zscorecut)
+        ),
+        pch = "|", col = hsv(.0, .0, .15, .35)
+    )
 
     par(new = TRUE)
-    plot(x = cutoff_optimization$zscorecut,
-        y = cutoff_optimization$logrank_p, type = "l",
-        ylim = c(max(cutoff_optimization$logrank_p, na.rm = TRUE),
-                min(cutoff_optimization$logrank_p, na.rm = TRUE)),
+    plot(
+        x = cutoff_opt$zscorecut,
+        y = cutoff_opt$logrank_p, type = "l",
+        ylim = c(
+            max(cutoff_opt$logrank_p, na.rm = TRUE),
+            min(cutoff_opt$logrank_p, na.rm = TRUE)
+        ),
         lwd = 3, lty = 1, xlab = NA, ylab = NA,
-        axes = FALSE, cex = 1.5, col = rgb(252,78,42, 100))
-    axis(side = 4, lwd = 2, cex.axis = 1.5, cex = 1.5,
-        col = rgb(252,78,42, 255), las = 1)
+        axes = FALSE, cex = 1.5, col = hsv(.028, .83, .99, .39)
+    )
+    axis(
+        side = 4, lwd = 2, cex.axis = 1.5, cex = 1.5,
+        col = hsv(.028, .83, .99), las = 1
+    )
     mtext(side = 4, line = 3.8, "p logrank", cex = 1.2)
 
-    min_p <- min(cutoff_optimization$logrank_p , na.rm = TRUE)
-    # abline(h = min_p, lwd=2, lty=3, col=rgb(0,0,0, 255, max=255))
+    min_p <- min(cutoff_opt$logrank_p, na.rm = TRUE)
     text(best_z_table, min_p - 0.01, paste0("p logrank = ", round(min_p, 4)),
-        cex = 0.8)
+        cex = 0.8
+    )
     points(best_z_table, min_p)
 
     dev.off()
 
-    # plot HR log2
-    if (tolower(image_format) == "png") {
-        png(filename = file.path(DIR, "coxHR",
-                                paste0("Log2_hide_confidence_interval_",
-                                        Name, ".png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image_format) == "svg") {
-        svg(filename = file.path(DIR, "coxHR",
-                                paste0("Log2_hide_confidence_interval_",
-                                        Name, ".svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Insert a valid image_format! ('png' or 'svg')"))
-    }
-    par(mar = c(5,5,3,5))
-    plot(x = cutoff_optimization$zscorecut,
-        y = log2(cutoff_optimization$HR), type = "l",
+    save_plot("coxHR", "_log2_hide_confidence_interval")
+    par(mar = c(5, 5, 3, 5))
+    plot(
+        x = cutoff_opt$zscorecut,
+        y = log2(cutoff_opt$HR), type = "l",
         lwd = 2, lty = 1, xlab = "Expression z-score",
-        ylab = expression('Log'[2]*'(Cox HR RFS)'), axes = FALSE,
-        col = rgb(8,88,158, 100))
+        ylab = expression("Log"[2] * "(Cox HR RFS)"), axes = FALSE,
+        col = hsv(.58, .95, .62, .39)
+    )
 
-    axis(side = 1, lwd = 2, cex.axis = 1.5, cex = 1.5,
-        at = round(seq(min(cutoff_optimization$zscorecut, na.rm = TRUE),
-                    max(cutoff_optimization$zscorecut, na.rm = TRUE),
-                    by = 0.1), 2))
-    axis(side = 2, lwd = 2, cex.axis = 1.5, cex = 1.5,
-        col = rgb(8,88,158, 255), las = 1)
+    axis(
+        side = 1, lwd = 2, cex.axis = 1.5, cex = 1.5,
+        at = round(seq(min(cutoff_opt$zscorecut, na.rm = TRUE),
+            max(cutoff_opt$zscorecut, na.rm = TRUE),
+            by = 0.1
+        ), 2)
+    )
+    axis(
+        side = 2, lwd = 2, cex.axis = 1.5, cex = 1.5,
+        col = hsv(.58, .95, .62), las = 1
+    )
 
-    text(best_z_table, max(log2(cutoff_optimization$HR), na.rm = TRUE) + 0.105,
-        paste0("z-score = ", round(best_z_table, 2)), cex = 0.8)
-    points(best_z_table, max(log2(cutoff_optimization$HR), na.rm = TRUE))
+    text(best_z_table, max(log2(cutoff_opt$HR), na.rm = TRUE) + 0.105,
+        paste0("z-score = ", round(best_z_table, 2)),
+        cex = 0.8
+    )
+    points(best_z_table, max(log2(cutoff_opt$HR), na.rm = TRUE))
 
-    points(cutoff_optimization$zscorecut,
-        rep(min(log2(cutoff_optimization$HR), na.rm = TRUE),
-            length(cutoff_optimization$zscorecut)),
-        pch = "|", col = rgb(37,37,37, 90))
+    points(cutoff_opt$zscorecut,
+        rep(
+            min(log2(cutoff_opt$HR), na.rm = TRUE),
+            length(cutoff_opt$zscorecut)
+        ),
+        pch = "|", col = hsv(.0, .0, .15, .35)
+    )
 
     par(new = TRUE)
 
-    plot(x = cutoff_optimization$zscorecut,
-        y = cutoff_optimization$logrank_p, type = "l",
-        ylim = c(max(cutoff_optimization$logrank_p, na.rm = TRUE),
-                min(cutoff_optimization$logrank_p, na.rm = TRUE)),
+    plot(
+        x = cutoff_opt$zscorecut,
+        y = cutoff_opt$logrank_p, type = "l",
+        ylim = c(
+            max(cutoff_opt$logrank_p, na.rm = TRUE),
+            min(cutoff_opt$logrank_p, na.rm = TRUE)
+        ),
         lwd = 3, lty = 1, xlab = NA, ylab = NA,
-        axes = FALSE, cex = 1.5, col = rgb(252,78,42, 100))
-    axis(side = 4, lwd = 2, cex.axis = 1.5, cex = 1.5,
-        col = rgb(252,78,42, 255), las = 1)
+        axes = FALSE, cex = 1.5, col = hsv(.028, .83, .99, .39)
+    )
+    axis(
+        side = 4, lwd = 2, cex.axis = 1.5, cex = 1.5,
+        col = hsv(.028, .83, .99), las = 1
+    )
     mtext(side = 4, line = 3.8, "p logrank", cex = 1.2)
 
-    min_p <- min(cutoff_optimization$logrank_p , na.rm = TRUE)
-    text(best_z_table, min_p - 0.01, paste0("p logrank = ",
-                                            round(min_p, 4)), cex = 0.8)
+    min_p <- min(cutoff_opt$logrank_p, na.rm = TRUE)
+    text(best_z_table, min_p - 0.01, paste0(
+        "p logrank = ",
+        round(min_p, 4)
+    ), cex = 0.8)
     points(best_z_table, min_p)
 
     dev.off()
 
     # Save best z table
     # save optim table
-    write.csv(best_z_table, file = file.path(DIR, "coxHR",
-                                        paste0("Best_z_Table", ".csv")))
+    write.csv(best_z_table, file = file.path(
+        dir, "coxHR",
+        paste0("Best_z_Table", ".csv")
+    ))
 
-    # part3 ####
-    # KAPLAN MEYER ACCORDINGLY TO LEVEL CUTOFF
-
+    # NOTE A
     # add unknown to everyone
-    framesList[, "classification"] <- "unknown"
+    framel[, "classification"] <- "unknown"
     # add low expressing tag
-    framesList[which(framesList[,"zscore"] <= best_z_table),
-            "classification"] <- "low"
+    framel[
+        which(framel[, "zscore"] <= best_z_table),
+        "classification"
+    ] <- "low"
     # add high expressing tag
-    framesList[which(framesList[,"zscore"] > best_z_table),
-            "classification"] <- "high"
-    # create full classification
-    framesList[,"full_classification"] <- framesList[,"classification"]
+    framel[
+        which(framel[, "zscore"] > best_z_table),
+        "classification"
+    ] <- "high"
+    # create group tissue_type
+    framel[, "group"] <- framel[, "classification"]
 
-    # copy lines to move
-    linestomove <- which(framesList[,"classification"] == "unknown")
+    move <- which(framel[, "classification"] == "unknown")
+    framel[move, "group"] <- framel[move, "tissue_type_simple"]
+    framel[, "group"] <- factor(framel[, "group"],
+        levels = c("low", "high")
+    )
 
-    framesList[linestomove, "full_classification"] <- framesList[linestomove, "TissueTypeSimple"]
-    # factor it
-    framesList[, "full_classification"] <- factor(framesList[, "full_classification"],
-                                                levels = c("low", "high"))
+    roc_auc()
 
-    # remove used variable
-    remove(linestomove)
+    color <- RColorBrewer::brewer.pal(length(levels(framel$group)), "Set2")
 
+    plot_pie <- data.frame(
+        Group = names(table(framel$group)),
+        n = as.numeric(table(framel$group)),
+        prop = round(as.numeric(table(framel$group) / nrow(framel)) * 100, 2)
+    )
+    plot_pie <- plot_pie[order(plot_pie$Group, decreasing = TRUE), ]
+    plot_pie$lab.ypos <- cumsum(plot_pie$prop) - (0.5 * plot_pie$prop)
 
-    #Plotting
-    ### Comparison normal - low - high levels by log2 RSEM UQ level
+    save_plot("coxHR", "_patients_all_conditions")
+    a <- ggplot2::ggplot(plot_pie, ggplot2::aes(2, y = prop, fill = Group)) +
+        ggplot2::geom_bar(stat = "identity", color = "white") +
+        ggplot2::coord_polar("y", start = 0) +
+        ggplot2::geom_text(ggplot2::aes(y = lab.ypos, label = n),
+            color = "white"
+        ) +
+        ggplot2::scale_fill_manual(values = color) +
+        ggplot2::theme_void() +
+        ggplot2::xlim(0.5, 2.5)
+    print(a)
+    dev.off()
 
     # define the formula now
-    formulaNow <- formula(framesList[, "log2p1"] ~ framesList[, "full_classification"])
+    formula_now <- formula(framel[, "log2p1"] ~ framel[, "group"])
 
-    if (nrow(framesList) > 0) {
-        # Pirate plotting - Basic
-        # plot HR log2
-        if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "kaplan_maier",
-                                    paste0(Name, "_PiratePlot_log2RSEM_all_conditions.png")),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "kaplan_maier",
-                                    paste0(Name, "_PiratePlot_log2RSEM_all_conditions.svg")),
-                width = Width, height = Height, onefile = TRUE)
-        } else {
-            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
-        }
-        #bottom, left, top and right
-        par(mar = c(3,4.8,4,2))
-        yarrr::pirateplot(formula = formulaNow,
-                        data = framesList, gl.lwd = 0,
-                        ylab = expression('Log'[2]*'(Expression + 1)'),
-                        inf.method = "iqr", cex.lab = 1.2, cex.axis = 1.8,
-                        inf.disp = "rect", jitter.val = 0.08, theme = 2,
-                        cex.names = 1.5,
-                        pal = "pony", avg.line.fun = median, point.cex = 1.3,
-                        inf.f.col = rgb(200,200,200, 255), xlab = "",
-                        inf.b.col = rgb(120,120,120, 255))
-        dev.off()
+    save_plot("coxHR", "_PiratePlot_log2_expression_all_conditions")
+    par(mar = c(3, 4.8, 4, 2))
+    yarrr::pirateplot(
+        formula = formula_now,
+        data = framel, gl.lwd = 0,
+        ylab = expression("Log"[2] * "(Expression + 1)"),
+        inf.method = "iqr", cex.lab = 1.2, cex.axis = 1.8,
+        inf.disp = "rect", jitter.val = 0.08, theme = 2,
+        cex.names = 1.5,
+        pal = "pony", avg.line.fun = median, point.cex = 1.3,
+        inf.f.col = hsv(0, 0, .78), xlab = "",
+        inf.b.col = hsv(0, 0, .47)
+    )
+    dev.off()
+
+    path_capture <- file.path(
+        dir, "coxHR",
+        paste0(
+            name, "_PiratePlot_log2_expression",
+            "_all_conditions_stats.txt"
+        )
+    )
+
+    fit <- aov(formula_now, data = framel)
+    cat("********************\n", file = path_capture, append = TRUE)
+    cat("A - ANOVA\n", file = path_capture, append = TRUE)
+    capture.output(summary(fit), file = path_capture, append = TRUE)
+
+    cat("\n********************\n", file = path_capture, append = TRUE)
+    cat("B - Shapiro Test for Normality\n\n",
+        file = path_capture,
+        append = TRUE
+    )
+    cat("*B1 - all values test\n", file = path_capture, append = TRUE)
+    tmp <- shapiro.test(framel[, "log2p1"])
+    capture.output(print(tmp), file = path_capture, append = TRUE)
+
+    cat("\n*B2 - fit residuals test\n", file = path_capture, append = TRUE)
+    tmp <- shapiro.test(residuals(fit))
+    capture.output(print(tmp), file = path_capture, append = TRUE)
+
+    cat("\n********************\n\n", file = path_capture, append = TRUE)
+    cat("C - Tukey Honest Significant Differences post-test\n",
+        file = path_capture, append = TRUE
+    )
+    tmp <- TukeyHSD(fit)
+    capture.output(print(tmp), file = path_capture, append = TRUE)
+
+    if (length(levels(framel[, "group"])) == 2) {
+        cat("\n********************\n", file = path_capture, append = TRUE)
+        cat("D - unpaired t-test\n", file = path_capture, append = TRUE)
+        test <- var.test(expression ~ yr5_status, framel,
+            alternative = "two.sided"
+        )
+        tmp <- t.test(pirate_formula,
+            data = framel, alternative = "two.sided",
+            mu = 0, paired = FALSE, var.equal = as.numeric(test[3]) <= 0.05,
+            conf.level = 0.95
+        )
+        capture.output(print(tmp), file = path_capture, append = TRUE)
     }
 
-    # ANOVA followed by tukey
-    sink(file = file.path(DIR, "kaplan_maier",
-                        paste0(Name, "_PiratePlot_log2RSEM",
-                                "_all_conditions_anova_tukey.txt")))
+    cat("\n********************\n", file = path_capture, append = TRUE)
+    cat("non-parametric assumption:\n", file = path_capture, append = TRUE)
+    cat("********************\n", file = path_capture, append = TRUE)
+    cat("A - Kruskal-Wallis test\n", file = path_capture, append = TRUE)
+    tmp <- kruskal.test(data = framel, pirate_formula)
+    capture.output(print(tmp), file = path_capture, append = TRUE)
 
-    fit <- aov(formulaNow, data = framesList)
+    cat("\n********************\n", file = path_capture, append = TRUE)
+    cat("B - Non-adjusted Wilcoxon (Mann-Whitney U)\n",
+        file = path_capture,
+        append = TRUE
+    )
+    tmp <- pairwise.wilcox.test(
+        x = framel[, "log2p1"],
+        g = framel[, "group"],
+        p.adjust.method = "none",
+        paired = FALSE,
+        exact = TRUE,
+        correct = TRUE,
+        alternative = "two.sided"
+    )
+    capture.output(print(tmp), file = path_capture, append = TRUE)
 
-    cat("********************\n")
-    cat(paste("A - ANOVA","\n", sep = ""))
-    print(summary(fit))
-
-    cat("********************\n")
-    cat(paste("B - Shapiro Test for Normality","\n", sep = ""))
-    cat("\n")
-    cat(paste("*B1 - all values test","\n", sep = ""))
-    print(shapiro.test(framesList[,"log2p1"]))
-    cat(paste("*B2 - fit residuals test","\n", sep = ""))
-    print(shapiro.test(residuals(fit)))
-
-    cat("\n")
-    cat("********************\n")
-    cat(paste("C - Tukey Honest Significant Differences post-test","\n",
-            sep = ""))
-    print(TukeyHSD(fit))
-
-    sink()
-
-    # Kruskal-wallis followd by Wilcoxon test (for nono-parametric assumption)
-    sink(file = file.path(DIR, "kaplan_maier",
-                        paste0(Name, "_PiratePlot_log2RSEM",
-                            "_all_conditions_Kruskal_Wilcoxon.txt")))
-    cat("********************\n")
-    cat(paste("A - Kruskal-Wallis test","\n", sep = ""))
-
-    print(kruskal.test(data = framesList, formulaNow))
-
-    cat("********************\n")
-    cat(paste("B - Non-adjusted Wilcoxon (Mann-Whitney U)","\n", sep = ""))
-    print(pairwise.wilcox.test(x = framesList[,"log2p1"],
-                            g = framesList[,"full_classification"],
-                            p.adjust.method = "none",
-                            paired = FALSE,
-                            exact = TRUE,
-                            correct = TRUE,
-                            alternative = "two.sided"))
-
-    cat("\n")
-    cat("********************\n")
-    cat(paste("C - Benjamini FDR adjusted Wilcoxon (Mann-Whitney U)","\n",
-            sep = ""))
-    print(pairwise.wilcox.test(x = framesList[,"log2p1"],
-                            g = framesList[,"full_classification"],
-                            p.adjust.method = "fdr",
-                            paired = FALSE,
-                            exact = TRUE,
-                            correct = TRUE,
-                            alternative = "two.sided"))
-
-    sink()
-
-    # Clean formula now
-    remove(formulaNow)
+    cat("\n********************\n\n", file = path_capture, append = TRUE)
+    cat("C - Benjamini FDR adjusted Wilcoxon (Mann-Whitney U)\n",
+        file = path_capture, append = TRUE
+    )
+    tmp <- pairwise.wilcox.test(
+        x = framel[, "log2p1"],
+        g = framel[, "group"],
+        p.adjust.method = "fdr",
+        paired = FALSE,
+        exact = TRUE,
+        correct = TRUE,
+        alternative = "two.sided"
+    )
+    capture.output(print(tmp), file = path_capture, append = TRUE)
 
 
+    # NOTE Overall
     # Create table for patient numbers
-    PatientAmountTable <- matrix(ncol = 4, nrow = 8)
-    colnames(PatientAmountTable) <- c("type", "classification",
-                                    "amount", "percent")
-    PatientAmountTable <- data.frame(PatientAmountTable)
+    patient_amount_table <- matrix(ncol = 4, nrow = 8)
+    colnames(patient_amount_table) <- c(
+        "type", "classification",
+        "amount", "percent"
+    )
+    patient_amount_table <- data.frame(patient_amount_table)
 
     # use previously defined markers
 
-    # Copy PatientAmountTable
-    PatientAmountTable_now <- PatientAmountTable
+    # Copy patient_amount_table
+    patient_n <- patient_amount_table
 
     # OVERALL SURVIVAL ANALYSIS
     # Kaplan meyer using best scenario
-    KaplanTableNow <- framesList[, c(Name,
-                                "classification",
-                                "final_vital_status_times",
-                                "final_vital_status",
-                                "final_rfs_status",
-                                "final_rfs_status_times",
-                                "final_dmfs_status",
-                                "final_dmfs_status_times")]
+    kaplan_now <- framel[, c(
+        name,
+        "classification",
+        "final_vital_status_times",
+        "final_vital_status",
+        "final_rfs_status",
+        "final_rfs_status_times",
+        "final_dmfs_status",
+        "final_dmfs_status_times"
+    )]
 
     # Kaplan
-    colnames(KaplanTableNow)[2] <- "classification"
+    colnames(kaplan_now)[2] <- "classification"
 
     # Collect just rows with classification
-    KaplanTableNow <- KaplanTableNow[c(which(KaplanTableNow[,"classification"] == "low"),
-                                    which(KaplanTableNow[,"classification"] == "high")),]
+    kaplan_now <- kaplan_now[c(
+        which(kaplan_now[, "classification"] == "low"),
+        which(kaplan_now[, "classification"] == "high")
+    ), ]
 
 
     # Factorize classification
-    KaplanTableNow$classification_factorized <- factor(KaplanTableNow$classification, levels = c("low", "high"))
+    kaplan_now$group_factor <- factor(
+        kaplan_now$classification,
+        levels = c("low", "high")
+    )
 
     ############# COLLECT DATA
 
     # Fill table with patient amount - ALL
-    rowsNow <- c(1,2)
-    PatientAmountTable_now[rowsNow,"type"] <- "All"
-    PatientAmountTable_now[rowsNow,"classification"] <- c("low", "high")
-    PatientAmountTable_now[rowsNow[1],"amount"] <- as.numeric(table(KaplanTableNow[,"classification"])["low"])
-    PatientAmountTable_now[rowsNow[2],"amount"] <- as.numeric(table(KaplanTableNow[,"classification"])["high"])
-    PatientAmountTable_now[rowsNow[1],"percent"] <- PatientAmountTable_now[rowsNow[1], "amount"] / (PatientAmountTable_now[rowsNow[1], "amount"] + PatientAmountTable_now[rowsNow[2], "amount"])
-    PatientAmountTable_now[rowsNow[2],"percent"] <- PatientAmountTable_now[rowsNow[2], "amount"] / (PatientAmountTable_now[rowsNow[1], "amount"] + PatientAmountTable_now[rowsNow[2], "amount"])
+    rows_now <- c(1, 2)
+    patient_n[rows_now, "type"] <- "All"
+    patient_n[rows_now, "classification"] <- c("low", "high")
+    patient_n[rows_now[1], "amount"] <- as.numeric(
+        table(kaplan_now[, "classification"])["low"]
+    )
+    patient_n[rows_now[2], "amount"] <- as.numeric(
+        table(kaplan_now[, "classification"])["high"]
+    )
+
+    tmp <- patient_n[rows_now[1], "amount"] + patient_n[rows_now[2], "amount"]
+    patient_n[rows_now[1], "percent"] <- patient_n[rows_now[1], "amount"] / tmp
+    patient_n[rows_now[2], "percent"] <- patient_n[rows_now[2], "amount"] / tmp
 
 
     # Retrieve non-NA entries for final vital status
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_vital_status == "unknown"),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_vital_status == "vital_status"),]
-    KaplanTableNow <- KaplanTableNow[!is.na(KaplanTableNow$final_vital_status),]
-    KaplanTableNow <- KaplanTableNow[!is.nan(KaplanTableNow$final_vital_status),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_vital_status_times == "unknown"),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_vital_status_times == "day"),]
-    KaplanTableNow <- KaplanTableNow[!is.na(KaplanTableNow$final_vital_status_times),]
-    KaplanTableNow <- KaplanTableNow[!is.nan(KaplanTableNow$final_vital_status_times),]
-    KaplanTableNow$final_vital_status_times <- as.numeric(KaplanTableNow$final_vital_status_times)
+    kaplan_now <- kaplan_now[(!kaplan_now$final_vital_status == "unknown"), ]
+    tmp <- kaplan_now$final_vital_status == "vital_status"
+    kaplan_now <- kaplan_now[!tmp, ]
+    kaplan_now <- kaplan_now[!is.na(kaplan_now$final_vital_status), ]
+    kaplan_now <- kaplan_now[!is.nan(kaplan_now$final_vital_status), ]
+    tmp <- kaplan_now$final_vital_status_times == "unknown"
+    kaplan_now <- kaplan_now[!tmp, ]
+    kaplan_now <- kaplan_now[(!kaplan_now$final_vital_status_times == "day"), ]
+    kaplan_now <- kaplan_now[!is.na(kaplan_now$final_vital_status_times), ]
+    kaplan_now <- kaplan_now[!is.nan(kaplan_now$final_vital_status_times), ]
+    kaplan_now$final_vital_status_times <- as.numeric(
+        kaplan_now$final_vital_status_times
+    )
 
-    # Overall survival
-    KaplanTableNow$final_vital_status <- as.integer(gsub("Dead", 1, gsub("Alive", 0, KaplanTableNow$final_vital_status)))
+    kaplan_now$final_vital_status <- ifelse(
+        kaplan_now$final_vital_status == "Dead", 1, 0
+    )
 
+    kaplan_now$expression <- log2(kaplan_now[, name] + 1)
 
     # Fill table with patient amount - OSurv
-    rowsNow <- c(3,4)
-    PatientAmountTable_now[rowsNow,"type"] <- "OSurv"
-    PatientAmountTable_now[rowsNow,"classification"] <- c("low", "high")
-    PatientAmountTable_now[rowsNow[1],"amount"] <- as.numeric(table(KaplanTableNow[,"classification"])["low"])
-    PatientAmountTable_now[rowsNow[2],"amount"] <- as.numeric(table(KaplanTableNow[,"classification"])["high"])
+    rows_now <- c(3, 4)
+    patient_n[rows_now, "type"] <- "OSurv"
+    patient_n[rows_now, "classification"] <- c("low", "high")
+    patient_n[rows_now[1], "amount"] <- as.numeric(
+        table(kaplan_now[, "classification"])["low"]
+    )
+    patient_n[rows_now[2], "amount"] <- as.numeric(
+        table(kaplan_now[, "classification"])["high"]
+    )
 
-    PatientAmountTable_now[rowsNow[1],"percent"] <- PatientAmountTable_now[rowsNow[1], "amount"] / (PatientAmountTable_now[rowsNow[1], "amount"] + PatientAmountTable_now[rowsNow[2], "amount"])
-    PatientAmountTable_now[rowsNow[2],"percent"] <- PatientAmountTable_now[rowsNow[2], "amount"] / (PatientAmountTable_now[rowsNow[1], "amount"] + PatientAmountTable_now[rowsNow[2], "amount"])
+    patient_n[rows_now[1], "percent"] <- patient_n[rows_now[1], "amount"] / tmp
+    patient_n[rows_now[2], "percent"] <- patient_n[rows_now[2], "amount"] / tmp
 
-
-    # Perform the fitting
-    remove(fit)
-    fit <- survival::survfit(survival::Surv(final_vital_status_times, final_vital_status) ~ classification_factorized,
-                data = KaplanTableNow)
-
-    # Report p-value
-    sink(file = file.path(DIR, "kaplan_maier",
-                        paste0(Name, "Kaplan_overall_survival", ".txt")))
-    print(summary(survival::coxph(survival::Surv(final_vital_status_times, final_vital_status) ~ classification_factorized,
-                        data = KaplanTableNow)))
-    sink()
+    cox_ph(step = "overall")
+    surv_plot(step = "overall")
 
 
-    # Plot data
-    if (tolower(image_format) == "png") {
-        png(filename = file.path(DIR, "kaplan_maier",
-                                paste0(Name, "Kaplan_overall_survival.png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image_format) == "svg") {
-        svg(filename = file.path(DIR, "kaplan_maier",
-                                paste0(Name, "Kaplan_overall_survival.svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
-    }
-    par(mar=c(3,3,3,6))
-    print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
-                    linetype=c(1,1), conf.int = TRUE,
-                    #palette = "grey",
-                    palette =c("#4575b4", "#d73027"),
-                    ggtheme = ggplot2::theme_bw(),
-                    size = 2,
-                    #xscale="d_m",
-                    font.main = 30,
-                    font.x =  26,
-                    font.y = 26,
-                    font.tickslab = 24))
-    dev.off()
-
-    # Create 5yr status
-    KaplanTableNow$yr5_status <- "unknown"
-    KaplanTableNow$yr5_status[KaplanTableNow$final_vital_status_times >= (365*5)] <- "alive_5yr"
-    KaplanTableNow$yr5_status[(KaplanTableNow$final_vital_status_times < (365*5) & KaplanTableNow$final_vital_status == 1)] <- "dead_5yr"
-
-    KaplanTableNow$yr5_status <- as.factor(KaplanTableNow$yr5_status)
-
-    # define the formula now
-    formulaNow <- formula(log2(get(Name)+1) ~ yr5_status)
-
-    message("Pirate plotting \n")
-
-    if (nrow(framesList) > 0) {
-        # Pirate plotting - Basic
-        if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "kaplan_maier",
-                                    paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival.png")),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "kaplan_maier",
-                                    paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival.svg")),
-                width = Width, height = Height, onefile = TRUE)
-        } else {
-            stop(message("Insert a valid image_format! ('png' or 'svg')"))
-        }
-        #bottom, left, top and right
-        par(mar=c(3,4.8,4,2))
-        yarrr::pirateplot(formula = formulaNow,
-                        data = KaplanTableNow,
-                        ylab = expression('Log'[2]*'(Expression + 1)'),
-                        xlab = "",
-                        inf.method = "iqr", cex.lab = 1.2, cex.axis = 1.8,
-                        inf.disp = "rect", jitter.val = 0.08, theme = 2,
-                        cex.names = 1.5,
-                        pal = "pony", avg.line.fun = median, point.cex = 1.3,
-                        inf.f.col = rgb(200,200,200, 255),
-                        inf.b.col = rgb(120,120,120, 255))
-        dev.off()
-    }
-
-
-    # ANOVA followed by tukey
-    sink(file = file.path(DIR, "kaplan_maier",
-                        paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival_anova_tukey.txt")))
-
-    fit <- aov(formulaNow, data = KaplanTableNow)
-
-    cat("********************\n")
-    cat(paste("A - ANOVA","\n", sep = ""))
-    print(summary(fit))
-
-
-    cat("********************\n")
-    cat(paste("B - Shapiro Test for Normality","\n", sep = ""))
-    cat("\n")
-    cat(paste("*B1 - all values test","\n", sep = ""))
-    print(shapiro.test(log2(KaplanTableNow[, Name] + 1)))
-    cat(paste("*B2 - fit residuals test","\n", sep = ""))
-    print(shapiro.test(residuals(fit)))
-
-    cat("\n")
-    cat("********************\n")
-    cat(paste("C - Tukey Honest Significant Differences post-test","\n",
-            sep = ""))
-    print(TukeyHSD(fit))
-
-    sink()
-
-    # Kruskal-wallis followd by Wilcoxon test (for nono-parametric assumption)
-    sink(file = file.path(DIR, "kaplan_maier",
-                        paste0(Name,"PiratePlot_log2RSEM__5yr_overallsurvival_kruskal_wilcoxon.txt")))
-    cat("********************\n")
-    cat(paste("A - Kruskal-Wallis test","\n", sep = ""))
-
-    print(kruskal.test(data = KaplanTableNow, formulaNow))
-
-    cat("********************\n")
-    cat(paste("B - Non-adjusted Wilcoxon (Mann-Whitney U)","\n", sep = ""))
-    print(pairwise.wilcox.test(x = log2(KaplanTableNow[, Name] + 1),
-                            g = KaplanTableNow[,"yr5_status"],
-                            p.adjust.method = "none",
-                            paired = FALSE,
-                            exact = TRUE,
-                            correct = TRUE,
-                            alternative = "two.sided"))
-
-    cat("\n")
-    cat("********************\n")
-    cat(paste("C - Benjamini FDR adjusted Wilcoxon (Mann-Whitney U)","\n",
-            sep = ""))
-    print(pairwise.wilcox.test(x = log2(KaplanTableNow[, Name] + 1),
-                            g = KaplanTableNow[,"yr5_status"],
-                            p.adjust.method = "fdr",
-                            paired = FALSE,
-                            exact = TRUE,
-                            correct = TRUE,
-                            alternative = "two.sided"))
-
-    sink()
-
-    # Clean formula now
-    remove(formulaNow)
-
-    # relapse
-    # Kaplan meyer using best scenario
-    KaplanTableNow <- framesList[, c(Name,
-                                "classification",
-                                "final_vital_status_times",
-                                "final_vital_status",
-                                "final_rfs_status",
-                                "final_rfs_status_times",
-                                "final_dmfs_status",
-                                "final_dmfs_status_times")]
+    # NOTE RFS
+    kaplan_now <- framel[, c(
+        name,
+        "classification",
+        "final_vital_status_times",
+        "final_vital_status",
+        "final_rfs_status",
+        "final_rfs_status_times",
+        "final_dmfs_status",
+        "final_dmfs_status_times"
+    )]
 
     # Kaplan
-    colnames(KaplanTableNow)[2] <- "classification"
+    colnames(kaplan_now)[2] <- "classification"
 
     # Collect just rows with classification
-    KaplanTableNow <- KaplanTableNow[c(which(KaplanTableNow[,"classification"] == "low"),
-                                    which(KaplanTableNow[,"classification"] == "high")),]
-
+    kaplan_now <- kaplan_now[c(
+        which(kaplan_now[, "classification"] == "low"),
+        which(kaplan_now[, "classification"] == "high")
+    ), ]
 
     # Factorize classification
-    KaplanTableNow$classification_factorized <- factor(KaplanTableNow$classification, levels=c("low", "high"))
+    kaplan_now$group_factor <- factor(
+        kaplan_now$classification,
+        levels = c("low", "high")
+    )
 
-    # Retrieve non-NA entries for final vital status
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_rfs_status == "unknown"),]
-    KaplanTableNow <- KaplanTableNow[!is.na(KaplanTableNow$final_rfs_status),]
-    KaplanTableNow <- KaplanTableNow[!is.nan(KaplanTableNow$final_rfs_status),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_rfs_status_times == "unknown"),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_rfs_status_times == "dead_other_cause_before_relapse"),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_rfs_status_times == "day"),]
-    KaplanTableNow <- KaplanTableNow[!is.na(KaplanTableNow$final_rfs_status_times),]
-    KaplanTableNow <- KaplanTableNow[!is.nan(KaplanTableNow$final_rfs_status_times),]
-    KaplanTableNow <- KaplanTableNow[!is.infinite(KaplanTableNow$final_rfs_status_times),]
-    KaplanTableNow$final_rfs_status_times <- as.numeric(KaplanTableNow$final_rfs_status_times)
+    kaplan_now <- kaplan_now[(!kaplan_now$final_rfs_status == "unknown"), ]
+    kaplan_now <- kaplan_now[!is.na(kaplan_now$final_rfs_status), ]
+    kaplan_now <- kaplan_now[!is.nan(kaplan_now$final_rfs_status), ]
 
-    # Overall survival
-    KaplanTableNow$final_rfs_status <- as.integer(gsub("relapse", 1, gsub("censored", 0, KaplanTableNow$final_rfs_status)))
+    kaplan_now <- kaplan_now[!kaplan_now$final_rfs_status_times == "unknown", ]
+    tmp <- kaplan_now$final_rfs_status_times == "dead_other_cause_before_relapse"
+    kaplan_now <- kaplan_now[!tmp, ]
+    kaplan_now <- kaplan_now[(!kaplan_now$final_rfs_status_times == "day"), ]
+    kaplan_now <- kaplan_now[!is.na(kaplan_now$final_rfs_status_times), ]
+    kaplan_now <- kaplan_now[!is.nan(kaplan_now$final_rfs_status_times), ]
+    kaplan_now <- kaplan_now[!is.infinite(kaplan_now$final_rfs_status_times), ]
+    kaplan_now$final_rfs_status_times <- as.numeric(
+        kaplan_now$final_rfs_status_times
+    )
+
+    kaplan_now$final_rfs_status <- ifelse(
+        kaplan_now$final_rfs_status == "relapse", 1, 0
+    )
+
+    kaplan_now$expression <- log2(kaplan_now[, name] + 1)
 
     # Fill table with patient amount - Relapse
-    rowsNow <- c(5,6)
-    PatientAmountTable_now[rowsNow,"type"] <- "Relapse"
-    PatientAmountTable_now[rowsNow,"classification"] <- c("low", "high")
-    PatientAmountTable_now[rowsNow[1],"amount"] <- as.numeric(table(KaplanTableNow[,"classification"])["low"])
-    PatientAmountTable_now[rowsNow[2],"amount"] <- as.numeric(table(KaplanTableNow[,"classification"])["high"])
+    rows_now <- c(5, 6)
+    patient_n[rows_now, "type"] <- "Relapse"
+    patient_n[rows_now, "classification"] <- c("low", "high")
+    patient_n[rows_now[1], "amount"] <- as.numeric(
+        table(kaplan_now[, "classification"])["low"]
+    )
+    patient_n[rows_now[2], "amount"] <- as.numeric(
+        table(kaplan_now[, "classification"])["high"]
+    )
 
-    PatientAmountTable_now[rowsNow[1],"percent"] <- PatientAmountTable_now[rowsNow[1], "amount"] / (PatientAmountTable_now[rowsNow[1], "amount"] + PatientAmountTable_now[rowsNow[2], "amount"])
-    PatientAmountTable_now[rowsNow[2],"percent"] <- PatientAmountTable_now[rowsNow[2], "amount"] / (PatientAmountTable_now[rowsNow[1], "amount"] + PatientAmountTable_now[rowsNow[2], "amount"])
-
-
-    # Report p-value
-    sink(file = file.path(DIR, "kaplan_maier",
-                        paste0(Name,"Kaplan_rfs_survival", ".txt")))
-    print(summary(survival::coxph(survival::Surv(final_rfs_status_times, final_rfs_status) ~ classification_factorized,
-                        data = KaplanTableNow)))
-    sink()
-
-
-    # Perform the fitting
-    remove(fit)
-    fit <- survival::survfit(survival::Surv(final_rfs_status_times, final_rfs_status) ~ classification_factorized,
-                data = KaplanTableNow)
-
-    # Plot data
-    if (tolower(image_format) == "png") {
-        png(filename = file.path(DIR, "kaplan_maier",
-                                paste0(Name,"Kaplan_rfs_survival", ".png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image_format) == "svg") {
-        svg(filename = file.path(DIR, "kaplan_maier",
-                                paste0(Name,"Kaplan_rfs_survival", ".svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
-    }
-    par(mar = c(3,3,3,6))
-    print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
-                    linetype = c(1,1), conf.int = TRUE,
-                    palette = c("#4575b4", "#d73027"),
-                    ggtheme = ggplot2::theme_bw(),
-                    size = 2,
-                    font.main = 30,
-                    font.x =  26,
-                    font.y = 26,
-                    font.tickslab = 24))
-    dev.off()
-
-    # Create 5yr status
-    KaplanTableNow$yr5_status <- "unknown"
-    KaplanTableNow$yr5_status[KaplanTableNow$final_rfs_status_times >= (365*5)] <- "nonrelapse_5yr"
-    KaplanTableNow$yr5_status[(KaplanTableNow$final_rfs_status_times < (365*5) & KaplanTableNow$final_rfs_status == 1)] <- "relapse_5yr"
-
-    #
-    KaplanTableNow$yr5_status <- as.factor(KaplanTableNow$yr5_status)
-
-    # define the formula now
-    formulaNow <- formula(log2(get(Name)+1) ~ yr5_status)
-
-    message("Pirate plotting \n")
-
-    if (nrow(framesList) > 0) {
-        # Pirate plotting - Basic
-        if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "kaplan_maier",
-                                    paste0(Name,"PiratePlot_log2RSEM__5yr_rfs.png")),
-                width = Width, height = Height, res = Res, units = Unit)
-        } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "kaplan_maier",
-                                    paste0(Name,"PiratePlot_log2RSEM__5yr_rfs.svg")),
-                width = Width, height = Height, onefile = TRUE)
-        } else {
-            stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
-        }
-        #bottom, left, top and right
-        par(mar = c(3,4.8,4,2))
-        yarrr::pirateplot(formula = formulaNow,
-                        data = KaplanTableNow,
-                        xlab = "",
-                        ylab = expression('Log'[2]*'(Expression + 1)'),
-                        inf.method = "iqr", cex.lab = 1.2, cex.axis = 1.8,
-                        inf.disp = "rect", jitter.val = 0.08, theme = 2,
-                        cex.names = 1.5,
-                        pal = "pony", avg.line.fun = median,
-                        inf.f.col = rgb(200,200,200, 255),
-                        inf.b.col = rgb(120,120,120, 255))
-        dev.off()
-    }
-
-    # ANOVA followed by tukey
-    sink(file = file.path(DIR, "kaplan_maier",
-                        paste0(Name,"PiratePlot_log2RSEM__5yr_rfs_anova_tukey.txt")))
-
-    fit <- aov(formulaNow, data = KaplanTableNow)
-
-    cat("********************\n")
-    cat(paste("A - ANOVA","\n", sep = ""))
-    print(summary(fit))
+    tmp <- patient_n[rows_now[1], "amount"] + patient_n[rows_now[2], "amount"]
+    patient_n[rows_now[1], "percent"] <- patient_n[rows_now[1], "amount"] / tmp
+    patient_n[rows_now[2], "percent"] <- patient_n[rows_now[2], "amount"] / tmp
+    cox_ph(step = "rfs")
+    surv_plot(step = "rfs")
 
 
-    cat("********************\n")
-    cat(paste("B - Shapiro Test for Normality","\n", sep = ""))
-    cat("\n")
-    cat(paste("*B1 - all values test","\n", sep = ""))
-    print(shapiro.test(log2(KaplanTableNow[, Name] + 1)))
-    cat(paste("*B2 - fit residuals test","\n", sep = ""))
-    print(shapiro.test(residuals(fit)))
-
-    cat("\n")
-    cat("********************\n")
-    cat(paste("C - Tukey Honest Significant Differences post-test","\n",
-            sep = ""))
-    print(TukeyHSD(fit))
-
-    sink()
-
-    # Kruskal-wallis followd by Wilcoxon test (for nono-parametric assumption)
-    sink(file = file.path(DIR, "kaplan_maier",
-                        paste0(Name,"_PiratePlot_log2RSEM__5yr_rfs_kruskal_wilcoxon.txt")))
-    cat("********************\n")
-    cat(paste("A - Kruskal-Wallis test","\n", sep = ""))
-
-    print(kruskal.test(data = KaplanTableNow, formulaNow))
-
-    cat("********************\n")
-    cat(paste("B - Non-adjusted Wilcoxon (Mann-Whitney U)","\n", sep = ""))
-    print(pairwise.wilcox.test(x = log2(KaplanTableNow[, Name] + 1),
-                            g = KaplanTableNow[,"yr5_status"],
-                            p.adjust.method = "none",
-                            paired = FALSE,
-                            exact = TRUE,
-                            correct = TRUE,
-                            alternative = "two.sided"))
-
-    cat("\n")
-    cat("********************\n")
-    cat(paste("C - Benjamini FDR adjusted Wilcoxon (Mann-Whitney U)","\n",
-            sep = ""))
-    print(pairwise.wilcox.test(x = log2(KaplanTableNow[, Name] + 1),
-                            g = KaplanTableNow[,"yr5_status"],
-                            p.adjust.method = "fdr",
-                            paired = FALSE,
-                            exact = TRUE,
-                            correct = TRUE,
-                            alternative = "two.sided"))
-
-    sink()
-
-    # Clean formula now
-    remove(formulaNow)
-
+    # NOTE dmfs
 
     # dmfs
     # Kaplan meyer using best scenario
-    KaplanTableNow <- framesList[, c(Name,
-                                "classification",
-                                "final_vital_status_times",
-                                "final_vital_status",
-                                "final_rfs_status",
-                                "final_rfs_status_times",
-                                "final_dmfs_status",
-                                "final_dmfs_status_times")]
+    kaplan_now <- framel[, c(
+        name,
+        "classification",
+        "final_vital_status_times",
+        "final_vital_status",
+        "final_rfs_status",
+        "final_rfs_status_times",
+        "final_dmfs_status",
+        "final_dmfs_status_times"
+    )]
 
     # Kaplan
-    colnames(KaplanTableNow)[2] <- "classification"
+    colnames(kaplan_now)[2] <- "classification"
 
     # Collect just rows with classification
-    KaplanTableNow <- KaplanTableNow[c(which(KaplanTableNow[,"classification"] == "low"),
-                                    which(KaplanTableNow[,"classification"] == "high")),]
+    kaplan_now <- kaplan_now[c(
+        which(kaplan_now[, "classification"] == "low"),
+        which(kaplan_now[, "classification"] == "high")
+    ), ]
 
     # Factorize classification
-    KaplanTableNow$classification_factorized <- factor(KaplanTableNow$classification, levels = c("low", "high"))
+    kaplan_now$group_factor <- factor(
+        kaplan_now$classification,
+        levels = c("low", "high")
+    )
 
     # Retrieve non-NA entries for final vital status
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_dmfs_status == "unknown"),]
-    KaplanTableNow <- KaplanTableNow[!is.na(KaplanTableNow$final_dmfs_status),]
-    KaplanTableNow <- KaplanTableNow[!is.nan(KaplanTableNow$final_dmfs_status),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_dmfs_status_times == "unknown"),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_dmfs_status_times == "dead_other_cause_before_relapse"),]
-    KaplanTableNow <- KaplanTableNow[(!KaplanTableNow$final_dmfs_status_times == "day"),]
-    KaplanTableNow <- KaplanTableNow[!is.na(KaplanTableNow$final_dmfs_status_times),]
-    KaplanTableNow <- KaplanTableNow[!is.nan(KaplanTableNow$final_dmfs_status_times),]
-    KaplanTableNow <- KaplanTableNow[!is.infinite(KaplanTableNow$final_dmfs_status_times),]
-    KaplanTableNow$final_dmfs_status_times <- as.numeric(KaplanTableNow$final_dmfs_status_times)
+    kaplan_now <- kaplan_now[(!kaplan_now$final_dmfs_status == "unknown"), ]
+    kaplan_now <- kaplan_now[!is.na(kaplan_now$final_dmfs_status), ]
+    kaplan_now <- kaplan_now[!is.nan(kaplan_now$final_dmfs_status), ]
+    kaplan_now <- kaplan_now[!kaplan_now$final_dmfs_status_times == "unknown", ]
+    tmp <- kaplan_now$final_dmfs_status_times == "dead_other_cause_before_relapse"
+    kaplan_now <- kaplan_now[!tmp, ]
+    kaplan_now <- kaplan_now[(!kaplan_now$final_dmfs_status_times == "day"), ]
+    kaplan_now <- kaplan_now[!is.na(kaplan_now$final_dmfs_status_times), ]
+    kaplan_now <- kaplan_now[!is.nan(kaplan_now$final_dmfs_status_times), ]
+    kaplan_now <- kaplan_now[!is.infinite(kaplan_now$final_dmfs_status_times), ]
+    kaplan_now$final_dmfs_status_times <- as.numeric(
+        kaplan_now$final_dmfs_status_times
+    )
 
     # Overall survival
-    KaplanTableNow$final_dmfs_status <- as.integer(gsub("metastasis", 1, gsub("censored", 0, KaplanTableNow$final_dmfs_status)))
+    kaplan_now$final_dmfs_status <- as.integer(gsub(
+        "metastasis", 1, gsub("censored", 0, kaplan_now$final_dmfs_status)
+    ))
+
+    kaplan_now$expression <- log2(kaplan_now[, name] + 1)
 
 
     # Fill table with patient amount - DMFS
-    rowsNow <- c(7,8)
-    PatientAmountTable_now[rowsNow,"type"] <- "DMFS"
-    PatientAmountTable_now[rowsNow,"classification"] <- c("low", "high")
-    PatientAmountTable_now[rowsNow[1],"amount"] <- as.numeric(table(KaplanTableNow[,"classification"])["low"])
-    PatientAmountTable_now[rowsNow[2],"amount"] <- as.numeric(table(KaplanTableNow[,"classification"])["high"])
+    rows_now <- c(7, 8)
+    patient_n[rows_now, "type"] <- "DMFS"
+    patient_n[rows_now, "classification"] <- c("low", "high")
+    patient_n[rows_now[1], "amount"] <- as.numeric(
+        table(kaplan_now[, "classification"])["low"]
+    )
+    patient_n[rows_now[2], "amount"] <- as.numeric(
+        table(kaplan_now[, "classification"])["high"]
+    )
 
-    PatientAmountTable_now[rowsNow[1],"percent"] <- PatientAmountTable_now[rowsNow[1], "amount"] / (PatientAmountTable_now[rowsNow[1], "amount"] + PatientAmountTable_now[rowsNow[2], "amount"])
-    PatientAmountTable_now[rowsNow[2],"percent"] <- PatientAmountTable_now[rowsNow[2], "amount"] / (PatientAmountTable_now[rowsNow[1], "amount"] + PatientAmountTable_now[rowsNow[2], "amount"])
+    tmp <- patient_n[rows_now[1], "amount"] + patient_n[rows_now[2], "amount"]
+    patient_n[rows_now[1], "percent"] <- patient_n[rows_now[1], "amount"] / tmp
+    patient_n[rows_now[2], "percent"] <- patient_n[rows_now[2], "amount"] / tmp
 
-
-    # Skip fitting
-
-    # Perform the fitting
-    remove(fit)
-    fit <- survival::survfit(survival::Surv(final_dmfs_status_times, final_dmfs_status) ~ classification_factorized,
-                data = KaplanTableNow)
-
-    #
-    if (sum(KaplanTableNow$final_dmfs_status) > 0) {
-        # Report p-value
-        sink(file = file.path(DIR, "kaplan_maier",
-                            paste0(Name,"_Kaplan_dmfs_survival", ".txt")))
-        print(summary(survival::coxph(survival::Surv(final_dmfs_status_times, final_dmfs_status) ~ classification_factorized,
-                            data = KaplanTableNow)))
-        sink()
-    }
-
-    # Plot data
-    if (tolower(image_format) == "png") {
-        png(filename = file.path(DIR, "kaplan_maier",
-                                paste0(Name,"Kaplan_dmfs_survival", ".png")),
-            width = Width, height = Height, res = Res, units = Unit)
-    } else if (tolower(image_format) == "svg") {
-        svg(filename = file.path(DIR, "kaplan_maier",
-                                paste0(Name,"Kaplan_dmfs_survival", ".svg")),
-            width = Width, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
-    }
-    par(mar = c(3,3,3,6))
-    print(survminer::ggsurvplot(fit, data = KaplanTableNow, risk.table = TRUE,
-                    linetype = c(1,1), conf.int = TRUE,
-                    palette = c("#4575b4", "#d73027"),
-                    ggtheme = ggplot2::theme_bw(),
-                    size = 2,
-                    font.main = 30,
-                    font.x =  26,
-                    font.y = 26,
-                    font.tickslab = 24))
-    dev.off()
-
-    # Create 5yr status
-    KaplanTableNow$yr5_status <- "unknown"
-    KaplanTableNow$yr5_status[KaplanTableNow$final_dmfs_status_times >= (365*5)] <- "nonmetas_5yr"
-    KaplanTableNow$yr5_status[(KaplanTableNow$final_dmfs_status_times < (365*5) & KaplanTableNow$final_dmfs_status == 1)] <- "metas_5yr"
-
-    KaplanTableNow$yr5_status <- as.factor(KaplanTableNow$yr5_status)
-
-    # define the formula now
-    formulaNow <- formula(log2(get(Name)+1) ~ yr5_status)
-
-    # check to skip one conditions
-    if (length(unique(KaplanTableNow$yr5_status)) >= 2) {
-        # ANOVA followed by tukey
-        sink(file = file.path(DIR, "kaplan_maier",
-                            paste0(Name,"_PiratePlot_log2RSEM__5yr_dmfs_anova_tukey.txt")))
-
-        fit <- aov(formulaNow, data = KaplanTableNow)
-
-        cat("********************\n")
-        cat(paste("A - ANOVA","\n", sep = ""))
-        print(summary(fit))
-
-
-        cat("********************\n")
-        cat(paste("B - Shapiro Test for Normality","\n", sep = ""))
-        cat("\n")
-        cat(paste("*B1 - all values test","\n", sep = ""))
-        print(shapiro.test(log2(KaplanTableNow[, Name] + 1)))
-        cat(paste("*B2 - fit residuals test","\n", sep = ""))
-        print(shapiro.test(residuals(fit)))
-
-        cat("\n")
-        cat("********************\n")
-        cat(paste("C - Tukey Honest Significant Differences post-test","\n",
-                sep = ""))
-        print(TukeyHSD(fit))
-
-        sink()
-
-        # Kruskal-wallis followd by Wilcoxon test (for nono-parametric assumption)
-        sink(file = file.path(DIR, "kaplan_maier",
-                            paste0(Name,"_PiratePlot_log2RSEM__5yr_dmfs_kruskal_wilcoxon.txt")))
-        cat("********************\n")
-        cat(paste("A - Kruskal-Wallis test","\n", sep = ""))
-
-        print(kruskal.test(data = KaplanTableNow, formulaNow))
-
-        cat("********************\n")
-        cat(paste("B - Non-adjusted Wilcoxon (Mann-Whitney U)","\n", sep = ""))
-        print(pairwise.wilcox.test(x = log2(KaplanTableNow[, Name] + 1),
-                                g = KaplanTableNow[, "yr5_status"],
-                                p.adjust.method = "none",
-                                paired = FALSE,
-                                exact = TRUE,
-                                correct = TRUE,
-                                alternative = "two.sided"))
-
-        cat("\n")
-        cat("********************\n")
-        cat(paste("C - Benjamini FDR adjusted Wilcoxon (Mann-Whitney U)","\n",
-                sep = ""))
-        print(pairwise.wilcox.test(x = log2(KaplanTableNow[, Name] + 1),
-                                g = KaplanTableNow[,"yr5_status"],
-                                p.adjust.method = "fdr",
-                                paired = FALSE,
-                                exact = TRUE,
-                                correct = TRUE,
-                                alternative = "two.sided"))
-        sink()
+    if (sum(kaplan_now$final_dmfs_status) > 0) {
+        cox_ph(step = "dmfs")
+        surv_plot(step = "dmfs")
     }
 
 
-    # Clean formula now
-    remove(formulaNow)
-    remove(KaplanTableNow)
-
-    ### patient amount plot
-    #Fix factor
-    PatientAmountTable_now$type <- factor(PatientAmountTable_now$type, levels = c("All", "OSurv", "Relapse", "DMFS"))
-    PatientAmountTable_now$classification <- factor(PatientAmountTable_now$classification, levels = c("high", "low"))
+    # NOTE PatientAmount
+    patient_n$type <- factor(
+        patient_n$type,
+        levels = c("All", "OSurv", "Relapse", "DMFS")
+    )
+    patient_n$classification <- factor(
+        patient_n$classification,
+        levels = c("high", "low")
+    )
 
     # Add position for plotting
-    PatientAmountTable_now$pos <- 0
-    for (type in levels(PatientAmountTable_now$type)) {
-        lines <- PatientAmountTable_now$type == type
-        numbers <- PatientAmountTable_now$amount[lines]
-        PatientAmountTable_now$pos[lines] <- cumsum(numbers) - (0.5 * numbers)
+    patient_n$pos <- 0
+    for (type in levels(patient_n$type)) {
+        lines <- patient_n$type == type
+        numbers <- patient_n$amount[lines]
+        patient_n$pos[lines] <- cumsum(numbers) - (0.5 * numbers)
     }
 
     # Add percents
-    PatientAmountTable_now$percent <- (PatientAmountTable_now$percent * 100)
-    PatientAmountTable_now$percent <- round(PatientAmountTable_now$percent, 0)
+    patient_n$percent <- (patient_n$percent * 100)
+    patient_n$percent <- round(patient_n$percent, 0)
 
-
-    # Pirate plotting - Basic
-    if (tolower(image_format) == "png") {
-        png(filename = file.path(DIR, "kaplan_maier",
-                                paste0(Name,"_PatientAmount.png")),
-            width = Width/2, height = Height, res = Res, units = Unit)
-    } else if (tolower(image_format) == "svg") {
-        svg(filename = file.path(DIR, "kaplan_maier",
-                                paste0(Name,"_PatientAmount.svg")),
-            width = Width/2, height = Height, onefile = TRUE)
-    } else {
-        stop(message("Please, Insert a valid image_format! ('png' or 'svg')"))
-    }
-    # Start ggplot2 for patient amount
+    save_plot("kaplan_meier", "_PatientAmount")
     p4 <- ggplot2::ggplot() +
         ggplot2::theme_bw() +
-        ggplot2::geom_bar(ggplot2::aes(y = amount, x = type,
-                                        fill = classification),
-                            data = PatientAmountTable_now,
-                    stat = "identity") +
-        ggplot2::geom_text(data = PatientAmountTable_now,
-                            ggplot2::aes(x = type, y = pos,
-                                        label = paste0(percent, "%")),
-                    size = 3.6) +
-        ggplot2::scale_fill_manual(values = c(rgb(215, 48, 39, 220),
-                                            rgb(69, 117, 200, 180))) +
-        ggplot2::theme(legend.position = "bottom",
-                        legend.direction = "horizontal",
-                legend.title = ggplot2::element_blank(),
-                panel.grid.major = ggplot2::element_blank(),
-                panel.grid.minor = ggplot2::element_blank(),
-                axis.text.x = ggplot2::element_text(colour = "black",
-                                                    size = 14),
-                axis.text.y = ggplot2::element_text(colour = "black",
-                                                    size = 13)
+        ggplot2::geom_bar(ggplot2::aes(
+            y = amount, x = type,
+            fill = classification
+        ),
+        data = patient_n,
+        stat = "identity"
+        ) +
+        ggplot2::geom_text(
+            data = patient_n,
+            ggplot2::aes(
+                x = type, y = pos,
+                label = paste0(percent, "%")
+            ),
+            size = 3.6
+        ) +
+        ggplot2::scale_fill_manual(values = c(
+            hsv(.008, .82, .84, .86),
+            hsv(.61, .66, .78, .70)
+        )) +
+        ggplot2::theme(
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.title = ggplot2::element_blank(),
+            panel.grid.major = ggplot2::element_blank(),
+            panel.grid.minor = ggplot2::element_blank(),
+            axis.text.x = ggplot2::element_text(
+                colour = "black",
+                size = 14
+            ),
+            axis.text.y = ggplot2::element_text(
+                colour = "black",
+                size = 13
+            )
         )
     print(p4)
     dev.off()
 
 
     # Save table with patient amounts
-    write.csv(PatientAmountTable_now, file.path(DIR, "kaplan_maier",
-                                                paste0("PatientAmount_",
-                                                        Name, ".csv")))
-
-
-    # CLINICAL CONTINGENCY TABLE
-
-    #create empty table
-    ClinicoPathologicalTable <- matrix()
-
-    # pathologic_stage
-    clinicalNameNow <- "pathologic_stage"
-    # Collect data
-    clinicoNow <- framesList[,c("full_classification",
-                                            clinicalNameNow)]
-
-    # summary stage
-    clinicoNow$summary_simple <- "remove"
-
-    "I" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("Stage I", "Stage IA", "Stage IB", "Stage IC")]
-    "II" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("Stage II", "Stage IIA", "Stage IIB", "Stage IIC")]
-    "III" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("Stage III", "Stage IIIA", "Stage IIIB", "Stage IIIC")]
-    "IV" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("Stage IV", "Stage IVA", "Stage IVB", "Stage IVC")]
-
-    # Collect just tumors low high
-    clinicoNow <- clinicoNow[clinicoNow[, "full_classification"] %in% c("low", "high"),]
-
-    # remove non classified lines
-    clinicoNow <- clinicoNow[!clinicoNow$summary_simple == "remove",]
-
-    # Drop unused levels
-    clinicoNow[,"full_classification"] <- droplevels(clinicoNow[,"full_classification"])
-
-    #
-    # calculate N sizes
-    n_now <- table(clinicoNow[,"full_classification"])
-    n_prop_now <- round(prop.table(n_now)*100, 1)
-
-
-    # check
-    if (dim(clinicoNow)[1] > 2) {
-
-        # Create table
-        contingencyNow <- table(clinicoNow$summary_simple,
-                                clinicoNow[,"full_classification"])
-        contingencyNow_percent <- round(prop.table(contingencyNow)*100, 1)
-
-        # join information in order
-        # as total followed by percents
-        ClinicoPathologicalTable_now <- rbind(c(clinicalNameNow, "", "", "", round(chisq.test(contingencyNow)$p.value, 4)),
-                                            c("size", n_now[1], n_prop_now[1], n_now[2], n_prop_now[2]),
-                                            cbind(rownames(contingencyNow),
-                                                    unname(contingencyNow[, 1, drop = TRUE]),
-                                                    unname(contingencyNow_percent[,1,drop = TRUE]),
-                                                    unname(contingencyNow[, 2, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 2, drop = TRUE]))
+    write.csv(patient_n, file.path(
+        dir, "kaplan_meier",
+        paste0(
+            "PatientAmount_",
+            name, ".csv"
         )
+    ))
 
-        colnames(ClinicoPathologicalTable_now) <- c("type", colnames(contingencyNow)[1], colnames(contingencyNow_percent)[1], colnames(contingencyNow)[2], colnames(contingencyNow_percent)[2])
+    clinical_groups <- framel[, c("group", "classification")]
+    rownames(clinical_groups) <- framel[, "patient_code"]
 
-        # Add or join
-        #ClinicoPathologicalTable <- rbind(ClinicoPathologicalTable, ClinicoPathologicalTable_now)
-        ClinicoPathologicalTable <- ClinicoPathologicalTable_now
+    assign("clinical_groups", clinical_groups, envir = get(ev))
 
-
-    } else {
-        ClinicoPathologicalTable <- matrix(ncol = 5, nrow = 0)
-        colnames(ClinicoPathologicalTable) <- c("type", "high", "high", "low", "low")
-    }
-
-
-    # pathologic_T
-    clinicalNameNow <- "pathologic_T"
-    # Collect data
-    clinicoNow <- framesList[, c("full_classification", clinicalNameNow)]
-
-    # summary stage
-    clinicoNow$summary_simple <- "remove"
-
-    "T1" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("T1", "T1a", "T1b", "T1c", "T1d")]
-    "T2" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("T2", "T2a", "T2b", "T2c", "T2d")]
-    "T3" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("T3", "T3a", "T3b", "T3c", "T3d")]
-    "T4" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("T4", "T4a", "T4b", "T4c", "T4d")]
-
-    # Collect just tumors low high
-    clinicoNow <- clinicoNow[clinicoNow[,"full_classification"] %in% c("low", "high"),]
-
-    # remove non classified lines
-    clinicoNow <- clinicoNow[!clinicoNow$summary_simple == "remove",]
-
-    # Drop unused levels
-    clinicoNow[,"full_classification"] <- droplevels(clinicoNow[,"full_classification"])
-
-    #
-    #
-    # calculate N sizes
-    n_now <- table(clinicoNow[,"full_classification"])
-    n_prop_now <- round(prop.table(n_now)*100, 1)
-
-
-    # check
-    if (dim(clinicoNow)[1] > 2) {
-
-        # Create table
-        contingencyNow <- table(clinicoNow$summary_simple,
-                                clinicoNow[,"full_classification"])
-        contingencyNow_percent <- round(prop.table(contingencyNow)*100, 1)
-
-        # join information in order
-        # as total followed by percents
-        ClinicoPathologicalTable_now <- rbind(c(clinicalNameNow, "", "", "", round(chisq.test(contingencyNow)$p.value, 4)),
-                                            c("size", n_now[1], n_prop_now[1], n_now[2], n_prop_now[2]),
-                                            cbind(rownames(contingencyNow),
-                                                    unname(contingencyNow[, 1, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 1, drop = TRUE]),
-                                                    unname(contingencyNow[, 2, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 2, drop = TRUE]))
-        )
-
-        colnames(ClinicoPathologicalTable_now) <- c("type", colnames(contingencyNow)[1], colnames(contingencyNow_percent)[1], colnames(contingencyNow)[2], colnames(contingencyNow_percent)[2])
-
-        # Add or join
-        ClinicoPathologicalTable <- rbind(ClinicoPathologicalTable, ClinicoPathologicalTable_now)
-    }
-
-    # pathologic_N
-    clinicalNameNow <- "pathologic_N"
-    # Collect data
-    clinicoNow <- framesList[, c("full_classification", clinicalNameNow)]
-
-    # summary stage
-    clinicoNow$summary_simple <- "remove"
-
-    "N0" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("N0", "N0 (i-)", "N0 (i+)", "N0 (mol+)")]
-    "N1" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("N1", "N1a", "N1b", "N1c", "N1d", "N1mi")]
-    "N2" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("N2", "N2a", "N2b", "N2c", "N2d")]
-    "N3" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("N3", "N3a", "N3b", "N3c", "N3d")]
-
-    # Collect just tumors low high
-    clinicoNow <- clinicoNow[clinicoNow[, "full_classification"] %in% c("low", "high"),]
-
-    # remove non classified lines
-    clinicoNow <- clinicoNow[!clinicoNow$summary_simple == "remove", ]
-
-    # Drop unused levels
-    clinicoNow[,"full_classification"] <- droplevels(clinicoNow[,"full_classification"])
-
-    # calculate N sizes
-    n_now <- table(clinicoNow[,"full_classification"])
-    n_prop_now <- round(prop.table(n_now)*100, 1)
-
-
-    # check
-    if (dim(clinicoNow)[1] > 2) {
-
-        # Create table
-        contingencyNow <- table(clinicoNow$summary_simple,
-                                clinicoNow[,"full_classification"])
-        contingencyNow_percent <- round(prop.table(contingencyNow)*100, 1)
-
-        # join information in order
-        # as total followed by percents
-        ClinicoPathologicalTable_now <- rbind(c(clinicalNameNow, "", "", "", round(chisq.test(contingencyNow)$p.value, 4)),
-                                            c("size", n_now[1], n_prop_now[1], n_now[2], n_prop_now[2]),
-                                            cbind(rownames(contingencyNow),
-                                                    unname(contingencyNow[, 1, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 1, drop = TRUE]),
-                                                    unname(contingencyNow[, 2, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 2, drop = TRUE]))
-        )
-
-        colnames(ClinicoPathologicalTable_now) <- c("type", colnames(contingencyNow)[1], colnames(contingencyNow_percent)[1], colnames(contingencyNow)[2], colnames(contingencyNow_percent)[2])
-
-        # Add or join
-        ClinicoPathologicalTable <- rbind(ClinicoPathologicalTable, ClinicoPathologicalTable_now)
-    }
-
-    # pathologic_M
-    clinicalNameNow <- "pathologic_M"
-    # Collect data
-    clinicoNow <- framesList[,c("full_classification",
-                                        clinicalNameNow)]
-
-    # summary stage
-    clinicoNow$summary_simple <- "remove"
-
-    "M0" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("cM0 (i+)", "M0")]
-    "M1" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("M1")]
-
-    # Collect just tumors low high
-    clinicoNow <- clinicoNow[clinicoNow[,"full_classification"] %in% c("low", "high"),]
-
-    # remove non classified lines
-    clinicoNow <- clinicoNow[!clinicoNow$summary_simple == "remove",]
-
-    # Drop unused levels
-    clinicoNow[,"full_classification"] <- droplevels(clinicoNow[,"full_classification"])
-
-
-    # calculate N sizes
-    n_now <- table(clinicoNow[,"full_classification"])
-    n_prop_now <- round(prop.table(n_now)*100, 1)
-
-
-    # check
-    if (dim(clinicoNow)[1] > 2) {
-
-        # Create table
-        contingencyNow <- table(clinicoNow$summary_simple,
-                                clinicoNow[,"full_classification"])
-        contingencyNow_percent <- round(prop.table(contingencyNow)*100, 1)
-
-        # join information in order
-        # as total followed by percents
-        ClinicoPathologicalTable_now <- rbind(c(clinicalNameNow, "", "", "", round(chisq.test(contingencyNow)$p.value, 4)),
-                                            c("size", n_now[1], n_prop_now[1], n_now[2], n_prop_now[2]),
-                                            cbind(rownames(contingencyNow),
-                                                    unname(contingencyNow[, 1, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 1, drop = TRUE]),
-                                                    unname(contingencyNow[, 2, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 2, drop = TRUE]))
-        )
-
-        colnames(ClinicoPathologicalTable_now) <- c("type", colnames(contingencyNow)[1], colnames(contingencyNow_percent)[1], colnames(contingencyNow)[2], colnames(contingencyNow_percent)[2])
-
-        # Add or join
-        ClinicoPathologicalTable <- rbind(ClinicoPathologicalTable, ClinicoPathologicalTable_now)
-    }
-
-    # gender
-    clinicalNameNow <- "gender"
-    # Collect data
-    clinicoNow <- framesList[,c("full_classification",
-                                        clinicalNameNow)]
-
-    # summary stage
-    clinicoNow$summary_simple <- "remove"
-
-    "Male" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("MALE")]
-    "Female" -> clinicoNow$summary_simple[clinicoNow[,clinicalNameNow] %in% c("FEMALE")]
-
-    # Collect just tumors low high
-    clinicoNow <- clinicoNow[clinicoNow[,"full_classification"] %in% c("low", "high"),]
-
-    # remove non classified lines
-    clinicoNow <- clinicoNow[!clinicoNow$summary_simple == "remove",]
-
-    # Drop unused levels
-    clinicoNow[,"full_classification"] <- droplevels(clinicoNow[,"full_classification"])
-
-    #
-    #
-    # calculate N sizes
-    n_now <- table(clinicoNow[,"full_classification"])
-    n_prop_now <- round(prop.table(n_now)*100, 1)
-
-
-    # check
-    if (dim(clinicoNow)[1] > 2) {
-
-        # Create table
-        contingencyNow <- table(clinicoNow$summary_simple,
-                                clinicoNow[,"full_classification"])
-        contingencyNow_percent <- round(prop.table(contingencyNow)*100, 1)
-
-        # join information in order
-        # as total followed by percents
-        ClinicoPathologicalTable_now <- rbind(c(clinicalNameNow, "", "", "", round(chisq.test(contingencyNow)$p.value, 4)),
-                                            c("size", n_now[1], n_prop_now[1], n_now[2], n_prop_now[2]),
-                                            cbind(rownames(contingencyNow),
-                                                    unname(contingencyNow[, 1, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 1, drop = TRUE]),
-                                                    unname(contingencyNow[, 2, drop = TRUE]),
-                                                    unname(contingencyNow_percent[, 2, drop = TRUE]))
-        )
-
-        colnames(ClinicoPathologicalTable_now) <- c("type", colnames(contingencyNow)[1], colnames(contingencyNow_percent)[1], colnames(contingencyNow)[2], colnames(contingencyNow_percent)[2])
-
-        # Add or join
-        ClinicoPathologicalTable <- rbind(ClinicoPathologicalTable, ClinicoPathologicalTable_now)
-    }
-
-    # Save clinicopathological table
-    write.table(ClinicoPathologicalTable,
-                file = file.path(DIR, "kaplan_maier",
-                                paste0(Name, "_Clinical_table.txt")),
-                sep = "\t")
-
-
-    clinical_groups <- framesList[, c("full_classification", "classification")]
-    rownames(clinical_groups) <- framesList[, "PatientCode"]
-
-    assign("clinical_groups", clinical_groups, envir = get(envir_link))
-
-    write.csv(clinical_groups, file = file.path(DIR, "clinical_groups"))
+    write.csv(clinical_groups, file = file.path(dir, "clinical_groups"))
 
     gc()
     message("Done!\n")
-
 }

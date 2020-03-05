@@ -1,14 +1,16 @@
 #' Generate plot for Principal Component Analysis
 #'
-#' @param Tool
-#' @param Name
-#' @param workDir
-#' @param pairName
-#' @param Width,Height,Res,Unit,image_format
+#' @param tool
+#' @param name
+#' @param work_dir
+#' @param pair_name
+#' @param width,height,res,unit,image_format
 #' @param env
+#' @inheritParams gonto
+#' @inheritParams concatenate_exon
+#' @inheritParams download_gdc
+#' @inheritParams dea_ebseq
 #' @inheritParams groups_identification_mclust
-#' @inheritParams dea_EBSeq
-#' @inheritParams GOnto
 #'
 #' @return the PCAs plots.
 #' @export
@@ -17,190 +19,283 @@
 #' @importFrom RColorBrewer brewer.pal
 #'
 #' @examples
-#' \dontrun{
-#' PCA_Analysis("EBSeq", "gene", "HIF3A", pairName = "G2_over_G1", env = "env name without quotes")
-#' }
-PCA_Analysis <- function(Tool,
-                        Name, workDir,
-                        pairName = "G2_over_G1",
-                        Width = 4,
-                        Height = 2,
-                        Res = 300,
-                        Unit = "in",
+#' library(DOAGDC)
+#'
+#' # data already downloaded using the 'download_gdc' function
+#' concatenate_expression("gene",
+#'    name = "HIF3A",
+#'    data_base = "legacy",
+#'    tumor = "CHOL",
+#'    work_dir = "~/Desktop"
+#' )
+#'
+#' # separating gene HIF3A expression data patients in two groups
+#' groups_identification_mclust("gene", 2,
+#'    name = "HIF3A",
+#'    modelName = "E",
+#'    env = CHOL_LEGACY_gene_tumor_data,
+#'    tumor = "CHOL"
+#' )
+#'
+#' # load not normalized data
+#' concatenate_expression("gene",
+#'    normalization = FALSE,
+#'    name = "HIF3A",
+#'    data_base = "legacy",
+#'    tumor = "CHOL",
+#'    env = CHOL_LEGACY_gene_tumor_data,
+#'    work_dir = "~/Desktop"
+#' )
+#'
+#' # start DE analysis
+#' # considering concatenate_expression and groups_identification already runned
+#' dea_edger(
+#'    name = "HIF3A",
+#'    group_gen = "mclust",
+#'    env = CHOL_LEGACY_gene_tumor_data
+#' )
+#'
+#' pca_analysis("edgeR", "HIF3A", "~/Desktop",
+#'    pair_name = "G2_over_G1",
+#'    env = CHOL_LEGACY_gene_tumor_data
+#' )
+pca_analysis <- function(tool,
+                        name, work_dir,
+                        pair_name = "G2_over_G1",
+                        width = 4,
+                        height = 2,
+                        res = 300,
+                        unit = "in",
                         image_format = "png",
                         env) {
 
     # local function ####
-    PCA_Anal_local <- function(SIZE, FILE){
-        if (tolower(SIZE) == "all") {
+    pca_local <- function(size, file) {
+        if (tolower(size) == "all") {
+            genetop <- size
+            para_heatmaps <- normalized_expression[match(
+                rownames(resultados_de),
+                rownames(normalized_expression)
+            ), ]
 
-            GENETOP <- SIZE
-            ParaHeatmaps <- NormalizedExpression[match(rownames(resultadosDE),
-                                            rownames(NormalizedExpression)), ]
-
-            ir.pca <- prcomp(t(log2(ParaHeatmaps+1)),
-                            center = TRUE,
-                            scale. = TRUE)
+            ir_pca <- prcomp(t(log2(para_heatmaps + 1)),
+                center = TRUE,
+                scale. = TRUE
+            )
 
             if (tolower(image_format) == "png") {
-                png(filename = paste0(DIR, FILE, ".png"),
-                    width = Width, height = Height, res = Res, units = Unit)
+                png(
+                    filename = paste0(dir, file, ".png"),
+                    width = width, height = height, res = res, units = unit
+                )
             } else if (tolower(image_format) == "svg") {
-                svg(filename = paste0(DIR, FILE, ".svg"),
-                    width = Width, height = Height, onefile = TRUE)
+                svg(
+                    filename = paste0(dir, file, ".svg"),
+                    width = width, height = height, onefile = TRUE
+                )
             } else {
-                stop(message("Please, Insert a valid image_format!",
-                                                        " ('png' or 'svg')"))
+                stop(message(
+                    "Please, Insert a valid image_format!",
+                    " ('png' or 'svg')"
+                ))
             }
-            a <- ggbiplot::ggbiplot(ir.pca, choices = 1:2,
-                                    obs.scale = 1,
-                                    var.scale = 1,
-                                    groups = condHeatmap,
-                                    ellipse = TRUE,
-                                    circle = TRUE,
-                                    alpha = 0.5,
-                                    var.axes = FALSE) +
-                scale_color_manual(name = 'Groups',
-                                values = color_pallete[unique(condHeatmap)]) +
-                theme(axis.title.y = element_text(size = rel(0.6),
-                                                                angle = 90)) +
-                theme(axis.title.x = element_text(size = rel(0.6),
-                                                                angle = 00)) +
-                theme(legend.title = element_text(size=4, face = "bold")) +
-                theme(legend.text = element_text(size=4, face = "bold"))
+            a <- ggbiplot::ggbiplot(ir_pca,
+                choices = 1:2,
+                obs.scale = 1,
+                var.scale = 1,
+                groups = cond_heatmap,
+                ellipse = TRUE,
+                circle = TRUE,
+                alpha = 0.5,
+                var.axes = FALSE
+            ) +
+                scale_color_manual(
+                    name = "Groups",
+                    values = color_pallete[unique(cond_heatmap)]
+                ) +
+                theme(axis.title.y = element_text(
+                    size = rel(0.6),
+                    angle = 90
+                )) +
+                theme(axis.title.x = element_text(
+                    size = rel(0.6),
+                    angle = 00
+                )) +
+                theme(legend.title = element_text(size = 4, face = "bold")) +
+                theme(legend.text = element_text(size = 4, face = "bold"))
             print(a)
             dev.off()
-
-        } else if(is.numeric(SIZE)) {
-
-            GENETOP <- SIZE
-
-            resultadosPlot <- resultadosDE[order(resultadosDE$FDR, -abs(resultadosDE$FC)), ]
-            resultadosPlot <- resultadosPlot[1:GENETOP, ]
+        } else if (is.numeric(size)) {
+            genetop <- size
+            tmp <- order(resultados_de$fdr, -abs(resultados_de$fc))
+            resultados_plot <- resultados_de[tmp, ]
+            resultados_plot <- resultados_plot[1:genetop, ]
 
             # Separacao para os heatmaps
-            ParaHeatmaps <- NormalizedExpression[match(rownames(resultadosPlot), rownames(NormalizedExpression)), ]
-            ParaHeatmaps <- na.exclude(ParaHeatmaps)
+            tmp <- match(rownames(resultados_plot),
+                                            rownames(normalized_expression))
+            para_heatmaps <- normalized_expression[tmp, ]
+            para_heatmaps <- na.exclude(para_heatmaps)
 
-            ir.pca <- prcomp(t(log2(ParaHeatmaps+1)),
-                                center = TRUE,
-                                scale. = TRUE)
+            ir_pca <- prcomp(t(log2(para_heatmaps + 1)),
+                center = TRUE,
+                scale. = TRUE
+            )
 
             if (tolower(image_format) == "png") {
-                png(filename = paste0(DIR, FILE, "2.png"),
-                    width = Width, height = Height, res = Res, units = Unit)
+                png(
+                    filename = paste0(dir, file, "2.png"),
+                    width = width, height = height, res = res, units = unit
+                )
             } else if (tolower(image_format) == "svg") {
-                svg(filename = paste0(DIR, FILE, "2.svg"),
-                    width = Width, height = Height, onefile = TRUE)
+                svg(
+                    filename = paste0(dir, file, "2.svg"),
+                    width = width, height = height, onefile = TRUE
+                )
             } else {
-                stop(message("Please, Insert a valid image_format!",
-                                                        " ('png' or 'svg')"))
+                stop(message(
+                    "Please, Insert a valid image_format!",
+                    " ('png' or 'svg')"
+                ))
             }
-            a <- ggbiplot::ggbiplot(ir.pca, choices = 1:2,
-                                    obs.scale = 1,
-                                    var.scale = 1,
-                                    groups = condHeatmap,
-                                    ellipse = TRUE,
-                                    circle = TRUE,
-                                    alpha = 0.5,
-                                    var.axes = FALSE) +
-                scale_color_manual(name = 'Groups',
-                                values = color_pallete[unique(condHeatmap)]) +
-                theme(axis.title.y = element_text(size = rel(0.6),
-                                                                angle = 90)) +
-                theme(axis.title.x = element_text(size = rel(0.6),
-                                                                angle = 00)) +
-                theme(legend.title = element_text(size=4, face = "bold")) +
-                theme(legend.text = element_text(size=4, face = "bold"))
+            a <- ggbiplot::ggbiplot(ir_pca,
+                choices = 1:2,
+                obs.scale = 1,
+                var.scale = 1,
+                groups = cond_heatmap,
+                ellipse = TRUE,
+                circle = TRUE,
+                alpha = 0.5,
+                var.axes = FALSE
+            ) +
+                scale_color_manual(
+                    name = "Groups",
+                    values = color_pallete[unique(cond_heatmap)]
+                ) +
+                theme(axis.title.y = element_text(
+                    size = rel(0.6),
+                    angle = 90
+                )) +
+                theme(axis.title.x = element_text(
+                    size = rel(0.6),
+                    angle = 00
+                )) +
+                theme(legend.title = element_text(size = 4, face = "bold")) +
+                theme(legend.text = element_text(size = 4, face = "bold"))
             print(a)
             dev.off()
         }
     }
 
     # code ####
-    Name <- gsub("-", "_", Name)
+    name <- gsub("-", "_", name)
 
     if (missing(env)) {
-        stop(message("The 'env' argument is missing, please insert the ",
-                                                "'env' name and try again!"))}
-
-    envir_link <- deparse(substitute(env))
-    string_vars <- list(envir_link = get(envir_link))
-
-    if (missing("workDir")){
-        workDir <- string_vars[["envir_link"]]$workDir
+        stop(message(
+            "The 'env' argument is missing, please insert the ",
+            "'env' name and try again!"
+        ))
     }
 
-    if (exists("Name.e", envir = get(envir_link))){
-        PATH <- file.path(string_vars[["envir_link"]]$PATH,
-                                            string_vars[["envir_link"]]$Name.e)
+    ev <- deparse(substitute(env))
+    sv <- list(ev = get(ev))
+
+    work_dir <- ifelse(missing("work_dir"), sv[["ev"]]$work_dir, work_dir)
+
+    path <- ifelse(exists("name_e", envir = get(ev)),
+        file.path(
+            sv[["ev"]]$path,
+            sv[["ev"]]$name_e
+        ), sv[["ev"]]$path)
+
+    group_gen <- sv[["ev"]]$group_gen
+
+    # creating the dir to outputs
+    if (tolower(tool) == "ebseq") {
+        dir <- paste0(
+            path, "/EBSeq_Results.",
+            tolower(group_gen), "_", toupper(name)
+        )
+        resultados_de <- sv[["ev"]]$resultados_de_ebseq[[pair_name]]
+        normalized_expression <- sv[["ev"]]$normalized_expression_ebseq
+    } else if (tolower(tool) == "edger") {
+        dir <- paste0(
+            path, "/edgeR_Results.",
+            tolower(group_gen), "_", toupper(name)
+        )
+        resultados_de <- sv[["ev"]]$resultados_de_edger[[pair_name]]
+        normalized_expression <- sv[["ev"]]$normalized_expression_edger
+    } else if (tolower(tool) == "deseq2") {
+        dir <- paste0(
+            path, "/DESeq2_Results.",
+            tolower(group_gen), "_", toupper(name)
+        )
+        resultados_de <- sv[["ev"]]$resultados_de_deseq2[[pair_name]]
+        normalized_expression <- sv[["ev"]]$normalized_expression_deseq2
+    } else if (tolower(tool) == "crosstable.deseq2") {
+        dir <- paste0(path, "/CrossData_deseq2")
+        resultados_de <- sv[["ev"]]$resultados_de_crossed[[pair_name]]
+        normalized_expression <- sv[["ev"]]$normalized_expression_deseq2
+    } else if (tolower(tool) == "crosstable.edger") {
+        dir <- paste0(path, "/CrossData_edger")
+        resultados_de <- sv[["ev"]]$resultados_de_crossed[[pair_name]]
+        normalized_expression <- sv[["ev"]]$normalized_expression_edger
+    } else if (tolower(tool) == "crosstable.ebseq") {
+        dir <- paste0(path, "/CrossData_ebseq")
+        resultados_de <- sv[["ev"]]$resultados_de_crossed[[pair_name]]
+        normalized_expression <- sv[["ev"]]$normalized_expression_ebseq
     } else {
-        PATH <- string_vars[["envir_link"]]$PATH
+        stop(message(
+            "Please, insert a valid tool name!",
+            " ('EBSeq', 'DESeq2' or 'edgeR')"
+        ))
     }
+    dir.create(file.path(dir, "PCA_Plots"), showWarnings = FALSE)
 
-    groupGen <- string_vars[["envir_link"]]$groupGen
+    cond_heatmap <- eval(parse(text = paste0(
+        "sv",
+        "[['ev']]$cond_heatmap"
+    )))
 
-    #creating the dir to outputs
-    if (tolower(Tool) == "ebseq") {
-        DIR <- paste0(PATH, "/EBSeq_Results.",
-                    tolower(groupGen), "_", toupper(Name))
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.EBSeq[[pairName]]
-        NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.EBSeq
-    } else if (tolower(Tool) == "edger") {
-        DIR <- paste0(PATH, "/edgeR_Results.",
-                    tolower(groupGen), "_", toupper(Name))
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.edgeR[[pairName]]
-        NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.edgeR
-    } else if (tolower(Tool) == "deseq2") {
-        DIR <- paste0(PATH, "/DESeq2_Results.",
-                    tolower(groupGen), "_", toupper(Name))
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE.DESeq2[[pairName]]
-        NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
-    } else if (tolower(Tool) == "crosstable.deseq2") {
-        DIR <- paste0(PATH, "/CrossData_deseq2")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
-        NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.DESeq2
-    } else if (tolower(Tool) == "crosstable.edger") {
-        DIR <- paste0(PATH, "/CrossData_edger")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
-        NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.edgeR
-    } else if (tolower(Tool) == "crosstable.ebseq") {
-        DIR <- paste0(PATH, "/CrossData_ebseq")
-        resultadosDE <- string_vars[["envir_link"]]$resultadosDE_crossed[[pairName]]
-        NormalizedExpression <- string_vars[["envir_link"]]$NormalizedExpression.EBSeq
-    } else {
-        stop(message("Please, insert a valid Tool name!",
-                                            " ('EBSeq', 'DESeq2' or 'edgeR')"))
-    }
-    dir.create(file.path(DIR, "PCA_Plots"), showWarnings = FALSE)
-
-    condHeatmap <- eval(parse(text = paste0("string_vars",
-                                            "[['envir_link']]$condHeatmap")))
-
-    patients_stay <- unlist(strsplit(gsub("G", "", pairName), "_over_"))
+    patients_stay <- unlist(strsplit(gsub("G", "", pair_name), "_over_"))
 
     # keep the desired group pair
-    NormalizedExpression <- NormalizedExpression[, condHeatmap %in% patients_stay]
+    tmp <- cond_heatmap %in% patients_stay
+    normalized_expression <- normalized_expression[, tmp]
 
-    condHeatmap <- droplevels(condHeatmap[condHeatmap %in% patients_stay])
+    cond_heatmap <- droplevels(cond_heatmap[cond_heatmap %in% patients_stay])
 
     color_pallete <- RColorBrewer::brewer.pal(8, "Set2")
 
-    if (nrow(resultadosDE) != 0 ) {
-        PCA_Anal_local(SIZE = "All", FILE = paste0("/PCA_Plots/",
-                                                "PCA_GENETOP=all_", pairName))
-        PCA_Anal_local(SIZE = nrow(resultadosDE)%/%4,
-                FILE = paste0("/PCA_Plots/PCA_GENETOP=",
-                            nrow(resultadosDE)%/%4,
-                            "_", pairName))
-        PCA_Anal_local(SIZE = nrow(resultadosDE)%/%2,
-                FILE = paste0("/PCA_Plots/PCA_GENETOP=",
-                            nrow(resultadosDE)%/%2,
-                            "_", pairName))
-        PCA_Anal_local(SIZE = (3*nrow(resultadosDE))%/%4,
-                FILE = paste0("/PCA_Plots/PCA_GENETOP=",
-                            (3*nrow(resultadosDE))%/%4,
-                            "_", pairName))
+    if (nrow(resultados_de) != 0) {
+        pca_local(size = "All", file = paste0(
+            "/PCA_Plots/",
+            "PCA_GENETOP=all_", pair_name
+        ))
+        pca_local(
+            size = nrow(resultados_de) %/% 4,
+            file = paste0(
+                "/PCA_Plots/PCA_GENETOP=",
+                nrow(resultados_de) %/% 4,
+                "_", pair_name
+            )
+        )
+        pca_local(
+            size = nrow(resultados_de) %/% 2,
+            file = paste0(
+                "/PCA_Plots/PCA_GENETOP=",
+                nrow(resultados_de) %/% 2,
+                "_", pair_name
+            )
+        )
+        pca_local(
+            size = (3 * nrow(resultados_de)) %/% 4,
+            file = paste0(
+                "/PCA_Plots/PCA_GENETOP=",
+                (3 * nrow(resultados_de)) %/% 4,
+                "_", pair_name
+            )
+        )
     } else {
         message("There's no DE gene in your query!!")
     }

@@ -1,123 +1,132 @@
 #' Run EBSeq gene Differential Expression Analysis (DEA).
 #'
-#' @param Name
-#' @param workDir
+#' @param name
+#' @param work_dir
 #' @param env
 #' @param tumor
-#' @param groupGen A character string indicating the groups generation function:
+#' @param group_gen A character string of the groups generation function:
 #'    \itemize{\item{"mclust" - }{\code{groups_identification_mclust()};}
 #'    \item{"CoxHR" - }{\code{groups_identification_coxHR()};} \item{"clinical"
 #'    - }{\code{groups_identification_clinical()}.} }
 #' @param clinical_pair A character string containing one of the group pairs
 #'    selected after statistical analysis runned in \code{clinical_terms()}
 #'    function.
-#' @param pairName A character string indicating which condition name should be
+#' @param pair_name A character string indicating which condition name should be
 #'    used. When there are only two groups the default is \code{"G2_over_G1"}.
 #' @param rounds Numerical value indicating the number of iterations. It is
 #'    recommended to check the Alpha and Beta convergence plots in output and
 #'    adjust this value until the hyper-parameter estimations converged. The
 #'    default is \code{7}.
-#' @param normType A character string indicating which EBSeq normalization
+#' @param norm_type A character string indicating which EBSeq normalization
 #'    factors type should be used in the analysis "QuantileNorm" or
 #'    "MedianNorm". 'The default is \code{"all"}.
-#' @param EBTest_Qtrm,EBTest_QtrmCut Numerical value. It is removed from the
-#'    analysis genes with EBTest_Qtrm th quantile < = EBTest_QtrmCut. More
-#'    details in EBSeq \link{EBTest} page. The default is \code{EBTest_Qtrm =
-#'    0.75} and \code{EBTest_QtrmCut = 10}.
+#' @param ebtest_qtrm,ebtest_qtrm_cut Numerical value. It is removed from the
+#'    analysis genes with ebtest_qtrm th quantile < = ebtest_qtrm_cut. More
+#'    details in EBSeq \link{EBTest} page. The default is \code{ebtest_qtrm =
+#'    0.75} and \code{ebtest_qtrm_cut = 10}.
 #' @param p_cutoff Numerical value indicating the maximum value for p-values.
 #'    The default is \code{0.05}.
-#' @param FDR_cutoff Numerical value indicating the maximum value for FDR
+#' @param fdr_cutoff Numerical value indicating the maximum value for FDR
 #'    values. The default is \code{0.05}.
-#' @param FC_cutoff Numerical value indicating the maximum value for Fold
+#' @param fc_cutoff Numerical value indicating the maximum value for Fold
 #'    Change '(FC). The default is \code{2}.
-#' @param Width,Height,Res,Unit,image_format
-#' @param Bullard_quantile Numerical value indicating the quantile for the
+#' @param width,height,res,unit,image_format
+#' @param bullard_quantile Numerical value indicating the quantile for the
 #'    Bullard's normalization. The default is \code{0.75}.
+#' @inheritParams concatenate_exon
 #' @inheritParams download_gdc
-#' @inheritParams concatenate_files
 #' @inheritParams groups_identification_mclust
 #'
 #' @return A matrix with DE genes in row and statistical values in columns.
 #' @export
 #'
 #' @examples
+#' library(DOAGDC)
+#'
 #' # data already downloaded using the 'download_gdc' function
-#' concatenate_files("gene",
-#'                    Name = "HIF3A",
-#'                    dataBase = "legacy",
-#'                    tumor = "CHOL",
-#'                    workDir = "~/Desktop")
+#' concatenate_expression("gene",
+#'     name = "HIF3A",
+#'     data_base = "legacy",
+#'     tumor = "CHOL",
+#'     work_dir = "~/Desktop"
+#' )
 #'
 #' # separating gene HIF3A expression data patients in two groups
 #' groups_identification_mclust("gene", 2,
-#'                                Name = "HIF3A",
-#'                                modelName = "E",
-#'                                env = CHOL_LEGACY_gene_tumor_data,
-#'                                tumor = "CHOL")
+#'     name = "HIF3A",
+#'     modelName = "E",
+#'     env = CHOL_LEGACY_gene_tumor_data,
+#'     tumor = "CHOL"
+#' )
 #'
 #' # load not normalized data
-#' concatenate_files("gene",
-#'                    normalization = FALSE,
-#'                    Name = "HIF3A",
-#'                    dataBase = "legacy",
-#'                    tumor = "CHOL",
-#'                    env = CHOL_LEGACY_gene_tumor_data,
-#'                    workDir = "~/Desktop")
+#' concatenate_expression("gene",
+#'     normalization = FALSE,
+#'     name = "HIF3A",
+#'     data_base = "legacy",
+#'     tumor = "CHOL",
+#'     env = CHOL_LEGACY_gene_tumor_data,
+#'     work_dir = "~/Desktop"
+#' )
 #'
 #' # start DE analysis
-#' #considering concatenate_files and groups_identification already runned
-#' dea_EBSeq(pairName = "G2_over_G1",
-#'            rounds = 7,
-#'            Name = "HIF3A",
-#'            env = CHOL_LEGACY_gene_tumor_data)
-dea_EBSeq <- function(Name, workDir, env, tumor,
-                    groupGen,
-                    clinical_pair,
-                    pairName = "G2_over_G1",
-                    rounds = 7,
-                    normType = "QuantileNorm",
-                    EBTest_Qtrm = 0.75,
-                    EBTest_QtrmCut = 10,
-                    p_cutoff = 0.05,
-                    FDR_cutoff = 0.05,
-                    FC_cutoff = 2,
-                    Width = 2000,
-                    Height = 1500,
-                    Res = 300,
-                    Unit = "px",
-                    image_format = "png",
-                    Bullard_quantile = 0.75) {
+#' # considering concatenate_expression and groups_identification already runned
+#' dea_ebseq(
+#'     pair_name = "G2_over_G1",
+#'     rounds = 7,
+#'     name = "HIF3A",
+#'     env = CHOL_LEGACY_gene_tumor_data
+#' )
+dea_ebseq <- function(name, work_dir, env, tumor,
+                      group_gen,
+                      clinical_pair,
+                      pair_name = "G2_over_G1",
+                      rounds = 7,
+                      norm_type = "QuantileNorm",
+                      ebtest_qtrm = 0.75,
+                      ebtest_qtrm_cut = 10,
+                      p_cutoff = 0.05,
+                      fdr_cutoff = 0.05,
+                      fc_cutoff = 2,
+                      width = 2000,
+                      height = 1500,
+                      res = 300,
+                      unit = "px",
+                      image_format = "png",
+                      bullard_quantile = 0.75) {
 
-    #local functions ####
-    ebseq_plots <- function(test, Pairs){
+    # local functions ####
+    ebseq_plots <- function(test, pairs) {
+        comb_name <- ifelse(pairs > 1, names(tested)[pairs], pair_name)
 
-        if (Pairs > 1) {
-            comb_name <- names(tested)[Pairs]
-            # tested <- tested[[Pairs]]
-        } else {
-            comb_name <- pairName#"G2_over_G1"
-        }
-
-        #QQP
+        # QQP
         if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "QQplot.png"),
-                width = Width, height = Height, res = Res, units = Unit)
+            png(
+                filename = file.path(dir, "QQplot.png"),
+                width = width, height = height, res = res, units = unit
+            )
         } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "QQplot.svg"),
-                width = Width, height = Height, onefile = TRUE)
+            svg(
+                filename = file.path(dir, "QQplot.svg"),
+                width = width, height = height, onefile = TRUE
+            )
         } else {
             stop(message("Insert a valid image_format! ('png' or 'svg')"))
         }
         par(mfrow = c(1, 2))
         EBSeq::QQP(test)
         dev.off()
-        #DenNHist
+        # DenNHist
         if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "DenNHistplot.png"),
-                width = Width, height = Height, res = Res, units = Unit)
+            png(
+                filename = file.path(dir, "DenNHistplot.png"),
+                width = width, height = height, res = res, units = unit
+            )
         } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "DenNHistplot.svg"),
-                width = Width, height = Height, onefile = TRUE)
+            svg(
+                filename = file.path(dir, "DenNHistplot.svg"),
+                width = width, height = height, onefile = TRUE
+            )
         } else {
             stop(message("Insert a valid image_format! ('png' or 'svg')"))
         }
@@ -125,308 +134,406 @@ dea_EBSeq <- function(Name, workDir, env, tumor,
         EBSeq::DenNHist(test)
         dev.off()
 
-        ######PlotPostVsRawFC plot
+        ###### PlotPostVsRawFC plot
         if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "PostVsRawFCplot.png"),
-                width = Width, height = Height, res = Res, units = Unit)
+            png(
+                filename = file.path(dir, "PostVsRawFCplot.png"),
+                width = width, height = height, res = res, units = unit
+            )
         } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "PostVsRawFCplot.svg"),
-                width = Width, height = Height, onefile = TRUE)
+            svg(
+                filename = file.path(dir, "PostVsRawFCplot.svg"),
+                width = width, height = height, onefile = TRUE
+            )
         } else {
             stop(message("Insert a valid image_format! ('png' or 'svg')"))
         }
-        EBSeq::PlotPostVsRawFC(test, FC)
+        EBSeq::PlotPostVsRawFC(test, fc)
         dev.off()
 
-        #Get the iters and generate a table    iters = convergência??
-        ITERS <- cbind(test$Alpha, test$Beta, test$P)
-        rownames(ITERS) <- rownames(test$Alpha)
-        colnames(ITERS) <- c("Alpha", "Beta_Ng1", "P")
-        write.csv(ITERS, file = paste0(DIR, "/ITERS.results_", comb_name, ".csv"))
+        # Get the iters and generate a table    iters = convergência??
+        iters <- cbind(test$Alpha, test$Beta, test$P)
+        rownames(iters) <- rownames(test$Alpha)
+        colnames(iters) <- c("Alpha", "Beta_Ng1", "P")
+        write.csv(iters, file = paste0(
+            dir, "/iters.results_",
+            comb_name, ".csv"
+        ))
 
         # Print the plot
         if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, "Convergence.plot.png"),
-                width = Width, height = Height, res = Res, units = Unit)
+            png(
+                filename = file.path(dir, "Convergence.plot.png"),
+                width = width, height = height, res = res, units = unit
+            )
         } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, "Convergence.plot.svg"),
-                width = Width, height = Height, onefile = TRUE)
+            svg(
+                filename = file.path(dir, "Convergence.plot.svg"),
+                width = width, height = height, onefile = TRUE
+            )
         } else {
             stop(message("Insert a valid image_format! ('png' or 'svg')"))
         }
-        par(mfrow = c(1,3))
-        plot(test$Alpha, frame=FALSE, xlab="Rounds",
+        par(mfrow = c(1, 3))
+        plot(test$Alpha,
+            frame = FALSE, xlab = "Rounds",
             ylab = "Alpha", cex = 1.1, col = "#FECB92", pch = 16,
             cex.axis = 1.5,
-            cex.lab = 1.5)
+            cex.lab = 1.5
+        )
         lines(test$Alpha, col = "#FDB462", lwd = 2)
-        plot(test$Beta, frame = FALSE, xlab = "Rounds",
+        plot(test$Beta,
+            frame = FALSE, xlab = "Rounds",
             ylab = "Beta", cex = 1.1, col = "#FECB92", pch = 16,
             cex.axis = 1.5,
-            cex.lab = 1.5)
+            cex.lab = 1.5
+        )
         lines(test$Beta, col = "#FDB462", lwd = 2)
-        plot(test$P, frame = FALSE, xlab = "Rounds",
+        plot(test$P,
+            frame = FALSE, xlab = "Rounds",
             ylab = "P", cex = 1.1, col = "#FECB92", pch = 16, cex.axis = 1.5,
-            cex.lab = 1.5)
+            cex.lab = 1.5
+        )
         lines(test$P, col = "#FDB462", lwd = 2)
         dev.off()
 
-        #Generate table with values of PPEE and PPDE
-        EBSeq_RESULTS <- as.data.frame(EBSeq::GetPPMat(test))
-        if (tolower(dataBase) == "legacy") {
-            GeneSymbol <- strsplit(row.names(EBSeq_RESULTS), split = "\\|")
-            GeneSymbol <- as.data.frame(GeneSymbol)
-            GeneSymbol <- t(GeneSymbol)
-            EBSeq_RESULTS[, 2] <- GeneSymbol[, 1]
-            colnames(EBSeq_RESULTS)[1:2] <- c("FDR", "GeneSymbol")
-            EBSeq_RESULTS$GeneID <- GeneSymbol[, 2]
-            EBSeq_RESULTS$PostFC <- FC$PostFC
-            EBSeq_RESULTS$log2FC <- log2(EBSeq_RESULTS$PostFC)
+        # Generate table with values of PPEE and PPDE
+        ebseq_results <- as.data.frame(EBSeq::GetPPMat(test))
+        if (tolower(data_base) == "legacy") {
+            gene_symbol <- strsplit(row.names(ebseq_results), split = "\\|")
+            gene_symbol <- as.data.frame(gene_symbol)
+            gene_symbol <- t(gene_symbol)
+            ebseq_results[, 2] <- gene_symbol[, 1]
+            colnames(ebseq_results)[1:2] <- c("FDR", "gene_symbol")
+            ebseq_results$geneid <- gene_symbol[, 2]
+            ebseq_results$post_fc <- fc$PostFC
+            ebseq_results$log2_fc <- log2(ebseq_results$post_fc)
 
-            EBSeq_RESULTS$FC <- ifelse(EBSeq_RESULTS$PostFC < 1,
-                                        -1/EBSeq_RESULTS$PostFC,
-                                        EBSeq_RESULTS$PostFC)
+            ebseq_results$fc <- ifelse(ebseq_results$post_fc < 1,
+                -1 / ebseq_results$post_fc,
+                ebseq_results$post_fc
+            )
 
-            # EBSeq_RESULTS <- na.omit(EBSeq_RESULTS)
-            EBSeq_RESULTS <- EBSeq_RESULTS[, c(2, 3, 1, 6, 5, 4)]
+            ebseq_results <- ebseq_results[, c(2, 3, 1, 6, 5, 4)]
         } else {
-            colnames(EBSeq_RESULTS)[1] <- c("FDR")
-            EBSeq_RESULTS$PostFC <- FC$PostFC
-            EBSeq_RESULTS$log2FC <- log2(EBSeq_RESULTS$PostFC)
+            colnames(ebseq_results)[1] <- c("FDR")
+            ebseq_results$post_fc <- fc$PostFC
+            ebseq_results$log2_fc <- log2(ebseq_results$post_fc)
 
-            EBSeq_RESULTS$FC <- ifelse(EBSeq_RESULTS$PostFC < 1,
-                                        -1/EBSeq_RESULTS$PostFC,
-                                        EBSeq_RESULTS$PostFC)
-
-            # EBSeq_RESULTS <- na.omit(EBSeq_RESULTS)
-            EBSeq_RESULTS <- EBSeq_RESULTS[, c(1, 4, 3)]
+            ebseq_results$fc <- ifelse(ebseq_results$post_fc < 1,
+                -1 / ebseq_results$post_fc,
+                ebseq_results$post_fc
+            )
+            ebseq_results <- ebseq_results[, c(1, 4, 3)]
         }
 
-        if (exists("Results_Completed_EBSeq", envir = get(envir_link))){
-            Results_Completed <- string_vars[["envir_link"]]$Results_Completed_EBSeq
-            resultadosDE <- string_vars[["envir_link"]]$resultadosDE.EBSeq
+        if (exists("results_compl_ebseq", envir = get(ev))) {
+            results_completed <- sv[["ev"]]$results_compl_ebseq
+            resultados_de <- sv[["ev"]]$resultados_de_EBSeq
         }
 
-        Results_Completed[[comb_name]] <- EBSeq_RESULTS
-        assign("Results_Completed_EBSeq", Results_Completed, envir = get(envir_link))
+        results_completed[[comb_name]] <- ebseq_results
+        assign("results_compl_ebseq", results_completed,
+            envir = get(ev)
+        )
 
-        #for DE
-        ResultadosDE <- EBSeq_RESULTS[abs(EBSeq_RESULTS$FC) > FC_cutoff, ]
-        ResultadosDE <- ResultadosDE[ResultadosDE$FDR < FDR_cutoff, ]
-        ResultadosDE <- ResultadosDE[order(ResultadosDE$FDR, -ResultadosDE$FC), ]
-        write.csv(ResultadosDE, file = paste0(DIR, "/ResultsDE_", comb_name, ".csv"))
-        resultadosDE[[comb_name]] <- ResultadosDE
-        assign("resultadosDE.EBSeq", resultadosDE, envir = get(envir_link))
+        # for DE
+        resultados_de <- ebseq_results[abs(ebseq_results$fc) > fc_cutoff, ]
+        resultados_de <- resultados_de[resultados_de$FDR < fdr_cutoff, ]
+        tmp <- order(resultados_de$FDR, -resultados_de$fc)
+        resultados_de <- resultados_de[tmp, ]
+        write.csv(resultados_de, file = paste0(
+            dir, "/ResultsDE_",
+            comb_name, ".csv"
+        ))
+        resultados_de[[comb_name]] <- resultados_de
+        assign("resultados_de_ebseq", resultados_de, envir = get(ev))
     }
 
-    volcano <- function(Results_Completed, Pairs){
-
-        comb_name <- Pairs
-        EBSeq_RESULTS <- Results_Completed[[Pairs]]
+    volcano <- function(results_completed, pairs) {
+        comb_name <- pairs
+        ebseq_results <- results_completed[[pairs]]
 
         # START VOLCANO PLOT
-        EBSeq_RESULTS$Colour = rgb(100, 100, 100, 50)
+        ebseq_results$colour <- hsv(0, 0, .39, 0.5)
 
         # Set new column values to appropriate colours
-        EBSeq_RESULTS$Colour[EBSeq_RESULTS$log2FC >= log2(FC_cutoff) & EBSeq_RESULTS$FDR <= FDR_cutoff] <- rgb(222, 22, 22, 50)
-        EBSeq_RESULTS$Colour[EBSeq_RESULTS$log2FC <= -log2(FC_cutoff) & EBSeq_RESULTS$FDR <= FDR_cutoff] <- rgb(56, 50, 237, 50)
+        tmp <- ebseq_results$FDR <= fdr_cutoff
+        tmp1 <- ebseq_results$log2_fc >= log2(fc_cutoff)
+        ebseq_results$colour[tmp1 & tmp] <- hsv(0, .9, .87, .5)
+        tmp1 <- ebseq_results$log2_fc <= -log2(fc_cutoff)
+        ebseq_results$colour[tmp1 & tmp] <- hsv(.67, .79, .93, .5)
 
-        ####Volcano Plot
-        axislimits_x <- ceiling(max(c(-min(EBSeq_RESULTS$log2FC, na.rm = TRUE) - 1,
-                                    max(EBSeq_RESULTS$log2FC, na.rm = TRUE) + 1)))
+        #### Volcano Plot
+        axislimits_x <- ceiling(max(c(
+            -min(ebseq_results$log2_fc, na.rm = TRUE) - 1,
+            max(ebseq_results$log2_fc, na.rm = TRUE) + 1
+        )))
 
-        log_10_FDR <- -log10(EBSeq_RESULTS$FDR)
-        new_inf <- log_10_FDR[order(log_10_FDR, decreasing = TRUE)]
-        log_10_FDR[log_10_FDR == "Inf"] <- (new_inf[new_inf != "Inf"][1]+1)
+        log_10_fdr <- -log10(ebseq_results$FDR)
+        new_inf <- log_10_fdr[order(log_10_fdr, decreasing = TRUE)]
+        log_10_fdr[log_10_fdr == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
 
-        axislimits_y <- ceiling(max(log_10_FDR, na.rm = TRUE))+1
+        axislimits_y <- ceiling(max(log_10_fdr, na.rm = TRUE)) + 1
 
         message("Start volcano plot...")
-        #Volcano Plot
+        # Volcano Plot
         if (tolower(image_format) == "png") {
-            png(filename = file.path(DIR, paste0("VolcanoPlot_Basic_",
-                                    comb_name, ".png")),
-                width = Width, height = Height, res = Res, units = Unit)
+            png(
+                filename = file.path(dir, paste0(
+                    "VolcanoPlot_Basic_",
+                    comb_name, ".png"
+                )),
+                width = width, height = height, res = res, units = unit
+            )
         } else if (tolower(image_format) == "svg") {
-            svg(filename = file.path(DIR, paste0("VolcanoPlot_Basic_",
-                                    comb_name, ".svg")),
-                width = Width, height = Height, onefile = TRUE)
+            svg(
+                filename = file.path(dir, paste0(
+                    "VolcanoPlot_Basic_",
+                    comb_name, ".svg"
+                )),
+                width = width, height = height, onefile = TRUE
+            )
         } else {
             stop(message("Insert a valid image_format! ('png' or 'svg')"))
         }
-        par(mar = c(4,6,3,2), mgp = c(2,.7,0), tck = -0.01)
-        plot(EBSeq_RESULTS$log2FC, log_10_FDR, axes = FALSE,
+        par(mar = c(4, 6, 3, 2), mgp = c(2, .7, 0), tck = -0.01)
+        plot(ebseq_results$log2_fc, log_10_fdr,
+            axes = FALSE,
             xlim = c(-axislimits_x, axislimits_x), ylim = c(0, axislimits_y),
-            xlab = expression('log'[2]*'(FC)'),
+            xlab = expression("log"[2] * "(FC)"),
             ylab = "",
             cex.lab = 1.5, cex.main = 2,
             cex.sub = 2,
-            pch = 16, col = EBSeq_RESULTS$Colour, cex = 2.5, las = 1)
-        title(ylab = "-log(FDR)", line = 4, cex.lab = 1.5, family = "Calibri Light")
+            pch = 16, col = ebseq_results$colour, cex = 2.5, las = 1
+        )
+        title(
+            ylab = "-log(FDR)", line = 4, cex.lab = 1.5,
+            family = "Calibri Light"
+        )
         axis(1, cex.axis = 1.5)
         axis(2, cex.axis = 1.5, las = 1)
-        abline(v = log2(FC_cutoff), col = "black", lty = 6, cex = 0.8,
-                lwd = 4)
-        abline(v = -log2(FC_cutoff), col = "black", lty = 6, cex = 0.8,
-                lwd = 4)
-        abline(h = -log10(FDR_cutoff), col = "black", lwd = 4, lty = 3)
-        text(x = -axislimits_x + 0.3,
-            y = axislimits_y/10,
-            labels = length(EBSeq_RESULTS$Colour[EBSeq_RESULTS$log2FC <= -log2(FC_cutoff) & EBSeq_RESULTS$FDR <= FDR_cutoff]),
-            cex = 1, col = "blue")
-
-        text(x = axislimits_x - 0.4,
-            y = axislimits_y/10,
-            labels = length(EBSeq_RESULTS$Colour[EBSeq_RESULTS$log2FC >= log2(FC_cutoff) & EBSeq_RESULTS$FDR <= FDR_cutoff]),
-            cex = 1, col = "red")
-        par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0),
-            mar = c(0, 0, 0, 0), new = TRUE)
+        abline(
+            v = log2(fc_cutoff), col = "black", lty = 6, cex = 0.8,
+            lwd = 4
+        )
+        abline(
+            v = -log2(fc_cutoff), col = "black", lty = 6, cex = 0.8,
+            lwd = 4
+        )
+        abline(h = -log10(fdr_cutoff), col = "black", lwd = 4, lty = 3)
+        tmp <- ebseq_results$FDR <= fdr_cutoff
+        tmp1 <- ebseq_results$log2_fc <= -log2(fc_cutoff)
+        text(
+            x = -axislimits_x + 0.3,
+            y = axislimits_y / 10,
+            labels = length(ebseq_results$colour[tmp1 & tmp]),
+            cex = 1, col = "blue"
+        )
+        tmp1 <- ebseq_results$log2_fc >= log2(fc_cutoff)
+        text(
+            x = axislimits_x - 0.4,
+            y = axislimits_y / 10,
+            labels = length(ebseq_results$colour[tmp1 & tmp]),
+            cex = 1, col = "red"
+        )
+        par(
+            fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0),
+            mar = c(0, 0, 0, 0), new = TRUE
+        )
         plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-        legend("topright", border = FALSE, bty = "n",
-                legend = c(paste0("-log(", FDR_cutoff, ") = ",
-                                round(-log10(FDR_cutoff), 2)),
-                            paste0("\u00B1", " log", "\u2082","(", FC_cutoff,
-                                ") = ",log2(FC_cutoff)),
-                            "UP", "DOWN"), pt.cex = c(0, 0, 1.8, 1.8),
-                lty = c(3, 6, 0, 0), pch = c(-1, -1, 16, 16),
-                cex = c(0.8, 0.8, 0.8, 0.8), lwd = c(2, 2, 5, 5),
-                col = c("Black", "Black", "red3", "blue3"))
+        legend("topright",
+            border = FALSE, bty = "n",
+            legend = c(
+                paste0(
+                    "-log(", fdr_cutoff, ") = ",
+                    round(-log10(fdr_cutoff), 2)
+                ),
+                paste0(
+                    "\u00B1", " log", "\u2082", "(", fc_cutoff,
+                    ") = ", log2(fc_cutoff)
+                ),
+                "UP", "DOWN"
+            ), pt.cex = c(0, 0, 1.8, 1.8),
+            lty = c(3, 6, 0, 0), pch = c(-1, -1, 16, 16),
+            cex = c(0.8, 0.8, 0.8, 0.8), lwd = c(2, 2, 5, 5),
+            col = c("Black", "Black", "red3", "blue3")
+        )
         dev.off()
+    }
+
+    sw <- function(x) {
+        suppressWarnings(x)
     }
 
     # Code ####
     if (missing(env)) {
-        stop(message("The 'env' argument is missing, please insert",
-                                            " the 'env' name and try again!"))
+        stop(message(
+            "The 'env' argument is missing, please insert",
+            " the 'env' name and try again!"
+        ))
     }
 
-    envir_link <- deparse(substitute(env))
+    ev <- deparse(substitute(env))
+    sv <- list(ev = get(ev))
 
-    string_vars <- list(envir_link = get(envir_link))
+    name <- gsub("-", "_", name)
 
-    Name <- gsub("-", "_", Name)
+    work_dir <- ifelse(missing("work_dir"), sv[["ev"]]$work_dir, work_dir)
 
-    if (missing("workDir")){
-        workDir <- string_vars[["envir_link"]]$workDir
-    }
+    data_base <- sv[["ev"]]$data_base
 
-    dataBase <- string_vars[["envir_link"]]$dataBase
+    assign("path", file.path(
+        work_dir, "DOAGDC",
+        toupper(sv[["ev"]]$tumor),
+        "Analyses"
+    ),
+    envir = get(ev)
+    )
 
-    assign("PATH", file.path(workDir, "DOAGDC",
-                            toupper(string_vars[["envir_link"]]$tumor),
-                            "Analyses"),
-            envir = get(envir_link))
+    assign("group_gen", group_gen, envir = get(ev))
 
-    assign("groupGen", groupGen, envir = get(envir_link))
+    path <- ifelse(
+        exists("name_e", envir = get(ev)),
+        file.path(
+            sv[["ev"]]$path,
+            sv[["ev"]]$name_e
+        ), sv[["ev"]]$path
+    )
 
-    if (exists("Name.e", envir = get(envir_link))){
-        PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
-        dir.create(PATH, showWarnings = FALSE)
-    } else {
-        PATH <- string_vars[["envir_link"]]$PATH
-    }
+    dir.create(path, showWarnings = FALSE)
 
-    #creating the dir to outputs
-    dir.create(paste0(PATH, "/EBSeq_Results.", tolower(groupGen), "_",
-                        toupper(Name)),
-                showWarnings = FALSE)
-    DIR <- paste0(PATH, "/EBSeq_Results.", tolower(groupGen), "_",
-                    toupper(Name))
-    # dir.create(file.patMh(DIR, "PCA_Plots"), showWarnings = FALSE)
+    # creating the dir to outputs
+    dir.create(paste0(
+        path, "/EBSeq_Results.", tolower(group_gen), "_",
+        toupper(name)
+    ),
+    showWarnings = FALSE
+    )
+    dir <- paste0(
+        path, "/EBSeq_Results.", tolower(group_gen), "_",
+        toupper(name)
+    )
 
     # level[1] over level[2]
-    Levels <- gsub("[Gg]", "", unlist(strsplit(pairName, "_over_")),
-                    perl = TRUE)
+    levels <- gsub("[Gg]", "", unlist(strsplit(pair_name, "_over_")),
+        perl = TRUE
+    )
 
     # For groups
-    if (tolower(groupGen) == "mclust") {
-        Grupos_EBSeq <- as.data.frame(string_vars[["envir_link"]]$GROUPS)
-        group2_number <- max(Grupos_EBSeq[, "Selected_classification"])
-        Grupos_EBSeq[, "Selected_classification"] <- factor(Grupos_EBSeq[, "Selected_classification"],
-                                                            levels = Levels)
-        colnames(Grupos_EBSeq) <- c("condition", "type")
-        Grupos_EBSeq[, 2] <- c("paired-end")
-        Grupos_EBSeq <- na.omit(Grupos_EBSeq)
-    } else if (tolower(groupGen) == "clinical") {
-        Grupos_EBSeq <- as.data.frame(string_vars[["envir_link"]]$clinical_groups_clinical[[clinical_pair]])
-        group2_number <- max(Grupos_EBSeq[, "Selected_classification"])
-        Grupos_EBSeq[, "Selected_classification"] <- factor(Grupos_EBSeq[, "Selected_classification"])
-        colnames(Grupos_EBSeq) <- c("condition", "type")
-        Grupos_EBSeq[, 2] <- c("paired-end")
-    } else if (tolower(groupGen) == "coxhr") {
-        Grupos_EBSeq <- as.data.frame(string_vars[["envir_link"]]$clinical_groups)
-        Grupos_EBSeq$classification <- gsub("low", "1", Grupos_EBSeq$classification)
-        Grupos_EBSeq$classification <- gsub("high", "2", Grupos_EBSeq$classification)
-        group2_number <- max(as.numeric(Grupos_EBSeq[, "classification"]))
-        Grupos_EBSeq[, "classification"] <- factor(Grupos_EBSeq[, "classification"])
-        colnames(Grupos_EBSeq) <- c("type", "condition")
-        Grupos_EBSeq[, 1] <- c("paired-end")
-        Grupos_EBSeq <- Grupos_EBSeq[, c(2,1)]
+    if (tolower(group_gen) == "mclust") {
+        grupos_ebseq <- as.data.frame(sv[["ev"]]$groups)
+        group2_number <- max(grupos_ebseq[, "Selected_classification"])
+        grupos_ebseq[, "Selected_classification"] <- factor(
+            grupos_ebseq[, "Selected_classification"],
+            levels = levels
+        )
+        colnames(grupos_ebseq) <- c("condition", "type")
+        grupos_ebseq[, 2] <- c("paired-end")
+        grupos_ebseq <- na.omit(grupos_ebseq)
+    } else if (tolower(group_gen) == "clinical") {
+        grupos_ebseq <- as.data.frame(
+            sv[["ev"]]$clinical_groups_clinical[[clinical_pair]]
+        )
+        group2_number <- max(grupos_ebseq[, "Selected_classification"])
+
+        grupos_ebseq[, "Selected_classification"] <- factor(
+            grupos_ebseq[, "Selected_classification"]
+        )
+
+        colnames(grupos_ebseq) <- c("condition", "type")
+        grupos_ebseq[, 2] <- c("paired-end")
+    } else if (tolower(group_gen) == "coxhr") {
+        grupos_ebseq <- as.data.frame(sv[["ev"]]$clinical_groups)
+        grupos_ebseq$classification <- gsub(
+            "low", "1",
+            grupos_ebseq$classification
+        )
+        grupos_ebseq$classification <- gsub(
+            "high", "2",
+            grupos_ebseq$classification
+        )
+        group2_number <- max(as.numeric(grupos_ebseq[, "classification"]))
+        grupos_ebseq[, "classification"] <- factor(
+            grupos_ebseq[, "classification"]
+        )
+        colnames(grupos_ebseq) <- c("type", "condition")
+        grupos_ebseq[, 1] <- c("paired-end")
+        grupos_ebseq <- grupos_ebseq[, c(2, 1)]
     } else {
-        stop(message("Please insert a valid 'groupGen' value!! ('mclust', 'coxHR' or 'clinical')"))
+        tmp <- paste0(
+            "Please insert a valid 'group_gen' value!!",
+            " ('mclust', 'coxHR' or 'clinical')"
+        )
+        stop(message(tmp))
     }
 
     # check patient in common
-    tmp <- rownames(Grupos_EBSeq) %in% colnames(string_vars[["envir_link"]]$gene_tumor_not_normalized)
+    tmp1 <- colnames(sv[["ev"]]$gene_tumor_not_normalized)
+    tmp <- rownames(grupos_ebseq) %in% tmp1
 
-    Grupos_EBSeq <- Grupos_EBSeq[tmp, ]
+    grupos_ebseq <- grupos_ebseq[tmp, ]
 
-    assign("condHeatmapq", Grupos_EBSeq[, 1], envir = get(envir_link))
+    assign("cond_heatmap", grupos_ebseq[, 1], envir = get(ev))
 
-    #selecting specifics patients
-    completed_matrix <- string_vars[["envir_link"]]$gene_tumor_not_normalized[, rownames(Grupos_EBSeq)]
+    # selecting specifics patients
+    completed_matrix <- sv[["ev"]]$gene_tumor_not_normalized[, rownames(
+        grupos_ebseq
+    )]
 
-    # message("Starting EBSeq analysis...")
-    if (tolower(normType) == "quantilenorm") {
-        Sizes <- EBSeq::QuantileNorm(completed_matrix, Bullard_quantile)
-    } else if (tolower(normType) == "mediannorm") {
-        Sizes <- EBSeq::MedianNorm(completed_matrix)
+    if (tolower(norm_type) == "quantilenorm") {
+        sizes <- EBSeq::QuantileNorm(completed_matrix, bullard_quantile)
+    } else if (tolower(norm_type) == "mediannorm") {
+        sizes <- EBSeq::MedianNorm(completed_matrix)
     } else {
-        stop(message("Please insert a valid 'normType' argument!!"))
+        stop(message("Please insert a valid 'norm_type' argument!!"))
     }
 
-    if (!exists("Results_Completed_EBSeq", envir = get(envir_link))) {
+    if (!exists("results_compl_ebseq", envir = get(ev))) {
         combinations <- combn(1:group2_number, 2)
         tested <- vector("list", group2_number)
-        resultadosDE <- vector("list", group2_number)
-        Results_Completed <- vector("list", group2_number)
-        combinations_names <-  apply(combinations, 2, function(x) {
+        resultados_de <- vector("list", group2_number)
+        results_completed <- vector("list", group2_number)
+        combinations_names <- apply(combinations, 2, function(x) {
             paste0("G", x[2], "_over_", "G", x[1])
         })
         names(tested) <- combinations_names
-        names(resultadosDE) <- combinations_names
-        names(Results_Completed) <- combinations_names
+        names(resultados_de) <- combinations_names
+        names(results_completed) <- combinations_names
     }
 
     message("Starting EBSeq analysis...")
-    # if (group2_number == 2){
-    EBOut <- EBSeq::EBTest(Data = completed_matrix,
-                    Conditions = Grupos_EBSeq[, "condition"],
-                    #filtrando ruído
-                    Qtrm = EBTest_Qtrm,
-                    QtrmCut = EBTest_QtrmCut,
-                    sizeFactors = Sizes,
-                    maxround = rounds)
-    #generating Fold Change
-    FC <- EBSeq::PostFC(EBOut)
-    # str(GeneFC)$Direction
+    eb_out <- EBSeq::EBTest(
+        Data = completed_matrix,
+        Conditions = grupos_ebseq[, "condition"],
+        # filtrando ruído
+        Qtrm = ebtest_qtrm,
+        QtrmCut = ebtest_qtrm_cut,
+        sizeFactors = sizes,
+        maxround = rounds
+    )
+    # generating Fold Change
+    fc <- EBSeq::PostFC(eb_out)
 
-    ebseq_plots(EBOut, 0)
-    suppressWarnings(volcano(string_vars[["envir_link"]]$Results_Completed_EBSeq, pairName))
+    ebseq_plots(eb_out, 0)
+    sw(volcano(sv[["ev"]]$results_compl_ebseq, pair_name))
 
-    #A disadvantage to and serious risk of using fold change (for DE) is that
-    #it is biased [2] and may miss differentially expressed genes with large
-    #differences (B-A) but small ratios (A/B), leading to a high miss rate at
-    #high intensities. source: wiki
+    # A disadvantage to and serious risk of using fold change (for DE) is that
+    # it is biased [2] and may miss differentially expressed genes with large
+    # differences (B-A) but small ratios (A/B), leading to a high miss rate at
+    # high intensities. source: wiki
 
-    #Generatin' normalized data matrix
-    NormalizedExpression <- EBSeq::GetNormalizedMat(completed_matrix, Sizes)
-    write.csv(NormalizedExpression, file = paste0(DIR,
-                                                "/Normalized_Expression.csv"))
+    # Generatin' normalized data matrix
+    normalized_expression <- EBSeq::GetNormalizedMat(completed_matrix, sizes)
+    write.csv(normalized_expression, file = paste0(
+        dir,
+        "/Normalized_Expression.csv"
+    ))
 
-    assign("NormalizedExpression.EBSeq", NormalizedExpression,
-        envir = get(envir_link))
-    assign("Tool", "EBSeq", envir = get(envir_link))
+    assign("normalized_expression_ebseq", normalized_expression,
+        envir = get(ev)
+    )
+    assign("tool", "ebseq", envir = get(ev))
 
     message("Done!")
 }

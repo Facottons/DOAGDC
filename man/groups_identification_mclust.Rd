@@ -4,68 +4,71 @@
 \alias{groups_identification_mclust}
 \title{Separate patients in groups}
 \usage{
-groups_identification_mclust(dataType, group.number = "",
-  modelName = NULL, uncertaintyCutoff = 0.05, reRunPlots = FALSE,
-  nBreaks = 55, Width = 2000, Height = 1500, Res = 300,
-  Unit = "px", image_format = "png", saveData = TRUE, env, tumor,
-  dataBase, workDir = "~/Desktop", Name)
+groups_identification_mclust(data_type, group_number = "",
+  modelName = NULL, uncertainty_cutoff = 0.05, rerun_plots = FALSE,
+  n_breaks = 55, width = 2000, height = 1500, res = 300,
+  unit = "px", image_format = "png", save_data = TRUE, env, tumor,
+  data_base, work_dir = "~/Desktop", name)
 }
 \arguments{
-\item{dataType}{Type of data. It could be \code{"methylation", "mutation",
-   "clinical_supplement", "biospecimen", "gene", "clinical"(biotab)}.
+\item{data_type}{Type of data. It could be \code{"methylation", "mutation",
+   "clinical_supplement", "biospecimen", "gene", or "clinical"(biotab)}.
 \itemize{ \item{Only present
 in "Legacy" database:}{\code{"protein", "Exon quantification", "miRNA gene
-   quantification", "miRNA isoform quantification", "isoform", "image"}.}
+   quantification", "miRNA isoform quantification", "isoform", and "image"}.}
 \item{Only present in "GDC" database:}{\code{"miRNA
-   Expression Quantification", "Isoform Expression Quantification"(miRNA)}.}
-}}
+   Expression Quantification", and "Isoform Expression Quantification"
+   (miRNA)}.}}}
 
-\item{group.number}{Numerical value indicating how many groups should be
+\item{group_number}{Numerical value indicating how many groups should be
 generated.}
 
-\item{modelName}{A character string indicating which mclust modelName will be
+\item{modelName}{A character string indicating which mclust model
+name will be
 used. For more details please check \link{mclustModelNames} help file.}
 
-\item{uncertaintyCutoff}{Numerical value indicating which uncertainty value
+\item{uncertainty_cutoff}{Numerical value indicating which uncertainty value
 for the separation should be tolerated. Patients over this threshold will
 be removed from the analysis.}
 
-\item{reRunPlots}{Logical value where TRUE indicate that the function should
-run the step of group generation using the \code{uncertaintyCutoff}
+\item{rerun_plots}{Logical value where TRUE indicate that the function
+should
+run the step of group generation using the \code{uncertainty_cutoff}
 parameter for filtering the data. The default is \code{FALSE}.}
 
-\item{nBreaks}{Numerical value giving the number of cells for the \code{hist}
-bars. As default \code{nBreaks = 55}.}
+\item{n_breaks}{Numerical value giving the number of cells for
+the \code{hist} bars. As default \code{n_breaks = 55}.}
 
-\item{Width, Height, Res, Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{width, height, res, unit}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
 inches ('in'). The default is "png".}
 
-\item{saveData}{Logical value where \code{TRUE} indicates that the
+\item{save_data}{Logical value where \code{TRUE} indicates that the
 concatenate and filtered matrix should be saved in local storage. The
 default is FALSE.}
 
 \item{env}{A character string containing the environment name that should be
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
-\itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+\itemize{\item{'tumor_data_base_data_type_tumor_data'}{ or}
+\item{'tumor_data_base_data_type_both_data'}{ (for tumor and not tumor
+data
 in separated matrices).}}}
 
 \item{tumor}{A character string contaning one of the 33 tumors available in
 the TCGA project. For instance, the \code{"BRCA"} stands for breast
 cancer.}
 
-\item{dataBase}{A character string specifying \code{"GDC"} for GDC Data
+\item{data_base}{A character string specifying \code{"GDC"} for GDC Data
 Portal or \code{"legacy"} for GDC Legacy Archive.}
 
-\item{workDir}{A character string specifying the path to work directory.}
+\item{work_dir}{A character string specifying the path to work directory.}
 
-\item{Name}{A character string indicating the desired values to be used in
+\item{name}{A character string indicating the desired values to be used in
 next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
 "mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
 quantification matrix.}
@@ -79,17 +82,18 @@ patients in groups, powered by mclust.
 }
 \examples{
 # data already downloaded using the 'download_gdc' function
-concatenate_files("gene",
-                   Name = "HIF3A",
-                   dataBase = "legacy",
-                   tumor = "CHOL",
-                   workDir = "~/Desktop")
+concatenate_expression("gene",
+   name = "HIF3A",
+   data_base = "legacy",
+   tumor = "CHOL",
+   work_dir = "~/Desktop"
+)
 
 # separating gene HIF3A expression data patients in two groups
 groups_identification_mclust("gene", 2,
-                               Name = "HIF3A",
-                               modelName = "E",
-                               env = CHOL_LEGACY_gene_tumor_data,
-                               tumor = "CHOL")
-
+   name = "HIF3A",
+   modelName = "E",
+   env = CHOL_LEGACY_gene_tumor_data,
+   tumor = "CHOL"
+)
 }

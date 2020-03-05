@@ -1,14 +1,15 @@
 #' Gene Set Enrichment Analysis
 #'
-#' @param FDR_cutoff
-#' @param Width,Height,Res,Unit,image_format
-#' @param Tool
-#' @param ID
-#' @param pairName
+#' @param fdr_cutoff
+#' @param width,height,res,unit,image_format
+#' @param tool
+#' @param id
+#' @param pair_name
 #' @param env
+#' @inheritParams dea_ebseq
 #' @inheritParams groups_identification_mclust
-#' @inheritParams dea_EBSeq
-#' @inheritParams GOnto
+#' @inheritParams gonto
+#' @inheritParams concatenate_exon
 #'
 #' @return Enriched terms.
 #' @export
@@ -21,214 +22,317 @@
 #' @importFrom forcats fct_reorder
 #'
 #' @examples
-#' \dontrun{
-#' GSEA(Tool = "edgeR", env = "env name without quotes")
-#' }
-GSEA <- function(FDR_cutoff = 0.05,
-                Width = 10,
-                Height = 3,
-                Res = 500,
-                Unit = "in",
-                image_format = "png",
-                Tool = "edgeR",
-                ID = "GeneID",
-                pairName = "G2_over_G1",
-                env){
-
+#' # data already downloaded using the 'download_gdc' function
+#' concatenate_expression("gene",
+#'    name = "HIF3A",
+#'    data_base = "legacy",
+#'    tumor = "CHOL",
+#'    work_dir = "~/Desktop"
+#' )
+#'
+#' # separating gene HIF3A expression data patients in two groups
+#' groups_identification_mclust("gene", 2,
+#'    name = "HIF3A",
+#'    modelName = "E",
+#'    env = CHOL_LEGACY_gene_tumor_data,
+#'    tumor = "CHOL"
+#' )
+#'
+#' # load not normalized data
+#' concatenate_expression("gene",
+#'    normalization = FALSE,
+#'    name = "HIF3A",
+#'    data_base = "legacy",
+#'    tumor = "CHOL",
+#'    env = CHOL_LEGACY_gene_tumor_data,
+#'    work_dir = "~/Desktop"
+#' )
+#'
+#' # start DE analysis
+#' # considering concatenate_expression and groups_identification already runned
+#' dea_edger(
+#'    name = "HIF3A",
+#'    group_gen = "mclust",
+#'    env = CHOL_LEGACY_gene_tumor_data
+#' )
+#'
+#' gonto(
+#'    condition = "Upregulated",
+#'    tool = "edgeR", env = CHOL_LEGACY_gene_tumor_data
+#' )
+#'
+#' gsea(tool = "edgeR", env = CHOL_LEGACY_gene_tumor_data)
+gsea <- function(fdr_cutoff = 0.05,
+                    width = 10,
+                    height = 3,
+                    res = 500,
+                    unit = "in",
+                    image_format = "png",
+                    tool = "edgeR",
+                    id = "geneid",
+                    pair_name = "G2_over_G1",
+                    env) {
     message("Performing Gene Set Enrichment Analysis - over Reactome...\n")
     # Looks for enrichment by fold direction
-    #List of input id types
-
-    # BiocParallel::register(BiocParallel::SerialParam(1))
+    # List of input id types
 
     if (missing(env)) {
-        stop(message("The 'env' argument is missing, please",
-                                    " insert the 'env' name and try again!"))}
+        stop(message(
+            "The 'env' argument is missing, please",
+            " insert the 'env' name and try again!"
+        ))
+    }
+
+    swp <- function(x) {
+        suppressPackageStartupMessages(x)
+    }
 
     envir_link <- deparse(substitute(env))
     string_vars <- list(envir_link = get(envir_link))
 
-    if (exists("Name.e", envir = get(envir_link))){
-        PATH <- file.path(string_vars[["envir_link"]]$PATH, string_vars[["envir_link"]]$Name.e)
-    } else {
-        PATH <- string_vars[["envir_link"]]$PATH
-    }
+    path <- ifelse(exists("name_e", envir = get(envir_link)),
+        file.path(string_vars[["envir_link"]]$path,
+        string_vars[["envir_link"]]$name_e),
+        string_vars[["envir_link"]]$path
+    )
 
-    if (missing(Tool)){Tool <- string_vars[["envir_link"]]$Tool}
+    tool <- ifelse(missing(tool), tolower(string_vars[["envir_link"]]$tool),
+                                                                tolower(tool))
 
-    Name <- string_vars[["envir_link"]]$Name
-    # dataBase <- string_vars[["envir_link"]]$dataBase
-    groupGen <- string_vars[["envir_link"]]$groupGen
+    name <- string_vars[["envir_link"]]$name
+    group_gen <- string_vars[["envir_link"]]$group_gen
 
-    if (grepl("crosstable", tolower(Tool))) {
-        TCGAExpression <- string_vars[["envir_link"]]$Results_Completed_crossed
-    } else {
-        TCGAExpression <- eval(parse(text = paste0("string_vars",
-                                        "[['envir_link']]$Results_Completed.",
-                                                Tool)))
-    }
+    tcga_expression <- ifelse(grepl("crosstable", tool),
+                        string_vars[["envir_link"]]$results_completed_crossed,
+                        eval(parse(text = paste0(
+                                "string_vars",
+                                "[['envir_link']]$results_completed_",
+                                tool
+                            )))
+                        )
 
-    TCGAExpression <- TCGAExpression[[pairName]]
+    tcga_expression <- tcga_expression[[pair_name]]
 
-    if (grepl("crosstable", tolower(Tool))) {
-        if (tolower(Tool) == "crosstable.deseq2") {
-            DIR <- paste0(PATH, "/CrossData_deseq2")
-        } else if (tolower(Tool) == "crosstable.edger") {
-            DIR <- paste0(PATH, "/CrossData_edger")
-        } else if (tolower(Tool) == "crosstable.ebseq") {
-            DIR <- paste0(PATH, "/CrossData_ebseq")
+    if (grepl("crosstable", tool)) {
+        if (tool == "crosstable.deseq2") {
+            dir <- paste0(path, "/CrossData_deseq2")
+        } else if (tool == "crosstable.edger") {
+            dir <- paste0(path, "/CrossData_edger")
+        } else if (tool == "crosstable.ebseq") {
+            dir <- paste0(path, "/CrossData_ebseq")
         }
-        dir.create(file.path(DIR, paste0("Ontology_Results", tolower(groupGen))), showWarnings = FALSE)
-        DIR <- file.path(DIR, paste0("Ontology_Results", tolower(groupGen)))
+        dir.create(file.path(dir, paste0(
+            "Ontology_Results",
+            tolower(group_gen)
+        )), showWarnings = FALSE)
+        dir <- file.path(dir, paste0("Ontology_Results", tolower(group_gen)))
     } else {
-        dir.create(paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
-                        Tool, "_", toupper(Name)), showWarnings = FALSE)
-        DIR <- paste0(PATH, "/Ontology_Results_", tolower(groupGen), "_",
-                                                    Tool, "_", toupper(Name))
+        dir.create(paste0(
+            path, "/Ontology_Results_", tolower(group_gen), "_",
+            tool, "_", toupper(name)
+        ), showWarnings = FALSE)
+        dir <- paste0(
+            path, "/Ontology_Results_", tolower(group_gen), "_",
+            tool, "_", toupper(name)
+        )
     }
 
-    dir.create(file.path(DIR, "GSEA_Output"), showWarnings = FALSE)
+    dir.create(file.path(dir, "GSEA_Output"), showWarnings = FALSE)
 
-    suppressPackageStartupMessages(input.types <- as.matrix(x = AnnotationDbi::keytypes(org.Hs.eg.db::org.Hs.eg.db)))
-    write.table(input.types, paste0(DIR,
-                                "/GSEA_Output/input_types",
-                                ID, "_", pairName, ".txt"), row.names = FALSE)
+    swp(input_types <- as.matrix(
+        x = AnnotationDbi::keytypes(org.Hs.eg.db::org.Hs.eg.db)
+    ))
+    write.table(input_types, paste0(
+        dir,
+        "/GSEA_Output/input_types",
+        id, "_", pair_name, ".txt"
+    ), row.names = FALSE)
 
-    GeneSetVector <- TCGAExpression$FC
+    gene_set_vector <- tcga_expression$fc
 
-    if (ID == "GeneID") {
+    if (tolower(id) == "geneid") {
         # It demands FOld change in one vector decreasing ordered
-        names(GeneSetVector) <- TCGAExpression$GeneID
-        GeneSetVector <- GeneSetVector[order(GeneSetVector, decreasing = TRUE)]
-
-    } else if (ID == "GeneSymbol") {
+        names(gene_set_vector) <- tcga_expression$geneid
+        gene_set_vector <- gene_set_vector[order(gene_set_vector,
+            decreasing = TRUE
+        )]
+    } else if (tolower(id) == "genesymbol") {
         # It demands FOld change in one vector decreasing ordered
-        names(GeneSetVector) <- TCGAExpression$GeneSymbol
-        GeneSetVector <- GeneSetVector[order(GeneSetVector, decreasing = TRUE)]
+        names(gene_set_vector) <- tcga_expression$gene_symbol
+        gene_set_vector <- gene_set_vector[order(gene_set_vector,
+            decreasing = TRUE
+        )]
 
-        # Again, change the names for ID using HUGO names
-        ids <- clusterProfiler::bitr(names(GeneSetVector), fromType = "SYMBOL",
-                                    toType = "ENTREZID",
-                                    OrgDb = "org.Hs.eg.db")
-        GeneSetVector <- GeneSetVector[ids$ALIAS]
-        names(GeneSetVector) <- ids$ENTREZID
+        # Again, change the names for id using HUGO names
+        ids <- clusterProfiler::bitr(names(gene_set_vector),
+            fromType = "SYMBOL",
+            toType = "ENTREZID",
+            OrgDb = "org.Hs.eg.db"
+        )
+        gene_set_vector <- gene_set_vector[ids$ALIAS]
+        names(gene_set_vector) <- ids$ENTREZID
+    } else if (tolower(id) == "ensembl") {
+        names(gene_set_vector) <- rownames(tcga_expression)
+        gene_set_vector <- gene_set_vector[order(gene_set_vector,
+            decreasing = TRUE
+        )]
 
-    } else if (ID == "Ensembl") {
-        names(GeneSetVector) <- rownames(TCGAExpression)
-        GeneSetVector <- GeneSetVector[order(GeneSetVector, decreasing = TRUE)]
+        # Again, change the names for id using HUGO names
+        ids <- clusterProfiler::bitr(names(gene_set_vector),
+            fromType = "ENSEMBL",
+            toType = "ENTREZID",
+            OrgDb = "org.Hs.eg.db"
+        )
+        gene_set_vector <- gene_set_vector[ids$ENSEMBL]
+        names(gene_set_vector) <- ids$ENTREZID
+    } else if (tolower(id) == "refgene") {
+        names(gene_set_vector) <- tcga_expression$Ensembl
+        gene_set_vector <- gene_set_vector[order(gene_set_vector,
+            decreasing = TRUE
+        )]
 
-        # Again, change the names for ID using HUGO names
-        ids <- clusterProfiler::bitr(names(GeneSetVector),
-                                                    fromType = 'ENSEMBL',
-                                                    toType = "ENTREZID",
-                                                    OrgDb = "org.Hs.eg.db")
-        GeneSetVector <- GeneSetVector[ids$ENSEMBL]
-        names(GeneSetVector) <- ids$ENTREZID
-    }  else if (tolower(ID) == "refgene") {
-        names(GeneSetVector) <- TCGAExpression$Ensembl
-        GeneSetVector <- GeneSetVector[order(GeneSetVector, decreasing = TRUE)]
-
-        # Again, change the names for ID using HUGO names
-        ids <- clusterProfiler::bitr(names(GeneSetVector), fromType = 'REFSEQ',
-                                    toType = "ENTREZID",
-                                    OrgDb = "org.Hs.eg.db")
-        GeneSetVector <- GeneSetVector[ids$ENSEMBL]
-        names(GeneSetVector) <- ids$ENTREZID
+        # Again, change the names for id using HUGO names
+        ids <- clusterProfiler::bitr(names(gene_set_vector),
+            fromType = "REFSEQ",
+            toType = "ENTREZID",
+            OrgDb = "org.Hs.eg.db"
+        )
+        gene_set_vector <- gene_set_vector[ids$ENSEMBL]
+        names(gene_set_vector) <- ids$ENTREZID
     }
 
     # Perform GSEA
-    GSEA_REACTOME <- ReactomePA::gsePathway(GeneSetVector,
-                                pvalueCutoff = FDR_cutoff, nPerm = 10000,
-                                pAdjustMethod = "BH", verbose = TRUE)
+    gsea_reactome <- ReactomePA::gsePathway(gene_set_vector,
+        pvalueCutoff = fdr_cutoff, nPerm = 10000,
+        pAdjustMethod = "BH", verbose = TRUE
+    )
 
-    #Get summary
-    GSEA_REACTOME_summary_fdr <- as.data.frame(GSEA_REACTOME)
+    # Get summary
+    gsea_reactome_summary_fdr <- as.data.frame(gsea_reactome)
 
     # Write
-    write.csv(GSEA_REACTOME_summary_fdr, file = paste0(DIR,
-                                                "/GSEA_Output/",
-                                                "REAC.GSEA.enrichment",
-                                                ID, "_", pairName, ".csv"),
-                                                row.names = FALSE)
-    assign("GeneSetVector", GeneSetVector, envir = get(envir_link))
+    write.csv(gsea_reactome_summary_fdr,
+        file = paste0(
+            dir,
+            "/GSEA_Output/",
+            "REAC.GSEA.enrichment",
+            id, "_", pair_name, ".csv"
+        ),
+        row.names = FALSE
+    )
+    assign("gene_set_vector", gene_set_vector, envir = get(envir_link))
 
 
     # REACTOME-GSEA Plot
-    if (nrow(GSEA_REACTOME_summary_fdr) != 0) {
-
-        if (nrow(GSEA_REACTOME_summary_fdr) >= 15){
-            PlotNowREACT <- GSEA_REACTOME_summary_fdr[1:15, ]
-        } else{
-            PlotNowREACT <- GSEA_REACTOME_summary_fdr
+    if (nrow(gsea_reactome_summary_fdr) != 0) {
+        if (nrow(gsea_reactome_summary_fdr) >= 15) {
+            plot_now_react <- gsea_reactome_summary_fdr[1:15, ]
+        } else {
+            plot_now_react <- gsea_reactome_summary_fdr
         }
 
-        PlotNowREACT[, 2] <- gsub(" of", "", PlotNowREACT[, 2])
-        # large <- lengths(strsplit(PlotNowREACT[, 2], "\\W+")) > 7
-        large <- lengths(strsplit(PlotNowREACT[, 2], " ")) > 7
-        PlotNowREACT[large, 2] <- unname(sapply(PlotNowREACT[large, 2],
-                                            function(w){
-                                                paste(unlist(strsplit(w, " "))[1:7],
-                                                            collapse = " ")}))
+        plot_now_react[, 2] <- gsub(" of", "", plot_now_react[, 2])
+        large <- lengths(strsplit(plot_now_react[, 2], " ")) > 7
+        plot_now_react[large, 2] <- unname(sapply(
+            plot_now_react[large, 2],
+            function(w) {
+                paste(unlist(strsplit(w, " "))[1:7],
+                    collapse = " "
+                )
+            }
+        ))
 
         # is it better to use the manually adjusted?
-        log_10_GSEA <- -log10(as.numeric(PlotNowREACT[, "p.adjust"]))
-        new_inf <- log_10_GSEA[order(log_10_GSEA, decreasing = TRUE)]
-        log_10_GSEA[log_10_GSEA == "Inf"] <- (new_inf[new_inf != "Inf"][1]+1)
+        log_10_gsea <- -log10(as.numeric(plot_now_react[, "p.adjust"]))
+        new_inf <- log_10_gsea[order(log_10_gsea, decreasing = TRUE)]
+        log_10_gsea[log_10_gsea == "Inf"] <- (new_inf[new_inf != "Inf"][1] + 1)
 
-        longest_word <- max(stringr::str_count(PlotNowREACT$Description))
+        longest_word <- max(stringr::str_count(plot_now_react$Description))
 
 
-        Gene_Ratio <- unname(sapply(PlotNowREACT$leading_edge,
-                                    function(w){unlist(strsplit(w, ", "))[1]}))
-        Gene_Ratio <- round(as.numeric(gsub("tags=|%", "", Gene_Ratio))/100, 2)
+        gene_ratio <- unname(sapply(
+            plot_now_react$leading_edge,
+            function(w) {
+                unlist(strsplit(w, ", "))[1]
+            }
+        ))
 
+        gene_ratio <- round(
+            as.numeric(gsub("tags=|%", "", gene_ratio)) / 100, 2
+        )
 
         if (longest_word > 50) {
-            longest_Width <- Width * 1.5
+            longest_width <- width * 1.5
         } else {
-            longest_Width <- Width
+            longest_width <- width
         }
 
         if (tolower(image_format) == "png") {
-            png(filename = paste0(DIR,
-                            "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
-                            "_", pairName, ".png"),
-                width = longest_Width, height = Height, res = Res,
-                                                                units = Unit)
+            png(
+                filename = paste0(
+                    dir,
+                    "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", id,
+                    "_", pair_name, ".png"
+                ),
+                width = longest_width, height = height, res = res,
+                units = unit
+            )
         } else if (tolower(image_format) == "svg") {
-            svg(filename = paste0(DIR,
-                            "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", ID,
-                            "_", pairName, ".svg"),
-                width = longest_Width, height = Height, onefile = TRUE)
+            svg(
+                filename = paste0(
+                    dir,
+                    "/GSEA_Output/REACT-GSEA_EnrichPlot_10first", id,
+                    "_", pair_name, ".svg"
+                ),
+                width = longest_width, height = height, onefile = TRUE
+            )
         } else {
-            stop(message("Please, Insert a valid image_format!",
-                                                        " ('png' or 'svg')"))
+            stop(message(
+                "Please, Insert a valid image_format!",
+                " ('png' or 'svg')"
+            ))
         }
 
-        Count <- ceiling(PlotNowREACT$setSize * Gene_Ratio)
+        count <- ceiling(plot_now_react$setSize * gene_ratio)
 
 
-        p <- ggplot2::ggplot(PlotNowREACT, ggplot2::aes(x = log_10_GSEA,
-                                                    y = forcats::fct_reorder(Description, log_10_GSEA))) +
-            ggplot2::geom_point(ggplot2::aes(size = Count,
-                                                        color = Gene_Ratio)) +
-            ggplot2::scale_colour_gradient(limits=c(0, 1), low="red",
-                                                            high = "blue") +
+        p <- ggplot2::ggplot(plot_now_react, ggplot2::aes(
+            x = log_10_gsea,
+            y = forcats::fct_reorder(Description, log_10_gsea)
+        )) +
+            ggplot2::geom_point(ggplot2::aes(
+                size = count,
+                color = gene_ratio
+            )) +
+            ggplot2::scale_colour_gradient(
+                limits = c(0, 1), low = "red",
+                high = "blue"
+            ) +
             ggplot2::labs(y = "", x = "-log(FDR)") +
             ggplot2::theme_bw(base_size = 10) +
-            ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold",
-                                                                size = 16),
-                        axis.text = ggplot2::element_text(face = "bold",
-                                                        color = "#011600",
-                                                        size = 12),
-                        title = ggplot2::element_text(face = "bold",
-                                                    size = 18),
-                        plot.title = ggplot2::element_text(hjust = 0.5))
+            ggplot2::theme(
+                axis.title.x = ggplot2::element_text(
+                    face = "bold",
+                    size = 16
+                ),
+                axis.text = ggplot2::element_text(
+                    face = "bold",
+                    color = "#011600",
+                    size = 12
+                ),
+                title = ggplot2::element_text(
+                    face = "bold",
+                    size = 18
+                ),
+                plot.title = ggplot2::element_text(hjust = 0.5)
+            )
         print(p)
         dev.off()
     } else {
-        message("There is nothing to show in Gene Set Enrichment",
-                                                " Analysis - over Reactome")
+        message(
+            "There is nothing to show in Gene Set Enrichment",
+            " Analysis - over Reactome"
+        )
     }
     gc()
     message("Done!\n")

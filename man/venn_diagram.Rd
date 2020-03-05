@@ -4,14 +4,14 @@
 \alias{venn_diagram}
 \title{Venn diagram of differential expression genes list}
 \usage{
-venn_diagram(FinalData, n_pack = 3, packageNames,
-  pairName = "G2_over_G1", Width = 2000, Height = 2000, Res = 300,
-  Unit = "px", Colors = c("green", "blue", "red"),
-  VennDiagram_imagetype = "png", workDir, FC_cutoff = 2,
-  FDR_cutoff = 0.05, env)
+venn_diagram(final_data, n_pack = 3, package_names,
+  pair_name = "G2_over_G1", width = 2000, height = 2000, res = 300,
+  unit = "px", colors = c("green", "blue", "red"),
+  venn_diagram_imagetype = "png", work_dir, fc_cutoff = 2,
+  fdr_cutoff = 0.05, env)
 }
 \arguments{
-\item{FinalData}{A character string indicating the name of which diferential
+\item{final_data}{A character string indicating the name of which diferential
 expression package should be used to get the statistical values in the
 final list. The default is "EBSeq".}
 
@@ -19,48 +19,50 @@ final list. The default is "EBSeq".}
 to be used in venn diagram. It is expected the number 2 or 3. The default
 is 3.}
 
-\item{packageNames}{A character vector indicating the names of at least two
+\item{package_names}{A character vector indicating the names of at least two
 diferential expression packages used in previous steps: "DESeq2", "edgeR",
 "DESeq2, or "All".}
 
-\item{pairName}{A character string indicating which condition name should be
+\item{pair_name}{A character string indicating which condition name should be
 used. When there are only two groups the default is \code{"G2_over_G1"}.}
 
-\item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{width}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{height}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{res}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{unit}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Colors}{A character vector indicating the colors to be used in the
+\item{colors}{A character vector indicating the colors to be used in the
 venn diagram. The default is c('green', 'blue', "red").}
 
-\item{VennDiagram_imagetype}{A character string indicating the
-VennDiagram_imagetype (e.g. "tiff", "png" or "svg"). The default is "png".}
+\item{venn_diagram_imagetype}{A character string indicating the
+venn_diagram_imagetype (e.g. "tiff", "png" or "svg").
+The default is "png".}
 
-\item{workDir}{A character string specifying the path to work directory.}
+\item{work_dir}{A character string specifying the path to work directory.}
 
-\item{FC_cutoff}{Numerical value indicating the maximum value for Fold
+\item{fc_cutoff}{Numerical value indicating the maximum value for Fold
 Change '(FC). The default is \code{2}.}
 
-\item{FDR_cutoff}{Numerical value indicating the maximum value for FDR
+\item{fdr_cutoff}{Numerical value indicating the maximum value for FDR
 values. The default is \code{0.05}.}
 
 \item{env}{A character string containing the environment name that should be
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
-\itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+\itemize{\item{'tumor_data_base_data_type_tumor_data'}{ or}
+\item{'tumor_data_base_data_type_both_data'}{ (for tumor and not tumor
+data
 in separated matrices).}}}
 }
 \value{
@@ -69,4 +71,56 @@ three differential expression analysis packages.
 }
 \description{
 Venn diagram of differential expression genes list
+}
+\examples{
+library(DOAGDC)
+
+# data already downloaded using the 'download_gdc' function
+concatenate_expression("gene",
+    name = "HIF3A",
+    data_base = "legacy",
+    tumor = "CHOL",
+    work_dir = "~/Desktop"
+)
+
+# separating gene HIF3A expression data patients in two groups
+groups_identification_mclust("gene", 2,
+    name = "HIF3A",
+    modelName = "E",
+    env = CHOL_LEGACY_gene_tumor_data,
+    tumor = "CHOL"
+)
+
+# load not normalized data
+concatenate_expression("gene",
+    normalization = FALSE,
+    name = "HIF3A",
+    data_base = "legacy",
+    tumor = "CHOL",
+    env = CHOL_LEGACY_gene_tumor_data,
+    work_dir = "~/Desktop"
+)
+
+# start DE analysis
+dea_edger(
+    name = "HIF3A",
+    group_gen = "mclust",
+    env = CHOL_LEGACY_gene_tumor_data
+)
+
+dea_ebseq(
+    pair_name = "G2_over_G1",
+    rounds = 2,
+    name = "HIF3A",
+    group_gen = "mclust",
+    env = CHOL_LEGACY_gene_tumor_data
+)
+
+# run the Venn diagram
+venn_diagram(
+    final_data = "edgeR",
+    n_pack = 2,
+    package_names = c("EBSeq", "edgeR"),
+    env = CHOL_LEGACY_gene_tumor_data
+)
 }

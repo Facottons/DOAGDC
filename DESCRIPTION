@@ -4,7 +4,8 @@ Title: A Package to Download, Organize and Analyze Genomic Data Commons (GDC) Da
 Version: 0.98.0
 Date: 2019-05-01
 Authors@R: c(
-    person("Fábio Malta de Sá", "Patroni", role = c("aut", "cre", "cph"), email = "fabio_patroni@yahoo.com.br"),
+    person("Fábio Malta de Sá", "Patroni", role = c("aut", "cre", "cph"),
+                                        email = "fabio_patroni@yahoo.com.br"),
     person("Douglas", "Adamoski", , role = "ctb"),
     person("Marcelo", "Carazzole", , role = "ctb"),
     person("Sandra Martha Gomes", "Dias", , role = "ctb"))
@@ -17,49 +18,14 @@ Description: In order to download, organize and analyze GDC data we have develop
     citation("DOAGDC").
 Depends: R (>= 3.4)
 Imports:
-    curl,
-    R.utils,
-    jsonlite,
-    stringr,
-    stringi,
-    tools,
-    httr,
-    data.table,
-    mclust,
-    RColorBrewer,
-    devtools,
-    methods,
-    ggplot2,
-    gplots,
-    EBSeq,
-    edgeR,
-    DESeq2,
-    BiocParallel,
-    VennDiagram,
-    amap,
-    org.Hs.eg.db,
-    goseq,
-    clusterProfiler,
-    DOSE,
-    ReactomePA,
-    XML,
-    SummarizedExperiment,
-    survival,
-    scales,
-    AnnotationDbi,
-    dynamicTreeCut,
-    forcats,
-    reshape2,
-    yarrr,
-    survminer,
-    ggbiplot,
-    dplyr
+    curl, R.utils, jsonlite, stringr, stringi, tools, httr, data.table, mclust,
+    RColorBrewer, devtools, methods, ggplot2, gplots, EBSeq, edgeR, DESeq2,
+    BiocParallel, VennDiagram, amap, org.Hs.eg.db, goseq, clusterProfiler, DOSE,
+    ReactomePA, XML, SummarizedExperiment, survival, scales, AnnotationDbi,
+    dynamicTreeCut, forcats, reshape2, yarrr, survminer, ggbiplot, dplyr
 Suggests:
     rmarkdown (>= 0.9),
-    knitr (>= 1.12),
-    WGCNA,
-    gageData,
-    testthat
+    knitr (>= 1.12), WGCNA, gageData, testthat
 License: GPL-3 | file LICENSE
 URL: https://github.com/Facottons/DOAGDC
 BugReports: https://github.com/Facottons/DOAGDC/issues

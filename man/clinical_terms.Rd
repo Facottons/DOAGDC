@@ -4,63 +4,68 @@
 \alias{clinical_terms}
 \title{Search for clinical terms for all available tumors}
 \usage{
-clinical_terms(Name, workDir, tumor = "all", dataType,
-  group.number = 2, term, dataBase = "legacy", term_keyword = NULL,
-  tumor_with_term = 1, p_cutoff = 0.05, confidence.level = 0.95,
-  Width = 7, Height = 7, Res = 300, Unit = "in",
-  image_format = "svg", env, cexAxixX = 16, cexAxixY = 16)
+clinical_terms(name, work_dir, tumor = "all", data_type,
+  group_number = 2, term, data_base = "legacy", term_keyword = NULL,
+  tumor_with_term = 1, p_cutoff = 0.05, fdr_cutoff = 0.05,
+  confidence_level = 0.95, width = 7, height = 7, res = 300,
+  unit = "in", image_format = "svg", env, cex_axix_x = 16,
+  cex_axix_y = 16)
 }
 \arguments{
-\item{Name}{A character string indicating the desired values to be used in
+\item{name}{A character string indicating the desired values to be used in
 next analysis. For instance, "HIF3A" in the legacy gene expression matrix,
 "mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
 quantification matrix.}
 
-\item{workDir}{A character string specifying the path to work directory.}
+\item{work_dir}{A character string specifying the path to work directory.}
 
 \item{tumor}{A character vector indicating which tumors should be used in
 the analysis. The default is "all".}
 
-\item{dataType}{A character string indicating which dataType will be used to
-group the patients. Only needed when the environment was not created yet
-and the user does not have the \code{term} argument.}
+\item{data_type}{A character string indicating which data_type will be used
+to group the patients. Only needed when the environment was not created
+yet and the user does not have the \code{term} argument.}
 
-\item{group.number}{Numerical value indicating how many groups should be
+\item{group_number}{Numerical value indicating how many groups should be
 generated. This argument is advisable if subcategory number is larger than
 5. The default is 2.}
 
 \item{term}{A character string containing the clinical term to be used.}
 
-\item{dataBase}{A character string specifying \code{"GDC"} for GDC Data
+\item{data_base}{A character string specifying \code{"GDC"} for GDC Data
 Portal or \code{"legacy"} for GDC Legacy Archive.}
 
 \item{term_keyword}{A character string containing a possible fragment of the
 term. Used when the specific term is unknown.}
 
 \item{tumor_with_term}{A numerical value indicating the minimum number of
-tumors containing a specific term with the keyword used. The default is 1.}
+tumors containing a specific term with the keyword used.
+The default is 1.}
 
 \item{p_cutoff}{Numerical value indicating the maximum value for p-values.
 The default is \code{0.05}.}
 
-\item{confidence.level}{A numerical value containing the confidence interval
+\item{fdr_cutoff}{Numerical value indicating the maximum value for FDR
+values. The default is \code{0.05}.}
+
+\item{confidence_level}{A numerical value containing the confidence interval
 to be used. The default is 0.95.}
 
-\item{Width}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{width}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Height}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{height}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Res}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{res}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
-\item{Unit}{Graphical parameters. See \link{par} for more
-details. As default \code{Width = 2000, Height = 1500, Res =
-   300 and Unit = "px"}.}
+\item{unit}{Graphical parameters. See \link{par} for more
+details. As default \code{width = 2000, height = 1500, res =
+   300 and unit = "px"}.}
 
 \item{image_format}{A character string indicating which image_format will be
 used. It could be "png" or "svg". The only unit available in "svg" is
@@ -69,13 +74,14 @@ inches ('in'). The default is "png".}
 \item{env}{A character string containing the environment name that should be
 used. If none has been set yet, the function will create one in global
 environment following the standard criteria:
-\itemize{\item{'tumor_dataBase_dataType_tumor_data'}{ or}
-\item{'tumor_dataBase_dataType_both_data'}{ (for tumor and not tumor data
+\itemize{\item{'tumor_data_base_data_type_tumor_data'}{ or}
+\item{'tumor_data_base_data_type_both_data'}{ (for tumor and not tumor
+data
 in separated matrices).}}}
 
-\item{cexAxixX, cexAxixY}{A numerical value giving the amount by which labels
-in X and Y axis respectively should be modified relative to the default
-size. The default value is 16 for both arguments.}
+\item{cex_axix_x, cex_axix_y}{A numerical value giving the amount by which
+labels in X and Y axis respectively should be modified relative to the
+default size. The default value is 16 for both arguments.}
 }
 \value{
 the groups generated after using the seleted clinical category and
@@ -85,14 +91,58 @@ store it inside the determined environment name.
 Search for clinical terms for all available tumors
 }
 \examples{
-\dontrun{
-#searching for terms having the keyword inserted in common 'tumor_with_term = 3'
-clinical_terms(tumor = c("BRCA", "UCS", "OV"), term_keyword = "year", tumor_with_term = 3)
+library(DOAGDC)
 
-#searching for all terms available with at least three tumors in common 'tumor_with_term = 3'
-clinical_terms(tumor = c("BRCA", "UCS", "OV"), term_keyword = "", tumor_with_term = 3)
-
-#using the analysis with a specified term
-clinical_terms("UCS", "isoform", term = "vital_status")
+for (tumor in c("CHOL", "UCS", "OV")) {
+    download_gdc(
+        data_type = "clinical",
+        data_base = "gdc",
+        work_dir = "~/Desktop",
+        tumor = tumor
+    )
 }
+
+# searching terms having the keyword inserted in common 'tumor_with_term = 3'
+clinical_terms(
+    tumor = c("CHOL", "UCS", "OV"),
+    data_base = "gdc",
+    term_keyword = "year",
+    work_dir = "~/Desktop",
+    tumor_with_term = 3
+)
+
+# searching all terms available with at least three tumors in common
+clinical_terms(
+    tumor = c("CHOL", "UCS", "OV"),
+    term_keyword = "",
+    data_base = "gdc",
+    work_dir = "~/Desktop",
+    tumor_with_term = 3
+)
+
+# using the analysis with a specified term
+
+download_gdc(
+        data_type = "gene",
+        data_base = "gdc",
+        htseq = "FPKM",
+        work_dir = "~/Desktop",
+        tumor = "CHOL")
+
+concatenate_expression(
+    name = "ENSG00000124440",
+    data_type = "gene",
+    data_base = "gdc",
+    work_dir = "~/Desktop",
+    htseq = "FPKM",
+    tumor = "CHOL")
+
+clinical_terms(
+    "ENSG00000124440",
+    "~/Desktop",
+    "CHOL",
+    "gene",
+    data_base = "gdc",
+    env = CHOL_GDC_gene_tumor_data,
+    term = "gender")
 }

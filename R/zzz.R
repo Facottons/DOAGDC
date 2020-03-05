@@ -1,5 +1,5 @@
 # .onLoad <- function(libname, pkgname) {
-#     # something
+#    # something
 # }
 
 # http://stackoverflow.com/questions/15261619/
@@ -7,10 +7,7 @@
 # message(sprintf("On %s I realized %s was...\n%s by the street",
 # Sys.Date(), person, action))
 .onAttach <- function(lib, pkg) {
-    # unlockBinding(".DOAGDC", asNamespace("DOAGDC"))
-    # version <- read.dcf(file.path(lib, pkg, "DESCRIPTION"), "Version")
-    #are you human?
-    GDCTerms <- paste0("By using this package you accept the terms",
+    gdc_terms <- paste0("By using this package you accept the terms",
                                         " in 'https://portal.gdc.cancer.gov'")
     if (interactive()) {
         # figlet (-f doom) DOAGDC
@@ -20,11 +17,11 @@
     D  D O   O AAAA G  GG D  D C
     D  D O   O A  A G   G D  D C
     DDD   OOO  A  A  GGG  DDD   CCC    \n\nVersion: ", version, "\n",
-        "\n", GDCTerms, "\n")
+        "\n", gdc_terms, "\n")
 
     } else {
         packageStartupMessage("Package 'DOAGDC' \n\nversion ", version,
-                                                        "\n", "\n", GDCTerms)
+                                                        "\n", "\n", gdc_terms)
     }
 
     packageStartupMessage("For citing this R package in publications, ",
