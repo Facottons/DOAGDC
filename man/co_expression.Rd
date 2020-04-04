@@ -4,13 +4,30 @@
 \alias{co_expression}
 \title{Co-Expression Analyses}
 \usage{
-co_expression(data = NULL, name, data_base, work_dir, tumor,
-  normalization = TRUE, tumor_data = TRUE, trait_data = NULL,
-  network_type = "unsigned", min_module_size = 15,
-  max_softpower = 20, nthreads = 1, me_diss_thres = 0.25,
-  width = 2000, height = 1500, res = 300, unit = "px",
-  image_format = "png", env, save_checkpoints = FALSE,
-  load_checkpoint = NULL, pearson_cutoff = 0.5)
+co_expression(
+  data = NULL,
+  name,
+  data_base,
+  work_dir,
+  tumor,
+  normalization = TRUE,
+  tumor_data = TRUE,
+  trait_data = NULL,
+  network_type = "unsigned",
+  min_module_size = 15,
+  max_softpower = 20,
+  nthreads = 1,
+  me_diss_thres = 0.25,
+  width = 2000,
+  height = 1500,
+  res = 300,
+  unit = "px",
+  image_format = "png",
+  env,
+  save_checkpoints = FALSE,
+  load_checkpoint = NULL,
+  pearson_cutoff = 0.5
+)
 }
 \arguments{
 \item{data}{Used for external non-log expression data. Matrix or data frame.

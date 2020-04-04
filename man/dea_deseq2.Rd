@@ -4,10 +4,24 @@
 \alias{dea_deseq2}
 \title{Run DESeq2 gene Differential Expression Analysis (DEA).}
 \usage{
-dea_deseq2(name, core_number = 2, test = "Default Test", group_gen,
-  clinical_pair, fc_cutoff = 2, work_dir, tumor, fdr_cutoff = 0.05,
-  width = 2000, height = 1500, res = 300, unit = "px",
-  image_format = "png", env, cooks_cutoff = FALSE)
+dea_deseq2(
+  name,
+  core_number = 2,
+  test = "Default Test",
+  group_gen,
+  clinical_pair,
+  fc_cutoff = 2,
+  work_dir,
+  tumor,
+  fdr_cutoff = 0.05,
+  width = 2000,
+  height = 1500,
+  res = 300,
+  unit = "px",
+  image_format = "png",
+  env,
+  cooks_cutoff = FALSE
+)
 }
 \arguments{
 \item{name}{A character string indicating the desired values to be used in

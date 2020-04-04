@@ -4,8 +4,15 @@
 \alias{download_gdc}
 \title{Download data from GDC Data Portal and GDC Legacy Archive}
 \usage{
-download_gdc(data_type = "gene", tumor, data_base = "legacy",
-  htseq = "", work_dir, all_files = FALSE, platform = "all")
+download_gdc(
+  data_type = "gene",
+  tumor,
+  data_base = "legacy",
+  htseq = "",
+  work_dir,
+  all_files = FALSE,
+  platform = "all"
+)
 }
 \arguments{
 \item{data_type}{Type of data. It could be \code{"methylation", "mutation",

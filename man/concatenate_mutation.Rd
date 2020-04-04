@@ -4,8 +4,17 @@
 \alias{concatenate_mutation}
 \title{Concatenate GDC files into a single matrix and prepar the data}
 \usage{
-concatenate_mutation(name, data_base, work_dir, tumor, workflow_type,
-  tumor_data = TRUE, platform = "", env, save_data = FALSE)
+concatenate_mutation(
+  name,
+  data_base,
+  work_dir,
+  tumor,
+  workflow_type,
+  tumor_data = TRUE,
+  platform = "",
+  env,
+  save_data = FALSE
+)
 }
 \arguments{
 \item{name}{A character string indicating the desired values to be used in

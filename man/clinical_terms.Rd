@@ -4,12 +4,28 @@
 \alias{clinical_terms}
 \title{Search for clinical terms for all available tumors}
 \usage{
-clinical_terms(name, work_dir, tumor = "all", data_type,
-  group_number = 2, term, data_base = "legacy", term_keyword = NULL,
-  tumor_with_term = 1, p_cutoff = 0.05, fdr_cutoff = 0.05,
-  confidence_level = 0.95, width = 7, height = 7, res = 300,
-  unit = "in", image_format = "svg", env, cex_axix_x = 16,
-  cex_axix_y = 16)
+clinical_terms(
+  name,
+  work_dir,
+  tumor = "all",
+  data_type,
+  group_number = 2,
+  term,
+  data_base = "legacy",
+  term_keyword = NULL,
+  tumor_with_term = 1,
+  p_cutoff = 0.05,
+  fdr_cutoff = 0.05,
+  confidence_level = 0.95,
+  width = 7,
+  height = 7,
+  res = 300,
+  unit = "in",
+  image_format = "svg",
+  env,
+  cex_axix_x = 16,
+  cex_axix_y = 16
+)
 }
 \arguments{
 \item{name}{A character string indicating the desired values to be used in

@@ -4,11 +4,22 @@
 \alias{venn_diagram}
 \title{Venn diagram of differential expression genes list}
 \usage{
-venn_diagram(final_data, n_pack = 3, package_names,
-  pair_name = "G2_over_G1", width = 2000, height = 2000, res = 300,
-  unit = "px", colors = c("green", "blue", "red"),
-  venn_diagram_imagetype = "png", work_dir, fc_cutoff = 2,
-  fdr_cutoff = 0.05, env)
+venn_diagram(
+  final_data,
+  n_pack = 3,
+  package_names,
+  pair_name = "G2_over_G1",
+  width = 2000,
+  height = 2000,
+  res = 300,
+  unit = "px",
+  colors = c("green", "blue", "red"),
+  venn_diagram_imagetype = "png",
+  work_dir,
+  fc_cutoff = 2,
+  fdr_cutoff = 0.05,
+  env
+)
 }
 \arguments{
 \item{final_data}{A character string indicating the name of which diferential

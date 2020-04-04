@@ -4,9 +4,20 @@
 \alias{groups_identification_cox_hr}
 \title{Separate patients in groups}
 \usage{
-groups_identification_cox_hr(name, data_type, width = 3000,
-  height = 2000, res = 400, unit = "px", image_format = "png",
-  save_data = TRUE, env, tumor, data_base, work_dir)
+groups_identification_cox_hr(
+  name,
+  data_type,
+  width = 3000,
+  height = 2000,
+  res = 400,
+  unit = "px",
+  image_format = "png",
+  save_data = TRUE,
+  env,
+  tumor,
+  data_base,
+  work_dir
+)
 }
 \arguments{
 \item{name}{A character string indicating the desired values to be used in

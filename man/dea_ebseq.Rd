@@ -4,12 +4,28 @@
 \alias{dea_ebseq}
 \title{Run EBSeq gene Differential Expression Analysis (DEA).}
 \usage{
-dea_ebseq(name, work_dir, env, tumor, group_gen, clinical_pair,
-  pair_name = "G2_over_G1", rounds = 7, norm_type = "QuantileNorm",
-  ebtest_qtrm = 0.75, ebtest_qtrm_cut = 10, p_cutoff = 0.05,
-  fdr_cutoff = 0.05, fc_cutoff = 2, width = 2000, height = 1500,
-  res = 300, unit = "px", image_format = "png",
-  bullard_quantile = 0.75)
+dea_ebseq(
+  name,
+  work_dir,
+  env,
+  tumor,
+  group_gen,
+  clinical_pair,
+  pair_name = "G2_over_G1",
+  rounds = 7,
+  norm_type = "QuantileNorm",
+  ebtest_qtrm = 0.75,
+  ebtest_qtrm_cut = 10,
+  p_cutoff = 0.05,
+  fdr_cutoff = 0.05,
+  fc_cutoff = 2,
+  width = 2000,
+  height = 1500,
+  res = 300,
+  unit = "px",
+  image_format = "png",
+  bullard_quantile = 0.75
+)
 }
 \arguments{
 \item{name}{A character string indicating the desired values to be used in

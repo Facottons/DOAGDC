@@ -4,6 +4,7 @@
 .Ruserdata
 .vscode
 .Rbuildignore
+..Rcheck
 README.Rmd
 DOAGDC.Rproj
 /revdep/.cache.rds

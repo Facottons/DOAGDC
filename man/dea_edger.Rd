@@ -4,9 +4,21 @@
 \alias{dea_edger}
 \title{Run edgeR gene Differential Expression Analysis (DEA).}
 \usage{
-dea_edger(name, method = "exacttest", clinical_pair, group_gen,
-  fc_cutoff = 2, work_dir, env, fdr_cutoff = 0.05, width = 2000,
-  height = 1500, res = 300, unit = "px", image_format = "png")
+dea_edger(
+  name,
+  method = "exacttest",
+  clinical_pair,
+  group_gen,
+  fc_cutoff = 2,
+  work_dir,
+  env,
+  fdr_cutoff = 0.05,
+  width = 2000,
+  height = 1500,
+  res = 300,
+  unit = "px",
+  image_format = "png"
+)
 }
 \arguments{
 \item{name}{A character string indicating the desired values to be used in

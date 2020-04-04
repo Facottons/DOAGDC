@@ -4,8 +4,18 @@
 \alias{pca_analysis}
 \title{Generate plot for Principal Component Analysis}
 \usage{
-pca_analysis(tool, name, work_dir, pair_name = "G2_over_G1", width = 4,
-  height = 2, res = 300, unit = "in", image_format = "png", env)
+pca_analysis(
+  tool,
+  name,
+  work_dir,
+  pair_name = "G2_over_G1",
+  width = 4,
+  height = 2,
+  res = 300,
+  unit = "in",
+  image_format = "png",
+  env
+)
 }
 \arguments{
 \item{tool}{A character string indicating which differential expression

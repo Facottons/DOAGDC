@@ -15,10 +15,6 @@
 #'    "mir-1307" in the miRNA quantification matrix, or "HER2" in the protein
 #'    quantification matrix.
 #' @param data_base
-#' @param htseq A character string indicating which htseq workflow data should
-#'    be used (only applied to "GDC" gene expression): "Counts", or
-#'    "FPKM". NOTE: If "FPKM" is selected the values are going to be converted
-#'    to "TPM" for consistency.
 #' @param work_dir
 #' @param tumor
 #' @param tumor_data Logical value where \code{TRUE} specifies the desire to
@@ -76,7 +72,6 @@
 concatenate_expression <- function(data_type,
                                     normalization = TRUE,
                                     name, data_base,
-                                    htseq = "",
                                     work_dir, tumor,
                                     tumor_data = TRUE,
                                     only_filter = FALSE,
@@ -86,8 +81,7 @@ concatenate_expression <- function(data_type,
                                     save_data = FALSE) {
 
     # local functions ####
-    gene_isoform <- function() {
-
+    gene_isoform <- function(df) {
         # selecting files by type (normalized or not)
         regex <- ifelse(
             normalization,
@@ -101,8 +95,7 @@ concatenate_expression <- function(data_type,
             )
         )
 
-        files_boo <- grepl(regex, codigos$file_name)
-        return(codigos[files_boo, ])
+        return(df[grepl(regex, df$file_name), ])
     }
 
     open_genexpress <- function(files) {
@@ -113,9 +106,9 @@ concatenate_expression <- function(data_type,
         for (i in files$file_name) {
             count <- count + 1
             setTxtProgressBar(pb, count)
-            actual_file <- data.table::fread(file.path(dir, i))
+            actual_file <- data.table::fread(file.path(direc, i))
             if (count == 1) {
-                actual_file <- data.table::fread(file.path(dir, i))
+                actual_file <- data.table::fread(file.path(direc, i))
                 completed_table1 <- matrix(
                     nrow = nrow(actual_file),
                     ncol = length(files$file_name)
@@ -123,7 +116,7 @@ concatenate_expression <- function(data_type,
                 rownames(completed_table1) <- actual_file[[1]]
                 completed_table1[, 1] <- as.numeric(actual_file[[2]])
             } else {
-                actual_file <- data.table::fread(file.path(dir, i), select = 2)
+                actual_file <- data.table::fread(file.path(direc, i), select = 2)
                 completed_table1[, count] <- as.numeric(actual_file[[1]])
             }
         }
@@ -196,7 +189,7 @@ concatenate_expression <- function(data_type,
             "'env' argument"
         )
 
-        dir <- file.path(
+        direc <- file.path(
             work_dir, "DOAGDC", toupper(tumor),
             ifelse(
                 data_base_boo, ifelse(
@@ -205,16 +198,9 @@ concatenate_expression <- function(data_type,
             )
         )
 
-        if (htseq == "" && !data_base_boo) {
-            stop("Please choose a HTSeq method!")
-        }
+        codes <- dir(direc, ".sdrf$")
 
-        codes <- dir(dir, ifelse(data_base_boo, ".sdrf$", paste0(
-            toupper(htseq),
-            "_manifest.sdrf$"
-        )))
-
-        codigos <- read.table(file.path(dir, codes[1]),
+        codigos <- read.table(file.path(direc, codes[1]),
             stringsAsFactors = FALSE,
             header = TRUE, sep = "\t"
         )
@@ -239,7 +225,8 @@ concatenate_expression <- function(data_type,
                 }
             ))
 
-            codigos_t <- codigos[grepl(regex, x = seletor), ]
+            codigos_t <- gene_isoform(codigos)
+            codigos_t <- codigos_t[grepl(regex, x = seletor), ]
             patients <- codigos_t$submitter_id
         } else {
 
@@ -251,6 +238,12 @@ concatenate_expression <- function(data_type,
             ))
 
             codigos_t <- codigos[grepl(regex, x = seletor), ]
+
+            file_end <- ifelse(normalization, "FPKM", "count")
+            codigos_t <- codigos_t[grep(
+                file_end, codigos_t$file_name,
+                perl = TRUE
+            ), ]
             patients <- codigos_t$cases
         }
 
@@ -398,7 +391,7 @@ concatenate_expression <- function(data_type,
                 message("\nSaving your data...\n")
                 write.table(table_tumor,
                     paste0(
-                        dir, "/", tumor,
+                        direc, "/", tumor,
                         "_tumor_data.tsv"
                     ),
                     sep = "\t"
@@ -406,7 +399,7 @@ concatenate_expression <- function(data_type,
                 write.table(
                     completed_nt_table,
                     paste0(
-                        dir, "/",
+                        direc, "/",
                         tumor, "_nt_data.tsv"
                     ),
                     sep = "\t"
@@ -503,25 +496,25 @@ concatenate_expression <- function(data_type,
         sv <- list(ev = get(ev))
 
         if (data_type_boo) {
-            if (tumor_data) {
-                if (normalization) {
-                    table_tumor <- name_finder(sv[["ev"]]$gene_tumor_normalized)
-                } else {
-                    table_tumor <- name_finder(sv[["ev"]]$gene_tumor_nn)
-                }
-
-                assign(paste0(
-                    ifelse(
-                        normalization,
-                        "gene_tumor_normalized_selected_",
-                        "gene_tumor_nn_selected_"
-                    ),
-                    toupper(name)
-                ),
-                table_tumor,
-                envir = get(ev)
-                )
+            if (normalization) {
+                table_tumor <- name_finder(sv[["ev"]]$gene_tumor_normalized)
             } else {
+                table_tumor <- name_finder(sv[["ev"]]$gene_tumor_nn)
+            }
+
+            assign(paste0(
+                ifelse(
+                    normalization,
+                    "gene_tumor_normalized_selected_",
+                    "gene_tumor_nn_selected_"
+                ),
+                toupper(name)
+            ),
+            table_tumor,
+            envir = get(ev)
+            )
+
+            if (!tumor_data) {
                 # not tumor
                 if (normalization) {
                     table_nt <- name_finder(sv[["ev"]]$gene_nt_normalized)
@@ -543,27 +536,27 @@ concatenate_expression <- function(data_type,
 
             }
         } else if (tolower(data_type) == "isoform") {
-            if (tumor_data) {
-                if (normalization) {
-                    table_tumor <- name_finder(
-                        sv[["ev"]]$isoform_tumor_normalized
-                    )
-                } else {
-                    table_tumor <- name_finder(sv[["ev"]]$isoform_tumor_nn)
-                }
-
-                assign(paste0(
-                    ifelse(
-                        normalization,
-                        "isoform_tumor_normalized_selected_",
-                        "isoform_tumor_nn_selected_"
-                    ),
-                    toupper(name)
-                ),
-                table_tumor,
-                envir = get(ev)
+            if (normalization) {
+                table_tumor <- name_finder(
+                    sv[["ev"]]$isoform_tumor_normalized
                 )
             } else {
+                table_tumor <- name_finder(sv[["ev"]]$isoform_tumor_nn)
+            }
+
+            assign(paste0(
+                ifelse(
+                    normalization,
+                    "isoform_tumor_normalized_selected_",
+                    "isoform_tumor_nn_selected_"
+                ),
+                toupper(name)
+            ),
+            table_tumor,
+            envir = get(ev)
+            )
+
+            if (!tumor_data) {
                 # not tumor
                 if (normalization) {
                     table_nt <- name_finder(sv[["ev"]]$isoform_nt_normalized)

@@ -4,9 +4,18 @@
 \alias{concatenate_protein}
 \title{Concatenate GDC files into a single matrix and prepar the data}
 \usage{
-concatenate_protein(name, data_base, work_dir, tumor, tumor_data = TRUE,
-  only_filter = FALSE, tumor_type = 1, normal_type = 11, env,
-  save_data = FALSE)
+concatenate_protein(
+  name,
+  data_base,
+  work_dir,
+  tumor,
+  tumor_data = TRUE,
+  only_filter = FALSE,
+  tumor_type = 1,
+  normal_type = 11,
+  env,
+  save_data = FALSE
+)
 }
 \arguments{
 \item{name}{A character string indicating the desired values to be used in

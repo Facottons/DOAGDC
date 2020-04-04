@@ -4,11 +4,25 @@
 \alias{groups_identification_mclust}
 \title{Separate patients in groups}
 \usage{
-groups_identification_mclust(data_type, group_number = "",
-  modelName = NULL, uncertainty_cutoff = 0.05, rerun_plots = FALSE,
-  n_breaks = 55, width = 2000, height = 1500, res = 300,
-  unit = "px", image_format = "png", save_data = TRUE, env, tumor,
-  data_base, work_dir = "~/Desktop", name)
+groups_identification_mclust(
+  data_type,
+  group_number = "",
+  modelName = NULL,
+  uncertainty_cutoff = 0.05,
+  rerun_plots = FALSE,
+  n_breaks = 55,
+  width = 2000,
+  height = 1500,
+  res = 300,
+  unit = "px",
+  image_format = "png",
+  save_data = TRUE,
+  env,
+  tumor,
+  data_base,
+  work_dir = "~/Desktop",
+  name
+)
 }
 \arguments{
 \item{data_type}{Type of data. It could be \code{"methylation", "mutation",

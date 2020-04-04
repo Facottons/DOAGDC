@@ -4,8 +4,15 @@
 \alias{table2_doagdc}
 \title{From global to DOAGDC environment}
 \usage{
-table2_doagdc(table, data_type, normalization = TRUE, data_base, tumor,
-  tumor_data = TRUE, env)
+table2_doagdc(
+  table,
+  data_type,
+  normalization = TRUE,
+  data_base,
+  tumor,
+  tumor_data = TRUE,
+  env
+)
 }
 \arguments{
 \item{table}{A matrix or data frame with data used in this package (i.e Gene,

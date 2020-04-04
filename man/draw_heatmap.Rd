@@ -4,11 +4,27 @@
 \alias{draw_heatmap}
 \title{Draw a heatmap}
 \usage{
-draw_heatmap(tool, fc_cutoff = 2, name, method = "euclidean",
-  pair_name = "G2_over_G1", raw_values = FALSE, width = 6,
-  height = 6, res = 300, unit = "in", image_format = "svg", env,
-  scale_method = "row", outer_margins = c(0, 0, 0, 0), cex_col = 0,
-  cex_row = 0, degree = 45, lab_row = NULL, lab_col = NULL)
+draw_heatmap(
+  tool,
+  fc_cutoff = 2,
+  name,
+  method = "euclidean",
+  pair_name = "G2_over_G1",
+  raw_values = FALSE,
+  width = 6,
+  height = 6,
+  res = 300,
+  unit = "in",
+  image_format = "svg",
+  env,
+  scale_method = "row",
+  outer_margins = c(0, 0, 0, 0),
+  cex_col = 0,
+  cex_row = 0,
+  degree = 45,
+  lab_row = NULL,
+  lab_col = NULL
+)
 }
 \arguments{
 \item{fc_cutoff}{Numerical value indicating the maximum value for Fold

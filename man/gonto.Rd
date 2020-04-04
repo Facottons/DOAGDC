@@ -4,10 +4,20 @@
 \alias{gonto}
 \title{Perform Gene-Ontology Pathways Enrichment}
 \usage{
-gonto(condition, use_genes_without_cat = TRUE, fdr_cutoff = 0.05,
-  width = 2000, height = 2000, res = 300, unit = "px",
-  image_format = "png", tool, id = "geneID",
-  pair_name = "G2_over_G1", env)
+gonto(
+  condition,
+  use_genes_without_cat = TRUE,
+  fdr_cutoff = 0.05,
+  width = 2000,
+  height = 2000,
+  res = 300,
+  unit = "px",
+  image_format = "png",
+  tool,
+  id = "geneID",
+  pair_name = "G2_over_G1",
+  env
+)
 }
 \arguments{
 \item{condition}{A character string containing which condition should be

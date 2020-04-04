@@ -4,10 +4,20 @@
 \alias{concatenate_expression}
 \title{Concatenate GDC files into a single matrix and prepar the data}
 \usage{
-concatenate_expression(data_type, normalization = TRUE, name, data_base,
-  htseq = "", work_dir, tumor, tumor_data = TRUE,
-  only_filter = FALSE, tumor_type = 1, normal_type = 11, env,
-  save_data = FALSE)
+concatenate_expression(
+  data_type,
+  normalization = TRUE,
+  name,
+  data_base,
+  work_dir,
+  tumor,
+  tumor_data = TRUE,
+  only_filter = FALSE,
+  tumor_type = 1,
+  normal_type = 11,
+  env,
+  save_data = FALSE
+)
 }
 \arguments{
 \item{data_type}{Type of data. It could be \code{"methylation", "mutation",
@@ -32,11 +42,6 @@ quantification matrix.}
 
 \item{data_base}{A character string specifying \code{"GDC"} for GDC Data
 Portal or \code{"legacy"} for GDC Legacy Archive.}
-
-\item{htseq}{A character string indicating which htseq workflow data should
-be used (only applied to "GDC" gene expression): "Counts", or
-"FPKM". NOTE: If "FPKM" is selected the values are going to be converted
-to "TPM" for consistency.}
 
 \item{work_dir}{A character string specifying the path to work directory.}
 

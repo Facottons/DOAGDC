@@ -4,9 +4,18 @@
 \alias{gsea}
 \title{Gene Set Enrichment Analysis}
 \usage{
-gsea(fdr_cutoff = 0.05, width = 10, height = 3, res = 500,
-  unit = "in", image_format = "png", tool = "edgeR", id = "geneid",
-  pair_name = "G2_over_G1", env)
+gsea(
+  fdr_cutoff = 0.05,
+  width = 10,
+  height = 3,
+  res = 500,
+  unit = "in",
+  image_format = "png",
+  tool = "edgeR",
+  id = "geneid",
+  pair_name = "G2_over_G1",
+  env
+)
 }
 \arguments{
 \item{fdr_cutoff}{Numerical value indicating the maximum value for FDR

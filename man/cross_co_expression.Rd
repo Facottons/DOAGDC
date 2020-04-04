@@ -4,10 +4,20 @@
 \alias{cross_co_expression}
 \title{Cross co-expression gene list against differential expression genes list}
 \usage{
-cross_co_expression(pair_name = "G2_over_G1", final_data, width = 2000,
-  height = 2000, res = 300, unit = "px", colors = c("green",
-  "blue", "red"), venn_diagram_imagetype = "png", work_dir,
-  fc_cutoff = 2, fdr_cutoff = 0.05, env)
+cross_co_expression(
+  pair_name = "G2_over_G1",
+  final_data,
+  width = 2000,
+  height = 2000,
+  res = 300,
+  unit = "px",
+  colors = c("green", "blue", "red"),
+  venn_diagram_imagetype = "png",
+  work_dir,
+  fc_cutoff = 2,
+  fdr_cutoff = 0.05,
+  env
+)
 }
 \arguments{
 \item{pair_name}{A character string indicating which condition name should be

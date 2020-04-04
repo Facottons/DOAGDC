@@ -4,10 +4,23 @@
 \alias{concatenate_exon}
 \title{Concatenate GDC files into a single matrix and prepar the data}
 \usage{
-concatenate_exon(data_type, normalization = TRUE, name, data_base,
-  htseq = NULL, work_dir, tumor, workflow_type, tumor_data = TRUE,
-  only_filter = FALSE, tumor_type = 1, normal_type = 11,
-  platform = "", env, save_data = FALSE)
+concatenate_exon(
+  data_type,
+  normalization = TRUE,
+  name,
+  data_base,
+  htseq = NULL,
+  work_dir,
+  tumor,
+  workflow_type,
+  tumor_data = TRUE,
+  only_filter = FALSE,
+  tumor_type = 1,
+  normal_type = 11,
+  platform = "",
+  env,
+  save_data = FALSE
+)
 }
 \arguments{
 \item{data_type}{Type of data. It could be \code{"methylation", "mutation",

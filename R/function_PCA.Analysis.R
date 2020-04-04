@@ -168,7 +168,7 @@ pca_analysis <- function(tool,
                 alpha = 0.5,
                 var.axes = FALSE
             ) +
-                scale_color_manual(
+                ggplot2::scale_color_manual(
                     name = "Groups",
                     values = color_pallete[unique(cond_heatmap)]
                 ) +

@@ -104,7 +104,9 @@ download_gdc <- function(data_type = "gene",
     # selecting the right API
 
     # code ####
-    if (tolower(data_base) == "legacy") {
+    db_bool <- tolower(data_base) == "legacy"
+
+    if (db_bool) {
         inicio <- "https://api.gdc.cancer.gov/legacy/data/"
         url_inicio <- "https://api.gdc.cancer.gov/legacy/files/"
         status <- "https://api.gdc.cancer.gov/legacy/status"
@@ -138,7 +140,7 @@ download_gdc <- function(data_type = "gene",
     )
 
     # legacy ####
-    if (tolower(data_base) == "legacy") {
+    if (db_bool) {
         # NOTE gene and isoform ####
         if ("gene" %in% tolower(data_type) || "isoform" %in% tolower(data_type)) {
             size_par_rsem <- function(tumor) {
@@ -170,7 +172,7 @@ download_gdc <- function(data_type = "gene",
                     ),
                     showWarnings = FALSE
                 )
-                dir <- file.path(work_dir, "DOAGDC", toupper(tumor),
+                direc <- file.path(work_dir, "DOAGDC", toupper(tumor),
                                                                 "gene_data")
 
                 url <- paste0(
@@ -206,7 +208,7 @@ download_gdc <- function(data_type = "gene",
                     ),
                     showWarnings = FALSE
                 )
-                dir <- file.path(
+                direc <- file.path(
                     work_dir, "DOAGDC", toupper(tumor),
                     "isoform_data"
                 )
@@ -252,9 +254,14 @@ download_gdc <- function(data_type = "gene",
 
             cases <- matrix(nrow = nrow(manifest_df), ncol = 1)
             for (index in seq_len(length(manipular))) {
-                patient_code <- manipular[[index]][2]
-                tmp <- as.character(unlist(patient_code))
-                cases[index, 1] <- tmp[grep("TCGA", tmp)]
+                patient_code <- as.character(unlist(manipular[[index]][1]))
+                tmp <- patient_code[grep("TCGA", patient_code)]
+                if (tmp == paste0('TCGA-', toupper(tumor))) {
+                    patient_code <- as.character(unlist(manipular[[index]][2]))
+                    cases[index, 1] <- patient_code[grep("TCGA", patient_code)]
+                } else {
+                    cases[index, 1] <- tmp
+                }
             }
 
             manifest_df$submitter_id <- cases
@@ -284,7 +291,7 @@ download_gdc <- function(data_type = "gene",
             }
 
             write.table(
-                x = manifest_df, file = paste0(dir, "/manifest.sdrf"),
+                x = manifest_df, file = paste0(direc, "/manifest.sdrf"),
                 quote = FALSE, row.names = FALSE, sep = "\t"
             )
 
@@ -304,7 +311,7 @@ download_gdc <- function(data_type = "gene",
                 ),
                 showWarnings = FALSE
             )
-            dir <- file.path(work_dir, "DOAGDC", toupper(tumor),
+            direc <- file.path(work_dir, "DOAGDC", toupper(tumor),
                                                             "gdc_gene_data")
 
             size_par <- function(tumor) {
@@ -325,105 +332,38 @@ download_gdc <- function(data_type = "gene",
 
             size <- size_par(tumor = tumor)
             # selecting which HTSeq data to download
-            if (tolower(htseq) == "counts") {
-                url <- paste0(
-                    url_inicio, "?pretty=true&expand=cases.samples.",
-                    "portions.analytes.aliquots,cases.project,",
-                    "center,analysis&size=",
-                    size, "&filters=%7B%22op%22:%22and%22,%22",
-                    "content%22:%5B%7B%22op%22:%22",
-                    "in%22,%22content%22:%7B%22field%22:%22",
-                    "files.data_type%22,%22value%22:%5B%22",
-                    "Gene%20Expression%20Quantification%22%5D%7D%7D",
-                    ",%7B%22op%22:%22in%22,%22content",
-                    "%22:%7B%22field%22:%22cases.project.project_id",
-                    "%22,%22value%22:%5B%22TCGA-", toupper(tumor),
-                    "%22%",
-                    "5D%7D%7D,%7B%22op%22:%22in%22,%22content",
-                    "%22:%7B%22field%22:%22files.access%22,",
-                    "%22value%22:%5B%22open%22%5D%7D%7D,%7B%22op%22",
-                    ":%22in%22,%22content%22:%7B%22field",
-                    "%22:%22files.data_format%22,%22value%22:%5B",
-                    "%22TXT%22%5D%7D%7D,%7B%22op%22:",
-                    "%22in%22,%22content%22:%7B%22field%22:%22files",
-                    ".experimental_strategy%22,%22value%22",
-                    ":%5B%22RNA-Seq%22%5D%7D%7D,%7B%22op%22:%22in",
-                    "%22,%22content%22:%7B%22field%22:",
-                    "%22files.data_category%22,%22value%22:%5B%22",
-                    "Transcriptome%20Profiling%22%5D%7D%7D,",
-                    "%7B%22op%22:%22in%22,%22content%22:%7B%22",
-                    "field%22:%22files.analysis.workflow_type%22",
-                    ",%22value%22:%5B%22HTSeq%20-%20Counts%22%5D%",
-                    "7D%7D%5D%7D&format=JSON"
-                )
-            } else if (toupper(htseq) == "FPKM") {
-                url <- paste0(
-                    url_inicio, "?pretty=true&expand=cases.samples.",
-                    "portions.analytes.aliquots,cases.project,",
-                    "center,analysis&size=",
-                    size, "&filters=%7B%22op%22:%22and%22,%22",
-                    "content%22:%5B%7B%22op%22:%22",
-                    "in%22,%22content%22:%7B%22field%22:%22files.",
-                    "data_type%22,%22value%22:%5B%22",
-                    "Gene%20Expression%20Quantification%22%5D%7D",
-                    "%7D,%7B%22op%22:%22in%22,%22content",
-                    "%22:%7B%22field%22:%22cases.project.project_",
-                    "id%22,%22value%22:%5B%22TCGA-", toupper(tumor),
-                    "%22%",
-                    "5D%7D%7D,%7B%22op%22:%22in%22,%22content%22:",
-                    "%7B%22field%22:%22files.access%22,",
-                    "%22value%22:%5B%22open%22%5D%7D%7D,%7B%22op%",
-                    "22:%22in%22,%22content%22:%7B%22field",
-                    "%22:%22files.data_format%22,%22value%22:%5B%",
-                    "22TXT%22%5D%7D%7D,%7B%22op%22:",
-                    "%22in%22,%22content%22:%7B%22field%22:%22",
-                    "files.experimental_strategy%22,%22value%22",
-                    ":%5B%22RNA-Seq%22%5D%7D%7D,%7B%22op%22:%22",
-                    "in%22,%22content%22:%7B%22field%22:",
-                    "%22files.data_category%22,%22value%22:%5B%22",
-                    "Transcriptome%20Profiling%22%5D%7D%7D,",
-                    "%7B%22op%22:%22in%22,%22content%22:%7B%22",
-                    "field%22:%22files.analysis.workflow_type%22",
-                    ",%22value%22:%5B%22HTSeq%20-%20", toupper(htseq),
-                    "%22%5D%7D%7D%5D%7D&format=JSON"
-                )
-            } else if (toupper(htseq) == "ALL") {
-                url <- paste0(
-                    url_inicio, "?pretty=true&expand=cases.samples.",
-                    "portions.analytes.aliquots,cases.project,",
-                    "center,analysis&size=",
-                    size, "&filters=%7B%22op%22:%22and%22,%22",
-                    "content%22:%5B%7B%22op%22:%22",
-                    "in%22,%22content%22:%7B%22field%22:%22files.",
-                    "data_type%22,%22value%22:",
-                    "%5B%22Gene%20Expression%20Quantification%22",
-                    "%5D%7D%7D,%7B%22op%22:%22",
-                    "in%22,%22content%22:%7B%22field%22:%22files.",
-                    "access%22,%22value%22:%5B%22",
-                    "open%22%5D%7D%7D,%7B%22op%22:%22in%22,%22",
-                    "content%22:%7B%22field%22:%22",
-                    "files.data_format%22,%22value%22:%5B%22TXT%22%",
-                    "5D%7D%7D,%7B%22op%22:%22",
-                    "in%22,%22content%22:%7B%22field%22:%22files.",
-                    "analysis.workflow_type%22,%22",
-                    "value%22:%5B%22HTSeq%20-%20Counts%22,",
-                    "%22HTSeq%20-%20FPKM%22%5D%7D%7D,%7B%22op%22:%22in%22,",
-                    "%22content%22:%7B%22field%22:%22",
-                    "files.experimental_strategy%22,%22value%22:",
-                    "%5B%22RNA-Seq%22%5D%7D%7D,%7B%22",
-                    "op%22:%22in%22,%22content%22:%7B%22field%22:",
-                    "%22cases.project.project_id%22,",
-                    "%22value%22:%5B%22TCGA-", toupper(tumor),
-                    "%22%5D%7D%7D,%7B%22op%22:%22in%22,",
-                    "%22content%22:%7B%22field%22:%22files.data_",
-                    "category%22,%22value%22:%5B%22",
-                    "Transcriptome%20Profiling%22%5D%7D%7D%5D%7D&",
-                    "format=JSON"
-                )
-            } else {
-                stop(message('\nPlease insert a HTSeq value! ("Counts", ",
-                            "FPKM", or "all")\n'))
-            }
+            url <- paste0(
+                url_inicio, "?pretty=true&expand=cases.samples.",
+                "portions.analytes.aliquots,cases.project,",
+                "center,analysis&size=",
+                size, "&filters=%7B%22op%22:%22and%22,%22",
+                "content%22:%5B%7B%22op%22:%22",
+                "in%22,%22content%22:%7B%22field%22:%22files.",
+                "data_type%22,%22value%22:",
+                "%5B%22Gene%20Expression%20Quantification%22",
+                "%5D%7D%7D,%7B%22op%22:%22",
+                "in%22,%22content%22:%7B%22field%22:%22files.",
+                "access%22,%22value%22:%5B%22",
+                "open%22%5D%7D%7D,%7B%22op%22:%22in%22,%22",
+                "content%22:%7B%22field%22:%22",
+                "files.data_format%22,%22value%22:%5B%22TXT%22%",
+                "5D%7D%7D,%7B%22op%22:%22",
+                "in%22,%22content%22:%7B%22field%22:%22files.",
+                "analysis.workflow_type%22,%22",
+                "value%22:%5B%22HTSeq%20-%20Counts%22,",
+                "%22HTSeq%20-%20FPKM%22%5D%7D%7D,%7B%22op%22:%22in%22,",
+                "%22content%22:%7B%22field%22:%22",
+                "files.experimental_strategy%22,%22value%22:",
+                "%5B%22RNA-Seq%22%5D%7D%7D,%7B%22",
+                "op%22:%22in%22,%22content%22:%7B%22field%22:",
+                "%22cases.project.project_id%22,",
+                "%22value%22:%5B%22TCGA-", toupper(tumor),
+                "%22%5D%7D%7D,%7B%22op%22:%22in%22,",
+                "%22content%22:%7B%22field%22:%22files.data_",
+                "category%22,%22value%22:%5B%22",
+                "Transcriptome%20Profiling%22%5D%7D%7D%5D%7D&",
+                "format=JSON"
+            )
 
             message("\n\nDownloading manifest...\n")
             sw <- function(x) {
@@ -439,9 +379,14 @@ download_gdc <- function(data_type = "gene",
 
             cases <- matrix(nrow = nrow(manifest_df), ncol = 1)
             for (index in seq_len(length(manipular))) {
-                patient_code <- manipular[[index]][2]
-                tmp <- as.character(unlist(patient_code))
-                cases[index, 1] <- tmp[grep("TCGA", tmp)]
+                patient_code <- as.character(unlist(manipular[[index]][1]))
+                tmp <- patient_code[grep("TCGA", patient_code)]
+                if (tmp == paste0('TCGA-', toupper(tumor))) {
+                    patient_code <- as.character(unlist(manipular[[index]][2]))
+                    cases[index, 1] <- patient_code[grep("TCGA", patient_code)]
+                } else {
+                    cases[index, 1] <- tmp
+                }
             }
 
             manifest_df$cases <- cases
@@ -449,14 +394,23 @@ download_gdc <- function(data_type = "gene",
             manifest_df[, "cases"] <- as.character(manifest_df[, "cases"])
 
             write.table(
-                x = manifest_df, file = paste0(
-                    dir, "/", toupper(htseq),
-                    "_manifest.sdrf"
+                x = manifest_df, file = file.path(
+                    direc, "manifest.sdrf"
                 ),
                 quote = FALSE, row.names = FALSE, sep = "\t"
             )
 
-            manifest_df <- manifest_df[, c("file_name", "md5sum", "file_id")]
+            seletor <- unname(sapply(
+                manifest_df$submitter_id,
+                function(w) {
+                    paste0(unlist(strsplit(w, "_"))[2])
+                }
+            ))
+
+            manifest_df <- manifest_df[
+                grep(tolower(htseq), seletor),
+                c("file_name", "md5sum", "file_id")
+            ]
 
             colnames(manifest_df) <- c("filename", "md5", "id")
 
@@ -478,21 +432,22 @@ download_gdc <- function(data_type = "gene",
             ),
             showWarnings = FALSE
         )
-        dir <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
+        direc <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
 
-        if (tolower(data_base) == "legacy") {
+        if (db_bool) {
+            # legacy exclusive
+            if (tolower(platform) %in% "all") {
+                tmpform <- "Illumina GA|Illumina HiSeq"
+            } else if (tolower(platform) %in% "illumina ga") {
+                tmpform <- "Illumina GA"
+            } else if (tolower(platform) %in% "illumina hiseq") {
+                tmpform <- "Illumina HiSeq"
+            }
+
             platform <- paste0(
                 "%22value%22:%5B%22Illumina%20GA%22,",
                 "%22Illumina%20HiSeq%22%5D%7D%7D"
             )
-            # legacy exclusive
-            if (tolower(platform) %in% "all") {
-                tmp <- "Illumina GA|Illumina HiSeq"
-            } else if (tolower(platform) %in% "illumina ga") {
-                tmp <- "Illumina GA"
-            } else if (tolower(platform) %in% "illumina hiseq") {
-                tmp <- "Illumina HiSeq"
-            }
 
             url <- paste0(
                 url_inicio, "?pretty=true&expand=cases.samples.",
@@ -544,17 +499,7 @@ download_gdc <- function(data_type = "gene",
             )
         }
 
-
         json <- jsonlite::fromJSON(url, simplifyDataFrame = TRUE)
-
-        json <- tryCatch(jsonlite::fromJSON(url, simplifyDataFrame = TRUE),
-            error = function(e) stop(e),
-            finally = message(
-                "The tumor ", toupper(tumor),
-                " does not have ", tolower(data_type),
-                " data!"
-            )
-        )
 
         manifest_df <- json$data$hits
 
@@ -575,26 +520,40 @@ download_gdc <- function(data_type = "gene",
         }
 
         manipular <- manifest_df[, "cases"]
+        manifest_df[, "cases"] <- NULL
 
-        pre_cases <- manipular[[1]][2]
-
-        patient_code <- matrix(
-            data = as.character(unlist(pre_cases)),
-            nrow = 10,
-            ncol = length(as.character(unlist(pre_cases))) / 10
+        pre_cases <- matrix(data = "",
+            nrow = nrow(manifest_df),
+            ncol = ncol(manipular[[1]]["project"][[1]][1, ])
         )
+        colnames(pre_cases) <- colnames(manipular[[1]]["project"][[1]][1, ])
 
-        manifest_df[, "cases"] <- paste(patient_code[6, ], collapse = ", ")
+        for (i in seq_len(length(manipular))) {
+            cases <- unlist(manipular[[i]]["samples"])
+            cases <- as.character(cases[grep("TCGA", cases)])
+            cases <- unname(sapply(
+                cases,
+                function(w) {
+                    paste(unlist(strsplit(w, "-"))[1:4], collapse = "-")
+                }
+            ))
+            manifest_df[i, "cases"] <- paste(cases, collapse = "/")
+
+            pre_cases[i, ] <- as.matrix(manipular[[i]]["project"][[1]][1, ])
+        }
+
+        manifest_df <- cbind(manifest_df, pre_cases)
 
         write.table(
-            x = manifest_df, file = paste0(dir, "/manifest.sdrf"),
+            x = manifest_df, file = paste0(direc, "/manifest.sdrf"),
             quote = FALSE, row.names = FALSE, sep = "\t"
         )
 
-        manifest_df <- manifest_df[
-            grep(tmp, head(manifest_df)$platform),
-            c("file_name", "md5sum", "file_id")
-        ]
+        if (db_bool) {
+            manifest_df <- manifest_df[grep(tmpform, manifest_df$platform), ]
+        }
+
+        manifest_df <- manifest_df[, c("file_name", "md5sum", "file_id")]
 
         colnames(manifest_df) <- c("filename", "md5", "id")
 
@@ -610,26 +569,30 @@ download_gdc <- function(data_type = "gene",
             ),
             showWarnings = FALSE
         )
-        dir <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
+        direc <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
 
-        platform <- paste0(
-            "%22value%22:%5B%22Illumina%20Human%20Methylation",
-            "%20450%22,%22Illumina%20Human%20Methylation%2027%22%5D%7D%7D"
-        )
 
         if (tolower(platform) %in% "all") {
-            tmp <- paste0(
+            platform <- paste0(
+                "%22value%22:%5B%22Illumina%20Human%20Methylation",
+                "%20450%22,%22Illumina%20Human%20Methylation%2027%22%5D%7D%7D"
+            )
+            tmpform <- paste0(
                 "Illumina Human Methylation 450|Illumina ",
                 "Human Methylation 27"
             )
         } else if (tolower(platform) %in% "illumina human methylation 450") {
-            # platform <- paste0("%22value%22:%5B%22Illumina%20Human%20",
-            # "Methylation%20450%22%5D%7D%7D")
-            tmp <- "Illumina Human Methylation 450"
+            platform <- paste0(
+                "%22value%22:%5B%22Illumina%20Human%20",
+                "Methylation%20450%22%5D%7D%7D"
+            )
+            tmpform <- "Illumina Human Methylation 450"
         } else if (tolower(platform) %in% "illumina human methylation 27") {
-            # platform <- paste0("%22value%22:%5B%22Illumina%20Human%20",
-            # "Methylation%2027%22%5D%7D%7D")
-            tmp <- "Illumina Human Methylation 27"
+            platform <- paste0(
+                "%22value%22:%5B%22Illumina%20Human%20",
+                "Methylation%2027%22%5D%7D%7D"
+            )
+            tmpform <- "Illumina Human Methylation 27"
         }
 
         size <- size_par(
@@ -637,7 +600,7 @@ download_gdc <- function(data_type = "gene",
             db = tolower(data_base)
         )
 
-        if (tolower(data_base) == "legacy") {
+        if (db_bool) {
             url <- paste0(
                 url_inicio, "?pretty=true&expand=cases.samples.",
                 "portions.analytes.aliquots,cases.project,center,",
@@ -712,20 +675,26 @@ download_gdc <- function(data_type = "gene",
         cases <- matrix(nrow = nrow(manifest_df), ncol = 1)
 
         for (index in seq_len(length(manipular))) {
-            patient_code <- manipular[[index]][2]
-            tmp <- as.character(unlist(patient_code))
-            cases[index, 1] <- tmp[grep("TCGA", tmp)]
+            # patient_code <- manipular[[index]][ifelse(db_bool, 2, 1)]
+            patient_code <- as.character(unlist(manipular[[index]][1]))
+            tmp <- patient_code[grep("TCGA", patient_code)]
+            if (tmp == paste0('TCGA-', toupper(tumor))) {
+                patient_code <- as.character(unlist(manipular[[index]][2]))
+                cases[index, 1] <- patient_code[grep("TCGA", patient_code)]
+            } else {
+                cases[index, 1] <- tmp
+            }
         }
 
         manifest_df$cases <- cases
 
         write.table(
-            x = manifest_df, file = paste0(dir, "/manifest.sdrf"),
+            x = manifest_df, file = paste0(direc, "/manifest.sdrf"),
             quote = FALSE, row.names = FALSE, sep = "\t"
         )
 
         manifest_df <- manifest_df[
-            grep(tmp, manifest_df$platform),
+            grep(tmpform, manifest_df$platform),
             c("file_name", "md5sum", "file_id")
         ]
 
@@ -744,9 +713,9 @@ download_gdc <- function(data_type = "gene",
             ),
             showWarnings = FALSE
         )
-        dir <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
+        direc <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
 
-        if (tolower(data_base) == "legacy") {
+        if (db_bool) {
             size <- size_par(
                 tumor = tumor, type_of_data = "Clinical",
                 db = "legacy"
@@ -938,7 +907,7 @@ download_gdc <- function(data_type = "gene",
         }
 
         write.table(
-            x = manifest_df, file = paste0(dir, "/manifest.sdrf"),
+            x = manifest_df, file = paste0(direc, "/manifest.sdrf"),
             quote = FALSE, row.names = FALSE, sep = "\t"
         )
 
@@ -963,12 +932,15 @@ download_gdc <- function(data_type = "gene",
             ),
             showWarnings = FALSE
         )
-        dir <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
+        direc <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
 
         size <- size_par(
             tumor = tumor, type_of_data = "Protein expression",
             db = "legacy"
         )
+
+        message("Cheking if size is different of zero...")
+        stopifnot(!is.na(size))
 
         url <- paste0(
             url_inicio, "?pretty=true&expand=cases.samples.",
@@ -1006,7 +978,7 @@ download_gdc <- function(data_type = "gene",
         patient_code <- manifest_df$submitter_id
 
         write.table(
-            x = manifest_df, file = paste0(dir, "/manifest.sdrf"),
+            x = manifest_df, file = paste0(direc, "/manifest.sdrf"),
             quote = FALSE, row.names = FALSE, sep = "\t"
         )
 
@@ -1026,7 +998,7 @@ download_gdc <- function(data_type = "gene",
             ),
             showWarnings = FALSE
         )
-        dir <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
+        direc <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
 
         url <- paste0(
             url_inicio, "?pretty=true&expand=cases.samples.",
@@ -1068,7 +1040,7 @@ download_gdc <- function(data_type = "gene",
         ), ]
 
         write.table(
-            x = manifest_df, file = paste0(dir, "/manifest.sdrf"),
+            x = manifest_df, file = paste0(direc, "/manifest.sdrf"),
             quote = FALSE, row.names = FALSE, sep = "\t"
         )
 
@@ -1081,7 +1053,7 @@ download_gdc <- function(data_type = "gene",
 
     # NOTE mirna ####
     is_mirna <- "mirna" %in% strsplit(tolower(data_type), split = " ")[[1]][1]
-    is_isoform <- "isoform expression quantification" %in% tolower(data_type)
+    is_isoform <- "isoform expression quantification" == tolower(data_type)
     if (is_mirna || is_isoform) {
         dir.create(
             path = file.path(
@@ -1090,11 +1062,10 @@ download_gdc <- function(data_type = "gene",
             ),
             showWarnings = FALSE
         )
-        dir <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
-
-        platform <- ""
+        direc <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
 
         if (tolower(platform) %in% "all") {
+            platform <- ""
             tmp <- "Illumina HiSeq|Illumina GA|H-miRNA_8x15Kv2|H-miRNA_8x15Kv"
         } else if (tolower(platform) %in% "illumina hiseq") {
             platform <- paste0(
@@ -1126,7 +1097,7 @@ download_gdc <- function(data_type = "gene",
             tmp <- "H-miRNA_8x15Kv"
         }
 
-        if (tolower(data_base) == "legacy") {
+        if (db_bool) {
             size <- size_par(
                 type_of_data = "Gene expression", tumor = tumor,
                 db = tolower(data_base)
@@ -1220,15 +1191,7 @@ download_gdc <- function(data_type = "gene",
         }
         message("\n\nDownloading manifest...\n")
 
-        json <- tryCatch(jsonlite::fromJSON(url, simplifyDataFrame = TRUE),
-            error = function(e) stop(e),
-            finally = message(
-                "The tumor ", toupper(tumor),
-                " does not have ",
-                tolower(data_type), "data!"
-            )
-        )
-
+        json <- jsonlite::fromJSON(url, simplifyDataFrame = TRUE)
         manifest_df <- json$data$hits
 
         # checkin' if there are available data to download (e.g. LAML)
@@ -1252,24 +1215,30 @@ download_gdc <- function(data_type = "gene",
         cases <- matrix(nrow = nrow(manifest_df), ncol = 1)
 
         for (index in seq_len(length(manipular))) {
-            patient_code <- manipular[[index]][2]
-            cases[index, 1] <- as.character(unlist(patient_code))[6]
+            patient_code <- as.character(unlist(manipular[[index]][1]))
+            tmp <- patient_code[grep("TCGA", patient_code)]
+            if (tmp == paste0('TCGA-', toupper(tumor))) {
+                patient_code <- as.character(unlist(manipular[[index]][2]))
+                cases[index, 1] <- patient_code[grep("TCGA", patient_code)]
+            } else {
+                cases[index, 1] <- tmp
+            }
         }
 
         manifest_df$cases <- cases
 
         write.table(
-            x = manifest_df, file = paste0(dir, "/manifest.sdrf"),
+            x = manifest_df, file = paste0(direc, "/manifest.sdrf"),
             quote = FALSE, row.names = FALSE, sep = "\t"
         )
 
-        manifest_df <- manifest_df[
-            grep(tmp, head(manifest_df)$platform),
-            c("file_name", "md5sum", "file_id")
-        ]
+        if (db_bool) {
+            manifest_df <- manifest_df[grep(tmp, manifest_df$platform), ]
+        }
+
+        manifest_df <- manifest_df[, c("file_name", "md5sum", "file_id")]
 
         colnames(manifest_df) <- c("filename", "md5", "id")
-
         id_matrix <- manifest_df[, "id"]
     }
 
@@ -1289,20 +1258,20 @@ download_gdc <- function(data_type = "gene",
             ),
             showWarnings = FALSE
         )
-        dir <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
+        direc <- file.path(work_dir, "DOAGDC", toupper(tumor), folder_name)
+
+        if (tolower(platform) %in% "all") {
+            tmpform <- "Illumina GA|Illumina HiSeq"
+        } else if (tolower(platform) %in% "illumina ga") {
+            tmpform <- "Illumina GA"
+        } else if (tolower(platform) %in% "illumina hiseq") {
+            tmpform <- "Illumina HiSeq"
+        }
 
         platform <- paste0(
             "%22value%22:%5B%22Illumina%20GA%22,",
             "%22Illumina%20HiSeq%22%5D%7D%7D"
         )
-
-        if (tolower(platform) %in% "all") {
-            tmp <- "Illumina GA|Illumina HiSeq"
-        } else if (tolower(platform) %in% "illumina ga") {
-            tmp <- "Illumina GA"
-        } else if (tolower(platform) %in% "illumina hiseq") {
-            tmp <- "Illumina HiSeq"
-        }
 
         size <- size_par(
             tumor = tumor, type_of_data = "Gene expression",
@@ -1358,12 +1327,12 @@ download_gdc <- function(data_type = "gene",
         patient_code <- manifest_df$submitter_id # same protein problem
 
         write.table(
-            x = manifest_df, file = paste0(dir, "/manifest.sdrf"),
+            x = manifest_df, file = paste0(direc, "/manifest.sdrf"),
             quote = FALSE, row.names = FALSE, sep = "\t"
         )
 
         manifest_df <- manifest_df[
-            grep(tmp, head(manifest_df)$platform),
+            grep(tmpform, manifest_df$platform),
             c("file_name", "md5sum", "file_id")
         ]
 
@@ -1373,22 +1342,23 @@ download_gdc <- function(data_type = "gene",
     }
 
     # NOTE Download PPD ####
-    if (length(dir(dir)) > 1) {
+    if (length(dir(direc)) > 1) {
         # verifying if the data is already downloaded
         pattern <- paste(".sdrf", "Data_access_time.txt", sep = "|")
         already_downloaded <- dir(
-            path = dir, include.dirs = FALSE,
+            path = direc, include.dirs = FALSE,
             recursive = FALSE,
             full.names = TRUE
         )[!grepl(
             pattern,
-            dir(path = dir)
+            dir(path = direc)
         )]
         message("Checking md5 from downloaded files\n")
         already_downloaded_md5 <- as.vector(tools::md5sum(already_downloaded))
         selector <- manifest_df[, "md5"] %in% already_downloaded_md5
         id_matrix <- manifest_df[!selector, "id"]
     }
+
     if (length(id_matrix) != 0) {
         message("OK!\n")
         ### download data
@@ -1403,9 +1373,9 @@ download_gdc <- function(data_type = "gene",
             ))
             setTxtProgressBar(pb, cont)
             tmp <- manifest_df[manifest_df$id == id_matrix[cont], "filename"]
-            download_httr(url = id, destfile = paste0(dir, "/", tmp))
+            download_httr(url = id, destfile = paste0(direc, "/", tmp))
             md5 <- tools::md5sum(dir(
-                path = dir, pattern = tmp,
+                path = direc, pattern = tmp,
                 full.names = TRUE
             ))
             tmp_md5 <- manifest_df[manifest_df$id == id_matrix[cont], "md5"]
@@ -1414,8 +1384,8 @@ download_gdc <- function(data_type = "gene",
                     "The md5 of file '", tmp,
                     "' is wrong. Downloading again...\n"
                 ))
-                download_httr(url = id, destfile = paste0(dir, "/", tmp))
-                md5 <- tools::md5sum(dir(dir, tmp, full.names = TRUE))
+                download_httr(url = id, destfile = paste0(direc, "/", tmp))
+                md5 <- tools::md5sum(dir(direc, tmp, full.names = TRUE))
             }
         }
         close(pb)
@@ -1436,7 +1406,7 @@ download_gdc <- function(data_type = "gene",
     }
 
     # saving accession data
-    write.table(Sys.time(), paste0(dir, "/Data_access_time.txt"),
+    write.table(Sys.time(), paste0(direc, "/Data_access_time.txt"),
         quote = FALSE,
         row.names = FALSE, col.names = FALSE
     )

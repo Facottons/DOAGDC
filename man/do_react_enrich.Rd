@@ -4,9 +4,18 @@
 \alias{do_react_enrich}
 \title{DESEASE-ONTOLOGY and REACTOME ENRICHMENT}
 \usage{
-do_react_enrich(p_cutoff = 0.05, fdr_cutoff = 0.05, width = 8,
-  height = 4, res = 300, unit = "in", image_format = "png",
-  tool = "edgeR", pair_name = "G2_over_G1", env)
+do_react_enrich(
+  p_cutoff = 0.05,
+  fdr_cutoff = 0.05,
+  width = 8,
+  height = 4,
+  res = 300,
+  unit = "in",
+  image_format = "png",
+  tool = "edgeR",
+  pair_name = "G2_over_G1",
+  env
+)
 }
 \arguments{
 \item{p_cutoff}{Numerical value indicating the maximum value for p-values.

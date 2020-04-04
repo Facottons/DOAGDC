@@ -4,10 +4,21 @@
 \alias{concatenate_methylation}
 \title{Concatenate GDC files into a single matrix and prepar the data}
 \usage{
-concatenate_methylation(name, data_base, work_dir, tumor,
-  tumor_data = TRUE, cutoff_beta_na = 0.25, cutoff_betasd = 0.005,
-  only_filter = FALSE, tumor_type = 1, normal_type = 11,
-  platform = "", env, save_data = FALSE)
+concatenate_methylation(
+  name,
+  data_base,
+  work_dir,
+  tumor,
+  tumor_data = TRUE,
+  cutoff_beta_na = 0.25,
+  cutoff_betasd = 0.005,
+  only_filter = FALSE,
+  tumor_type = 1,
+  normal_type = 11,
+  platform = "",
+  env,
+  save_data = FALSE
+)
 }
 \arguments{
 \item{name}{A character string indicating the desired values to be used in

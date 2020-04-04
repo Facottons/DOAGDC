@@ -207,7 +207,9 @@ draw_heatmap <- function(tool, fc_cutoff = 2,
             rowv <- FALSE
         }
 
-        colv <- FALSE
+        if (is.null(colv) || is.na(colv)) {
+            colv <- FALSE
+        }
 
         if (length(di <- dim(x)) != 2 || !is.numeric(x)) {
             stop("`x' must be a numeric matrix")
@@ -254,7 +256,7 @@ draw_heatmap <- function(tool, fc_cutoff = 2,
                 }
 
                 warning(
-                    "Discrepancy: Colv is FALSE, while dendrogram is `",
+                    "Discrepancy: Colv is FALSE, while dendrogram is '",
                     dendrogram, "'. Omitting column dendogram."
                 )
             }
@@ -317,7 +319,7 @@ draw_heatmap <- function(tool, fc_cutoff = 2,
             }
         }
         else if (isTRUE(colv)) {
-            colv <- col_means(x, na.rm = na.rm)
+            colv <- colMeans(x, na.rm = na.rm)
             hcc <- hclustfun(distfun(if (symm) {
                 x
             } else {
@@ -370,7 +372,7 @@ draw_heatmap <- function(tool, fc_cutoff = 2,
             x <- sweep(x, 1, sx, "/")
         }
         else if (scale == "column") {
-            retval$col_means <- rm <- col_means(x, na.rm = na.rm)
+            retval$col_means <- rm <- colMeans(x, na.rm = na.rm)
             x <- sweep(x, 2, rm)
             retval$col_sds <- sx <- apply(x, 2, sd, na.rm = na.rm)
             x <- sweep(x, 2, sx, "/")

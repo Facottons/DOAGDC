@@ -4,10 +4,22 @@
 \alias{concatenate_mirna}
 \title{Concatenate GDC files into a single matrix and prepar the data}
 \usage{
-concatenate_mirna(data_type, normalization = TRUE, name, data_base,
-  work_dir, tumor, tumor_data = TRUE, only_filter = FALSE,
-  tumor_type = 1, normal_type = 11, platform = "",
-  use_hg19_mirbase20 = FALSE, env, save_data = FALSE)
+concatenate_mirna(
+  data_type,
+  normalization = TRUE,
+  name,
+  data_base,
+  work_dir,
+  tumor,
+  tumor_data = TRUE,
+  only_filter = FALSE,
+  tumor_type = 1,
+  normal_type = 11,
+  platform = "",
+  use_hg19_mirbase20 = FALSE,
+  env,
+  save_data = FALSE
+)
 }
 \arguments{
 \item{data_type}{A character string indicating the desired miRNA file:}
